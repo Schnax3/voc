@@ -66,26 +66,34 @@ const R = (() => {
   }
   return { owner, repo };
 })();
-const dataUrl = t => onPages
-  ? `${enc(t.dir)}/${enc(t.file)}`
-  : `https://raw.githubusercontent.com/${R.owner}/${R.repo}/HEAD/${enc(t.dir)}/${enc(t.file)}`;
+const rel = p => p.split('/').map(enc).join('/');
+const fileUrl = p => onPages ? rel(p) : `https://raw.githubusercontent.com/${R.owner}/${R.repo}/HEAD/${rel(p)}`;
+const dataUrl = t => fileUrl(`${t.dir}/${t.file}`);
+// Vergleichsform fuer Dateinamen: Gross/Klein, Satzzeichen und Sonderzeichen (z. B. "?" im Dateinamen) egal
+const norm = s => s.normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+let au; // aktuell spielende Audiodatei
+const play = p => { if (au) au.pause(); au = new Audio(fileUrl(p)); au.play().catch(() => {}); };
 
 // ---- Tabellen automatisch finden (jeder Ordner mit einer .json = eine Tabelle) --
 let tables = [];
 async function discover(force) {
-  const key = `vk:tables:${R.owner}/${R.repo}`, c = LS.get(key);
+  const key = `vk:tables2:${R.owner}/${R.repo}`, c = LS.get(key);
   if (c && !force && Date.now() - c.t < 18e5) return c.tables; // 30 Min Cache (API-Limit schonen)
   try {
     const r = await fetch(`https://api.github.com/repos/${R.owner}/${R.repo}/git/trees/HEAD?recursive=1`);
     if (!r.ok) throw new Error('GitHub-API ' + r.status);
-    const { tree } = await r.json(), map = {};
+    const { tree } = await r.json(), map = {}, mp3 = {};
     for (const e of tree) {
-      const m = e.type === 'blob' && e.path.match(/^([^/]+)\/([^/]+\.json)$/);
-      if (!m || '._'.includes(m[1][0]) || CFG.ignore.includes(m[1])) continue;
-      (map[m[1]] ??= []).push(m[2]);
+      if (e.type !== 'blob') continue;
+      const top = e.path.split('/')[0];
+      if (top === e.path || '._'.includes(top[0]) || CFG.ignore.includes(top)) continue;
+      const m = e.path.match(/^[^/]+\/([^/]+\.json)$/);
+      if (m) (map[top] ??= []).push(m[1]);
+      // jede .mp3 im Tabellenordner (auch in Unterordnern); Name = franzoesische Vokabel
+      else if (/\.mp3$/i.test(e.path)) (mp3[top] ??= {})[norm(e.path.split('/').pop().slice(0, -4))] = e.path;
     }
     const list = Object.entries(map)
-      .map(([dir, fs]) => ({ dir, file: fs.find(f => CFG.prefer.test(f)) || fs[0] }))
+      .map(([dir, fs]) => ({ dir, file: fs.find(f => CFG.prefer.test(f)) || fs[0], audio: mp3[dir] || {} }))
       .sort((a, b) => a.dir.localeCompare(b.dir, 'de', { numeric: true }));
     LS.set(key, { t: Date.now(), tables: list });
     return list;
@@ -101,7 +109,8 @@ async function load(t) {
   const raw = JSON.parse((await r.text()).replace(/^\uFEFF/, ''));
   const cards = raw.filter(e => e && e.french && e.german).map(e => ({
     id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir,
-    fr: e.french, de: e.german, img: [].concat(e.image || []).filter(Boolean)
+    fr: e.french, de: e.german, img: [].concat(e.image || []).filter(Boolean),
+    au: (t.audio || {})[norm(e.french)] // Pfad der mp3, falls vorhanden
   }));
   DB.set(t.dir, cards);
   const meta = LS.get('vk:meta', {}); meta[t.dir] = cards.map(c => c.id); LS.set('vk:meta', meta);
@@ -202,10 +211,11 @@ function learn(q) {
   const draw = () => {
     if (!q.length) return done();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
+    const spk = c.au ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(s)}" alt="">`).join('')}</div>` : '';
     app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}</span></div>
-    <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}</div>
-      ${shown ? `<hr><div class="a">${esc(back)}</div>` : '<span class="mut">Tippen zum Umdrehen</span>'}</div>
+    <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
+      ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>` : '<span class="mut">Tippen zum Umdrehen</span>'}</div>
     <div class="btns">${shown
       ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
       : '<button id="flip" class="primary" style="flex:1">Antwort zeigen (Leertaste)</button>'}</div>`;
