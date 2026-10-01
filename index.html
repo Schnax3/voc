@@ -72,6 +72,22 @@ const fileUrl = p => onPages ? rel(p) : `https://raw.githubusercontent.com/${R.o
 const dataUrl = t => fileUrl(`${t.dir}/${t.file}`);
 // Vergleichsform fuer Dateinamen: Gross/Klein, Satzzeichen und Sonderzeichen (z. B. "?" im Dateinamen) egal
 const norm = s => s.normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+const AUDIO_ALIASES = {
+  '4': {
+    'un étage': 'étages',
+    'un club de foot': 'clubs de foot',
+    'en une demi heure': 'demi heure',
+    's ennuyer': 'ennuyer',
+    'un immeuble': 'immeuble',
+    manquer: 'manque',
+    'un quatre pièces': 'quatre pièces',
+    rouler: 'roule',
+    'un stade': 'stade',
+    'un trajet': 'trajet',
+    'un tram': 'tram',
+    'la banlieue': 'banlieue'
+  }
+};
 let au; // aktuell spielende Audiodatei
 const play = p => { if (au) au.pause(); au = new Audio(fileUrl(p)); au.play().catch(() => {}); };
 
@@ -108,11 +124,16 @@ async function load(t) {
   const r = await fetch(dataUrl(t));
   if (!r.ok) throw new Error(`${t.dir}/${t.file}: ${r.status}`);
   const raw = JSON.parse((await r.text()).replace(/^\uFEFF/, ''));
-  const cards = raw.filter(e => e && e.french && e.german).map(e => ({
-    id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir,
-    fr: e.vocabulary || e.french, de: e.german, example: e.french, img: [].concat(e.image || []).filter(Boolean),
-    au: (t.audio || {})[norm(e.vocabulary || e.french)] // Pfad der mp3, falls vorhanden
-  }));
+  const cards = raw.filter(e => e && e.french && e.german).map(e => {
+    const fr = e.vocabulary || e.french;
+    const key = norm(fr);
+    const audioKey = (AUDIO_ALIASES[t.dir] || {})[key] || key;
+    return {
+      id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir,
+      fr, de: e.german, example: e.french, img: [].concat(e.image || []).filter(Boolean),
+      au: (t.audio || {})[audioKey]
+    };
+  });
   DB.set(t.dir, cards);
   const meta = LS.get('vk:meta', {}); meta[t.dir] = cards.map(c => c.id); LS.set('vk:meta', meta);
   return cards;
