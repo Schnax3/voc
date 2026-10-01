@@ -94,52 +94,6 @@ const R = (() => {
 const rel = p => p.split('/').map(enc).join('/');
 const fileUrl = p => onPages ? rel(p) : `https://raw.githubusercontent.com/${R.owner}/${R.repo}/HEAD/${rel(p)}`;
 const dataUrl = t => fileUrl(`${t.dir}/${t.file}`);
-// Vergleichsform fuer Dateinamen: Gross/Klein, Satzzeichen und Sonderzeichen (z. B. "?" im Dateinamen) egal
-const norm = s => s.normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-const AUDIO_ALIASES = {
-  '4': {
-    'un étage': 'étages',
-    'un club de foot': 'clubs de foot',
-    'en une demi heure': 'demi heure',
-    's ennuyer': 'ennuyer',
-    'un immeuble': 'immeuble',
-    manquer: 'manque',
-    'un quatre pièces': 'quatre pièces',
-    rouler: 'roule',
-    'un stade': 'stade',
-    'un trajet': 'trajet',
-    'un tram': 'tram',
-    'la banlieue': 'banlieue'
-  },
-  U7A: {
-    'un étage': 'étages',
-    manquer: 'manque',
-    'un club de foot': 'clubs de foot',
-    'un stade': 'stade',
-    'en une demi heure': 'demi heure',
-    'un trajet': 'trajet',
-    rouler: 'roule',
-    's ennuyer': 'ennuyer',
-    'un immeuble': 'immeuble',
-    'un tram': 'tram',
-    'un quatre pièces': 'quatre pièces',
-    'la banlieue': 'banlieue',
-    'la nature': 'nature',
-    'une ferme': 'ferme',
-    'un travail': 'travail',
-    travaux: 'travaux',
-    'au début': 'début',
-    's orienter': 'orienter',
-    'un festival': 'festival',
-    région: 'dans la région de nantes',
-    'au nord de': 'est au nord de nantes',
-    'à combien de kilomètres de': 'à combien de kilomètres de nantes',
-    'à quarante kilomètres de': 'à quarante kilomètres de nantes',
-    'combien d heures est ce qu on met pour aller de à': 'combien d heures est ce qu on met pour aller de blain à nantes',
-    'mettre environ pour aller de à': 'on met environ une heure pour aller de blain à nantes en voiture',
-    'dépendre de': 'dépend'
-  }
-};
 let au; // aktuell spielende Audiodatei
 const play = p => { if (au) au.pause(); au = new Audio(fileUrl(p)); au.play().catch(() => {}); };
 
@@ -151,19 +105,22 @@ async function discover(force) {
   try {
     const r = await fetch(`https://api.github.com/repos/${R.owner}/${R.repo}/git/trees/HEAD?recursive=1`);
     if (!r.ok) throw new Error('GitHub-API ' + r.status);
-    const { tree } = await r.json(), map = {}, mp3 = {};
+    const { tree } = await r.json(), map = {};
     for (const e of tree) {
       if (e.type !== 'blob') continue;
       const top = e.path.split('/')[0];
       if (top === e.path || '._'.includes(top[0]) || CFG.ignore.includes(top)) continue;
       const m = e.path.match(/^[^/]+\/([^/]+\.json)$/);
       if (m) (map[top] ??= []).push(m[1]);
-      // jede .mp3 im Tabellenordner (auch in Unterordnern); Name = franzoesische Vokabel
-      else if (/\.mp3$/i.test(e.path)) (mp3[top] ??= {})[norm(e.path.split('/').pop().slice(0, -4))] = e.path;
     }
     const list = Object.entries(map)
-      .map(([dir, fs]) => ({ dir, file: fs.find(f => CFG.prefer.test(f)) || fs[0], audio: mp3[dir] || {} }))
-      .sort((a, b) => a.dir.localeCompare(b.dir, 'de', { numeric: true }));
+      .map(([dir, files]) => {
+        const file = files.find(f => CFG.prefer.test(f)) || files[0];
+        const number = file.match(/^database-(\d+)\.json$/i);
+        return { dir, file, order: number ? Number(number[1]) : Infinity };
+      })
+      .sort((a, b) => a.order - b.order || a.dir.localeCompare(b.dir, 'de', { numeric: true }))
+      .map(({ order, ...table }) => table);
     LS.set(key, { t: Date.now(), tables: list });
     return list;
   } catch (e) { if (c) return c.tables; throw e; }
@@ -179,12 +136,10 @@ async function load(t, force = false) {
   const raw = JSON.parse((await r.text()).replace(/^\uFEFF/, ''));
   const cards = raw.filter(e => e && e.french && e.german).map(e => {
     const fr = e.vocabulary || e.french;
-    const key = norm(fr);
-    const audioKey = (AUDIO_ALIASES[t.dir] || {})[key] || key;
     return {
       id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir,
       fr, de: e.german, example: e.french, img: [].concat(e.image || []).filter(Boolean),
-      au: (t.audio || {})[audioKey]
+      au: e.audio || null
     };
   });
   DB.set(t.dir, cards);
