@@ -28,7 +28,7 @@ button:disabled{opacity:.45;cursor:default}
 .good{background:var(--ok);border-color:var(--ok);color:#fff;flex:1}
 .bad{background:var(--bad);border-color:var(--bad);color:#fff;flex:1}
 .top{display:flex;justify-content:space-between;align-items:center}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 18px;margin:16px 0;text-align:center;min-height:240px;display:flex;flex-direction:column;justify-content:center;gap:12px;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 18px;margin:16px 0;text-align:center;min-height:240px;display:flex;flex-direction:column;justify-content:center;gap:12px;cursor:default}
 .card img{max-width:100%;max-height:170px;border-radius:8px;margin:0 auto}
 .imgs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .q{font-size:1.35rem;font-weight:600}
@@ -237,19 +237,20 @@ function learn(q) {
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(s)}" alt="">`).join('')}</div>` : '';
     app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}</span></div>
     <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
-      ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>${c.example ? `<div class="example">${esc(c.example)}</div>` : ''}` : '<span class="mut">Tippen zum Umdrehen</span>'}</div>
+      ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>${c.example ? `<div class="example">${esc(c.example)}</div>` : ''}` : ''}</div>
     <div class="btns">${shown
       ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
-      : '<button id="flip" class="primary" style="flex:1">Antwort zeigen (Leertaste)</button>'}</div>`;
+      : '<button id="flip" class="primary" style="flex:1">Antwort zeigen</button>'}</div>`;
     const $ = s => app.querySelector(s);
     $('#end').onclick = home;
-    $('#card').onclick = () => { if (!shown) { shown = true; draw(); } };
+    app.querySelectorAll('.spk').forEach(button => {
+      button.onclick = event => { event.stopPropagation(); play(c.au); };
+    });
     if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
     else $('#flip').onclick = () => { shown = true; draw(); };
   };
   document.onkeydown = e => {
-    if (!shown && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); shown = true; draw(); }
-    else if (shown && (e.key === 'ArrowLeft' || e.key === '1')) answer(false);
+    if (shown && (e.key === 'ArrowLeft' || e.key === '1')) answer(false);
     else if (shown && (e.key === 'ArrowRight' || e.key === '2')) answer(true);
   };
   const done = () => {
