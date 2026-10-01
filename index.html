@@ -35,6 +35,30 @@ button:disabled{opacity:.45;cursor:default}
 .a{font-size:1.25rem;color:var(--acc)}
 .example{font-size:1rem;color:var(--mut)}
 hr{width:100%;border:0;border-top:1px solid var(--line)}
+@media(max-width:560px){
+  main{padding:16px 12px calc(32px + env(safe-area-inset-bottom))}
+  h1{font-size:1.4rem}
+  .opts{margin:16px 0}
+  .opts label{flex-wrap:wrap}
+  .opts label:first-child select{flex:1 1 100%;width:100%;max-width:100%}
+  select{min-height:44px}
+  .btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .btns button{min-width:0;min-height:44px;padding:10px 12px;overflow-wrap:anywhere}
+  .btns #go,.btns #flip,.btns>button:only-child{grid-column:1/-1}
+  .top{align-items:flex-start;gap:8px}
+  .top>*{min-width:0}
+  .card{padding:20px 14px;margin:12px 0;min-height:200px;border-radius:12px}
+  .card img{max-height:140px}
+  .q,.a,.example,.mut{overflow-wrap:anywhere}
+  .q{font-size:1.2rem}
+  .row{align-items:flex-start;gap:10px;padding:12px}
+  .row input{width:24px;height:24px;margin:2px 0 0}
+  .row>span{min-width:0}
+}
+@media(max-width:360px){
+  main{padding-right:10px;padding-left:10px}
+  .top{flex-direction:column}
+}
 </style>
 </head>
 <body>
