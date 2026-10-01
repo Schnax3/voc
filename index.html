@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vokabelkasten</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#6b6a64;--acc:#2f6fed;--ok:#1f9d55;--bad:#d64545;--line:#e2e0d8}
+@media(prefers-color-scheme:dark){:root{--bg:#161614;--card:#222220;--ink:#efeee8;--mut:#9a9890;--acc:#6b9bff;--line:#383733}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+main{max-width:640px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.6rem;margin:.2em 0 .1em}
+.mut{color:var(--mut);font-size:.9rem}
+.row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0;cursor:pointer}
+.row input{width:20px;height:20px;flex:none}
+.row b{display:block}
+.bar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--line);margin-top:6px}
+.bar i{display:block;background:var(--acc)}
+.bar i:nth-child(1){opacity:.3}.bar i:nth-child(2){opacity:.5}.bar i:nth-child(3){opacity:.7}.bar i:nth-child(4){opacity:.85}
+.opts{margin:18px 0;display:grid;gap:10px}
+.opts label{display:flex;gap:8px;align-items:center}
+select{font:inherit;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+button{font:inherit;padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.good{background:var(--ok);border-color:var(--ok);color:#fff;flex:1}
+.bad{background:var(--bad);border-color:var(--bad);color:#fff;flex:1}
+.top{display:flex;justify-content:space-between;align-items:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 18px;margin:16px 0;text-align:center;min-height:240px;display:flex;flex-direction:column;justify-content:center;gap:12px;cursor:pointer}
+.card img{max-width:100%;max-height:170px;border-radius:8px;margin:0 auto}
+.imgs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.q{font-size:1.35rem;font-weight:600}
+.a{font-size:1.25rem;color:var(--acc)}
+hr{width:100%;border:0;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+// ---- Einstellungen ---------------------------------------------------------
+// owner/repo leer lassen = automatisch aus der GitHub-Pages-Adresse ermitteln.
+const CFG = { owner: null, repo: null, ignore: ['node_modules', 'assets', 'docs'], prefer: /^database/i };
+const DAYS = [0, 1, 3, 7, 21]; // Wartezeit in Tagen, bis eine Karte im Kasten 1..5 wieder faellig ist
+
+// ---- Helfer ---------------------------------------------------------------
+const app = document.getElementById('app');
+const LS = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const enc = encodeURIComponent;
+const hash = s => { let h = 5381; for (const ch of s) h = ((h << 5) + h + ch.charCodeAt(0)) | 0; return (h >>> 0).toString(36); };
+
+const onPages = location.hostname.endsWith('.github.io');
+const R = (() => {
+  let { owner, repo } = CFG;
+  if (!owner) {
+    if (onPages) {
+      owner = location.hostname.split('.')[0];
+      const p = location.pathname.split('/')[1];
+      repo = p && !p.includes('.') ? p : location.hostname; // Projekt- oder User-Seite
+    } else { owner = 'Schnax3'; repo = 'voc'; } // Fallback fuer lokales Testen
+  }
+  return { owner, repo };
+})();
+const dataUrl = t => onPages
+  ? `${enc(t.dir)}/${enc(t.file)}`
+  : `https://raw.githubusercontent.com/${R.owner}/${R.repo}/HEAD/${enc(t.dir)}/${enc(t.file)}`;
+
+// ---- Tabellen automatisch finden (jeder Ordner mit einer .json = eine Tabelle) --
+let tables = [];
+async function discover(force) {
+  const key = `vk:tables:${R.owner}/${R.repo}`, c = LS.get(key);
+  if (c && !force && Date.now() - c.t < 18e5) return c.tables; // 30 Min Cache (API-Limit schonen)
+  try {
+    const r = await fetch(`https://api.github.com/repos/${R.owner}/${R.repo}/git/trees/HEAD?recursive=1`);
+    if (!r.ok) throw new Error('GitHub-API ' + r.status);
+    const { tree } = await r.json(), map = {};
+    for (const e of tree) {
+      const m = e.type === 'blob' && e.path.match(/^([^/]+)\/([^/]+\.json)$/);
+      if (!m || '._'.includes(m[1][0]) || CFG.ignore.includes(m[1])) continue;
+      (map[m[1]] ??= []).push(m[2]);
+    }
+    const list = Object.entries(map)
+      .map(([dir, fs]) => ({ dir, file: fs.find(f => CFG.prefer.test(f)) || fs[0] }))
+      .sort((a, b) => a.dir.localeCompare(b.dir, 'de', { numeric: true }));
+    LS.set(key, { t: Date.now(), tables: list });
+    return list;
+  } catch (e) { if (c) return c.tables; throw e; }
+}
+
+// ---- Vokabeln laden (erst, wenn eine Tabelle angehakt wird) -------------------
+const DB = new Map();
+async function load(t) {
+  if (DB.has(t.dir)) return DB.get(t.dir);
+  const r = await fetch(dataUrl(t));
+  if (!r.ok) throw new Error(`${t.dir}/${t.file}: ${r.status}`);
+  const raw = JSON.parse((await r.text()).replace(/^\uFEFF/, ''));
+  const cards = raw.filter(e => e && e.french && e.german).map(e => ({
+    id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir,
+    fr: e.french, de: e.german, img: [].concat(e.image || []).filter(Boolean)
+  }));
+  DB.set(t.dir, cards);
+  const meta = LS.get('vk:meta', {}); meta[t.dir] = cards.map(c => c.id); LS.set('vk:meta', meta);
+  return cards;
+}
+
+// ---- Fortschritt (Leitner-Kasten 1-5, pro Browser gespeichert) -----------------
+let P = LS.get('vk:progress', {});
+const st = id => P[id] || { b: 1, d: 0 };
+const save = () => LS.set('vk:progress', P);
+let sel = new Set(LS.get('vk:sel', []));
+let opt = LS.get('vk:opt', { dir: 'fr', all: false, img: true });
+
+const idsOf = d => DB.has(d) ? DB.get(d).map(c => c.id) : (LS.get('vk:meta', {})[d] || null);
+
+// ---- Startseite ------------------------------------------------------------
+function home() {
+  document.onkeydown = null;
+  app.innerHTML = `<h1>Vokabelkasten</h1><p class="mut">Wähle die Tabellen, die du üben willst.</p>
+  <div id="list"></div>
+  <div class="opts">
+    <label>Richtung
+      <select id="dir"><option value="fr">Französisch → Deutsch</option><option value="de">Deutsch → Französisch</option><option value="mix">Gemischt</option></select></label>
+    <label><input type="checkbox" id="all"> Auch noch nicht fällige Karten üben</label>
+    <label><input type="checkbox" id="img"> Bilder anzeigen</label>
+  </div>
+  <div class="btns"><button id="go" class="primary">Starten</button><button id="reload">Tabellen neu laden</button><button id="reset">Fortschritt zurücksetzen</button></div>
+  <p class="mut" id="msg"></p>`;
+  const $ = s => app.querySelector(s);
+  $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#img').checked = opt.img;
+  const setOpt = () => { opt = { dir: $('#dir').value, all: $('#all').checked, img: $('#img').checked }; LS.set('vk:opt', opt); updateGo(); };
+  ['#dir', '#all', '#img'].forEach(s => $(s).onchange = setOpt);
+  $('#go').onclick = () => { const q = buildQueue(); if (q.length) learn(q); };
+  $('#reload').onclick = async () => {
+    try { tables = await discover(true); sel = new Set([...sel].filter(d => tables.some(t => t.dir === d))); list(); updateGo(); }
+    catch (e) { $('#msg').textContent = 'Fehler: ' + e.message; }
+  };
+  $('#reset').onclick = () => {
+    if (!sel.size || !confirm('Fortschritt der ausgewählten Tabellen zurücksetzen?')) return;
+    for (const k of Object.keys(P)) if (sel.has(k.split('::')[0])) delete P[k];
+    save(); list(); updateGo();
+  };
+  list(); updateGo();
+}
+
+function list() {
+  const el = app.querySelector('#list'); if (!el) return;
+  const now = Date.now();
+  el.innerHTML = tables.map(t => {
+    const ids = idsOf(t.dir), n = ids ? ids.length : null;
+    let info = 'noch nicht geladen', bar = '';
+    if (n !== null) {
+      const box = [0, 0, 0, 0, 0]; let due = 0;
+      ids.forEach(id => { const s = st(id); box[s.b - 1]++; if (s.d <= now) due++; });
+      info = `${n} Karten · ${due} fällig`;
+      bar = `<div class="bar" title="Kasten 1–5: ${box.join(' / ')}">${box.map(x => `<i style="width:${n ? x / n * 100 : 0}%"></i>`).join('')}</div>`;
+    }
+    return `<label class="row"><input type="checkbox" data-d="${esc(t.dir)}" ${sel.has(t.dir) ? 'checked' : ''}>
+      <span style="flex:1"><b>${esc(t.dir)}</b><span class="mut">${info}</span>${bar}</span></label>`;
+  }).join('') || '<p class="mut">Keine Tabellen gefunden. Lege einen Ordner mit einer .json-Datei an.</p>';
+  el.querySelectorAll('input').forEach(cb => cb.onchange = async () => {
+    const d = cb.dataset.d;
+    cb.checked ? sel.add(d) : sel.delete(d);
+    LS.set('vk:sel', [...sel]);
+    if (cb.checked) {
+      try { await load(tables.find(t => t.dir === d)); }
+      catch (e) { app.querySelector('#msg').textContent = 'Laden fehlgeschlagen: ' + e.message; sel.delete(d); }
+    }
+    list(); updateGo();
+  });
+}
+
+function updateGo() {
+  const go = app.querySelector('#go'); if (!go) return;
+  const n = buildQueue().length;
+  go.textContent = `Starten (${n} Karten)`;
+  go.disabled = n === 0;
+}
+
+// ---- Lernen ----------------------------------------------------------------
+function buildQueue() {
+  const now = Date.now(), q = [];
+  for (const d of sel) for (const c of DB.get(d) || [])
+    if (opt.all || st(c.id).d <= now) q.push({ c, dir: opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
+  q.sort(() => Math.random() - .5);                    // mischen
+  return q.sort((a, b) => st(a.c.id).b - st(b.c.id).b); // niedrige Kaesten zuerst
+}
+
+function learn(q) {
+  let shown = false, ok = 0, bad = 0;
+  const answer = good => {
+    const it = q.shift(), s = st(it.c.id), nb = good ? Math.min(5, s.b + 1) : 1;
+    P[it.c.id] = { b: nb, d: Date.now() + (good ? DAYS[nb - 1] * 864e5 : 0) };
+    save();
+    if (good) ok++; else { bad++; q.push(it); } // falsche Karten kommen am Ende nochmal
+    shown = false; draw();
+  };
+  const draw = () => {
+    if (!q.length) return done();
+    const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
+    const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(s)}" alt="">`).join('')}</div>` : '';
+    app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}</span></div>
+    <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}</div>
+      ${shown ? `<hr><div class="a">${esc(back)}</div>` : '<span class="mut">Tippen zum Umdrehen</span>'}</div>
+    <div class="btns">${shown
+      ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
+      : '<button id="flip" class="primary" style="flex:1">Antwort zeigen (Leertaste)</button>'}</div>`;
+    const $ = s => app.querySelector(s);
+    $('#end').onclick = home;
+    $('#card').onclick = () => { if (!shown) { shown = true; draw(); } };
+    if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
+    else $('#flip').onclick = () => { shown = true; draw(); };
+  };
+  document.onkeydown = e => {
+    if (!shown && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); shown = true; draw(); }
+    else if (shown && (e.key === 'ArrowLeft' || e.key === '1')) answer(false);
+    else if (shown && (e.key === 'ArrowRight' || e.key === '2')) answer(true);
+  };
+  const done = () => {
+    document.onkeydown = null;
+    app.innerHTML = `<h1>Geschafft!</h1><p>${ok} richtig · ${bad} falsch</p><div class="btns"><button id="back" class="primary">Zurück zur Auswahl</button></div>`;
+    app.querySelector('#back').onclick = home;
+  };
+  draw();
+}
+
+// ---- Start -----------------------------------------------------------------
+(async () => {
+  app.innerHTML = '<p class="mut">Lade Tabellen …</p>';
+  try { tables = await discover(); }
+  catch (e) {
+    app.innerHTML = `<h1>Vokabelkasten</h1><p>Tabellen konnten nicht geladen werden (${esc(e.message)}).</p>
+    <p class="mut">Ist das Repo öffentlich? GitHub erlaubt ohne Login nur 60 Abfragen pro Stunde je Netzwerk – später nochmal versuchen.</p>`;
+    return;
+  }
+  sel = new Set([...sel].filter(d => tables.some(t => t.dir === d)));
+  home();
+  for (const d of sel) load(tables.find(t => t.dir === d)).then(() => { list(); updateGo(); }).catch(() => {});
+})();
+</script>
+</body>
+</html>
