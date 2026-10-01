@@ -33,6 +33,7 @@ button:disabled{opacity:.45;cursor:default}
 .imgs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .q{font-size:1.35rem;font-weight:600}
 .a{font-size:1.25rem;color:var(--acc)}
+.example{font-size:1rem;color:var(--mut)}
 hr{width:100%;border:0;border-top:1px solid var(--line)}
 </style>
 </head>
@@ -109,8 +110,8 @@ async function load(t) {
   const raw = JSON.parse((await r.text()).replace(/^\uFEFF/, ''));
   const cards = raw.filter(e => e && e.french && e.german).map(e => ({
     id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir,
-    fr: e.french, de: e.german, img: [].concat(e.image || []).filter(Boolean),
-    au: (t.audio || {})[norm(e.french)] // Pfad der mp3, falls vorhanden
+    fr: e.vocabulary || e.french, de: e.german, example: e.french, img: [].concat(e.image || []).filter(Boolean),
+    au: (t.audio || {})[norm(e.vocabulary || e.french)] // Pfad der mp3, falls vorhanden
   }));
   DB.set(t.dir, cards);
   const meta = LS.get('vk:meta', {}); meta[t.dir] = cards.map(c => c.id); LS.set('vk:meta', meta);
@@ -215,7 +216,7 @@ function learn(q) {
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(s)}" alt="">`).join('')}</div>` : '';
     app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}</span></div>
     <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
-      ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>` : '<span class="mut">Tippen zum Umdrehen</span>'}</div>
+      ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>${c.example ? `<div class="example">${esc(c.example)}</div>` : ''}` : '<span class="mut">Tippen zum Umdrehen</span>'}</div>
     <div class="btns">${shown
       ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
       : '<button id="flip" class="primary" style="flex:1">Antwort zeigen (Leertaste)</button>'}</div>`;
