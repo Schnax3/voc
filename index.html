@@ -24,6 +24,7 @@ select{font:inherit;padding:6px;border-radius:8px;border:1px solid var(--line);b
 .btns{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
 button{font:inherit;padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
 button:disabled{opacity:.45;cursor:default}
+.spk{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border-radius:999px;background:var(--acc);color:#fff;border-color:var(--acc);font-size:1.1rem;vertical-align:middle}
 .primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
 .good{background:var(--ok);border-color:var(--ok);color:#fff;flex:1}
 .bad{background:var(--bad);border-color:var(--bad);color:#fff;flex:1}
@@ -291,6 +292,10 @@ function learn(q) {
     else $('#flip').onclick = () => { shown = true; draw(); };
   };
   document.onkeydown = e => {
+    if (!q.length) return;
+    const { c, dir } = q[0];
+    const key = e.key.toLowerCase();
+    if (key === 'p' && c.au) { e.preventDefault(); play(c.au); return; }
     if (shown && (e.key === 'ArrowLeft' || e.key === '1')) answer(false);
     else if (shown && (e.key === 'ArrowRight' || e.key === '2')) answer(true);
   };
