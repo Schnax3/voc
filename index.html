@@ -95,6 +95,7 @@ const R = (() => {
 const rel = p => p.split('/').map(enc).join('/');
 const fileUrl = p => onPages ? rel(p) : `https://raw.githubusercontent.com/${R.owner}/${R.repo}/HEAD/${rel(p)}`;
 const dataUrl = t => fileUrl(`${t.dir}/${t.file}`);
+const imageUrl = (table, path) => /^(?:data:|https?:|blob:)/i.test(path) ? path : fileUrl(`${table}/${path}`);
 let au; // aktuell spielende Audiodatei
 const play = p => { if (au) au.pause(); au = new Audio(fileUrl(p)); au.play().catch(() => {}); };
 
@@ -276,7 +277,7 @@ function learn(q) {
     if (!q.length) return done();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
     const spk = c.au ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
-    const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(s)}" alt="">`).join('')}</div>` : '';
+    const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="">`).join('')}</div>` : '';
     app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}</span></div>
     <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
       ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>${c.example ? `<div class="example">${esc(c.example)}</div>` : ''}` : ''}</div>
