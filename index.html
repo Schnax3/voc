@@ -18,8 +18,8 @@ OneSignalDeferred.push(async function(OneSignal) {
 });
 </script>
 <style>
-:root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#6b6a64;--acc:#2f6fed;--ok:#1f9d55;--bad:#d64545;--line:#e2e0d8}
-@media(prefers-color-scheme:dark){:root{--bg:#161614;--card:#222220;--ink:#efeee8;--mut:#9a9890;--acc:#6b9bff;--line:#383733}}
+:root{color-scheme:light;--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#6b6a64;--acc:#2f6fed;--ok:#1f9d55;--bad:#d64545;--line:#e2e0d8}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#161614;--card:#222220;--ink:#efeee8;--mut:#9a9890;--acc:#6b9bff;--line:#383733}
 *{box-sizing:border-box}
 body{margin:0;font:16px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
 main{max-width:640px;margin:0 auto;padding:20px 16px 60px}
@@ -89,6 +89,8 @@ const LS = {
   get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
+const storedTheme = LS.get('vk:theme', null);
+document.documentElement.dataset.theme = storedTheme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const enc = encodeURIComponent;
 const hash = s => { let h = 5381; for (const ch of s) h = ((h << 5) + h + ch.charCodeAt(0)) | 0; return (h >>> 0).toString(36); };
@@ -167,19 +169,10 @@ async function loadAllTables(force = false) {
     DB.clear();
     LS.set('vk:meta', {});
   }
-  let completed = 0;
   const failures = [];
-  const showProgress = () => {
-    const text = `Alle Tabellen werden geladen (${completed}/${tables.length}) …`;
-    const msg = app.querySelector('#msg');
-    if (msg) msg.textContent = text;
-    else app.innerHTML = `<p class="mut">${esc(text)}</p>`;
-  };
-  showProgress();
   await Promise.all(tables.map(async t => {
     try { await load(t, force); }
     catch (e) { failures.push(`${t.dir}: ${e.message}`); }
-    finally { completed++; showProgress(); }
   }));
   list(); updateGo();
   return failures;
@@ -204,13 +197,19 @@ function home() {
       <select id="dir"><option value="fr">Französisch → Deutsch</option><option value="de">Deutsch → Französisch</option><option value="mix">Gemischt</option></select></label>
     <label><input type="checkbox" id="all"> Auch noch nicht fällige Karten üben</label>
     <label><input type="checkbox" id="img"> Bilder anzeigen</label>
+    <label><input type="checkbox" id="theme"> Dunkles Design</label>
   </div>
-  <div class="btns"><button id="go" class="primary">Starten</button><button id="reload">Tabellen neu laden</button><button id="reset">Fortschritt zurücksetzen</button></div>
-  <p class="mut" id="msg"></p>`;
+  <div class="btns"><button id="go" class="primary">Starten</button><button id="reload">Tabellen neu laden</button><button id="reset">Fortschritt zurücksetzen</button></div>`;
   const $ = s => app.querySelector(s);
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#img').checked = opt.img;
+  $('#theme').checked = document.documentElement.dataset.theme === 'dark';
   const setOpt = () => { opt = { dir: $('#dir').value, all: $('#all').checked, img: $('#img').checked }; LS.set('vk:opt', opt); updateGo(); };
   ['#dir', '#all', '#img'].forEach(s => $(s).onchange = setOpt);
+  $('#theme').onchange = () => {
+    const theme = $('#theme').checked ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+    LS.set('vk:theme', theme);
+  };
   $('#go').onclick = () => { const q = buildQueue(); if (q.length) learn(q); };
   $('#reload').onclick = async () => {
     const button = $('#reload'); button.disabled = true;
@@ -219,11 +218,8 @@ function home() {
       sel = new Set([...sel].filter(d => tables.some(t => t.dir === d)));
       const failures = await loadAllTables(true);
       LS.set(INITIAL_LOAD_KEY, failures.length === 0);
-      $('#msg').textContent = failures.length
-        ? `Nicht alle Tabellen geladen: ${failures.join(' · ')}`
-        : 'Alle Tabellen wurden neu geladen.';
     }
-    catch (e) { $('#msg').textContent = 'Fehler: ' + e.message; }
+    catch (e) { console.error(e); }
     finally { button.disabled = false; }
   };
   $('#reset').onclick = () => {
@@ -255,7 +251,7 @@ function list() {
     LS.set('vk:sel', [...sel]);
     if (cb.checked) {
       try { await load(tables.find(t => t.dir === d)); }
-      catch (e) { app.querySelector('#msg').textContent = 'Laden fehlgeschlagen: ' + e.message; sel.delete(d); }
+      catch { sel.delete(d); }
     }
     list(); updateGo();
   });
@@ -337,7 +333,6 @@ function learn(q) {
     if (!loadFailures.length) LS.set(INITIAL_LOAD_KEY, true);
   }
   home();
-  if (loadFailures.length) app.querySelector('#msg').textContent = `Nicht alle Tabellen geladen: ${loadFailures.join(' · ')}`;
   for (const d of sel) load(tables.find(t => t.dir === d)).then(() => { list(); updateGo(); }).catch(() => {});
 })();
 </script>
