@@ -33,7 +33,7 @@ button:disabled{opacity:.45;cursor:default}
 .card img{max-width:100%;max-height:170px;border-radius:8px;margin:0 auto}
 .imgs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .q{font-size:1.35rem;font-weight:600}
-.q .spk{margin-left:1.25em}
+.q .spk{margin-left:15px}
 .a{font-size:1.25rem;color:var(--acc)}
 .example{font-size:1rem;color:var(--mut)}
 hr{width:100%;border:0;border-top:1px solid var(--line)}
@@ -115,13 +115,24 @@ const stopAudio = () => {
   au = null;
   audioPath = null;
   current.pause();
-  current.currentTime = 0;
   updateAudioButtons();
 };
 const play = (table, p) => {
   const url = audioUrl(table, p);
-  if (au && audioPath === url && !au.paused) {
-    stopAudio();
+  if (au && audioPath === url) {
+    if (au.paused && !au.ended) {
+      au.play().catch(error => {
+        console.error(`Audio konnte nicht fortgesetzt werden: ${url}`, error);
+      });
+    } else if (!au.paused) {
+      au.pause();
+    } else {
+      au.currentTime = 0;
+      au.play().catch(error => {
+        console.error(`Audio konnte nicht abgespielt werden: ${url}`, error);
+      });
+    }
+    updateAudioButtons();
     return;
   }
   stopAudio();
@@ -132,8 +143,6 @@ const play = (table, p) => {
   audio.addEventListener('pause', updateAudioButtons);
   audio.addEventListener('ended', () => {
     if (au === audio) {
-      au = null;
-      audioPath = null;
       updateAudioButtons();
     }
   });
