@@ -46,7 +46,7 @@ button:disabled{opacity:.45;cursor:default}
 .card img{max-width:100%;max-height:170px;border-radius:8px;margin:0 auto}
 .imgs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .q{font-size:1.35rem;font-weight:600}
-.q .spk{margin-left:.55em}
+.q .spk{margin-left:1.25em}
 .a{font-size:1.25rem;color:var(--acc)}
 .example{font-size:1rem;color:var(--mut)}
 hr{width:100%;border:0;border-top:1px solid var(--line)}
@@ -112,6 +112,7 @@ const rel = p => p.split('/').map(enc).join('/');
 const fileUrl = p => onPages ? rel(p) : `https://raw.githubusercontent.com/${R.owner}/${R.repo}/HEAD/${rel(p)}`;
 const dataUrl = t => fileUrl(`${t.dir}/${t.file}`);
 const imageUrl = (table, path) => /^(?:data:|https?:|blob:)/i.test(path) ? path : fileUrl(`${table}/${path}`);
+const audioUrl = (table, path) => /^(?:data:|https?:|blob:)/i.test(path) ? path : fileUrl(path.includes('/') ? path : `${table}/${path}`);
 let au, audioPath; // aktuell spielende Audiodatei
 const updateAudioButtons = () => {
   const playing = Boolean(au && !au.paused);
@@ -130,15 +131,16 @@ const stopAudio = () => {
   current.currentTime = 0;
   updateAudioButtons();
 };
-const play = p => {
-  if (au && audioPath === p && !au.paused) {
+const play = (table, p) => {
+  const url = audioUrl(table, p);
+  if (au && audioPath === url && !au.paused) {
     stopAudio();
     return;
   }
   stopAudio();
-  const audio = new Audio(fileUrl(p));
+  const audio = new Audio(url);
   au = audio;
-  audioPath = p;
+  audioPath = url;
   audio.addEventListener('play', updateAudioButtons);
   audio.addEventListener('pause', updateAudioButtons);
   audio.addEventListener('ended', () => {
@@ -148,12 +150,13 @@ const play = p => {
       updateAudioButtons();
     }
   });
-  audio.play().catch(() => {
+  audio.play().catch(error => {
     if (au === audio) {
       au = null;
       audioPath = null;
       updateAudioButtons();
     }
+    console.error(`Audio konnte nicht abgespielt werden: ${url}`, error);
   });
 };
 
@@ -341,7 +344,7 @@ function learn(q) {
     const $ = s => app.querySelector(s);
     $('#end').onclick = home;
     app.querySelectorAll('.spk').forEach(button => {
-      button.onclick = event => { event.stopPropagation(); play(c.au); };
+      button.onclick = event => { event.stopPropagation(); play(c.table, c.au); };
     });
     if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
     else $('#flip').onclick = () => { shown = true; draw(); };
@@ -350,7 +353,7 @@ function learn(q) {
     if (!q.length) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
-    if (key === 'p' && c.au) { e.preventDefault(); play(c.au); return; }
+    if (key === 'p' && c.au) { e.preventDefault(); play(c.table, c.au); return; }
     if (shown && (e.key === 'ArrowLeft' || e.key === '1')) answer(false);
     else if (shown && (e.key === 'ArrowRight' || e.key === '2')) answer(true);
   };
