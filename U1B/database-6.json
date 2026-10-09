@@ -2,87 +2,87 @@
     "value":  [
                   {
                       "french":  "Dans cette rue, il n\u0027y a personne.",
-                      "german":  "In dieser StraÃŸe ist niemand",
+                      "german":  "In dieser Straße ist niemand",
                       "vocabulary":  "personne",
-                      "image": ""
+                      "image": "Straße.jpg"
                   },
                   {
                       "french":  "Au supermarchÃ©, il n\u0027y a rien.",
                       "german":  "Im Supermarkt gibt es nichts.",
                       "vocabulary":  "rien",
-                      "image": ""
+                      "image": "Supermarkt.jpg"
                   },
                   {
                       "french":  "La porte est fermÃ©e Ã  clÃ©.",
                       "german":  "zugeschlossen; verschlossen",
                       "vocabulary":  "fermÃ©e Ã  clÃ©",
-                      "image": ""
+                      "image": "verschlossen.jpg"
                   },
                   {
                       "french":  "Il est enfermÃ©. Infinitif: enfermer qn.",
-                      "german":  "jdn./etw. einschlieÃŸen",
+                      "german":  "jdn./etw. einschließen",
                       "vocabulary":  "enfermer",
-                      "image": ""
+                      "image": "einschließen.jpg"
                   },
                   {
                       "french":  "La docteure dit: Â»Tu es malade, mais avec cette mÃ©decine, tu vas bientÃ´t aller mieux (=Ãªtre moins malade).",
                       "german":  "Es wird dir besser gehen.",
                       "vocabulary":  "aller mieux",
-                      "image": ""
+                      "image": "besser gehen.jpg"
                   },
                   {
                       "french":  "L\u0027alarme lui (â†il) rappelle __(!) le rendez-vous (Infinitif: rappeler qc. Ã  qn.).",
                       "german":  "jemanden an etwas erinnern",
                       "vocabulary":  "rappeler qc. Ã  qn.",
-                      "image": ""
+                      "image": "erinnern.jpg"
                   },
                   {
                       "french":  "Dans une chanson, aprÃ¨s chaque strophe, il y a un refrain.",
                       "german":  "ein Refrain",
                       "vocabulary":  "un refrain",
-                      "image": ""
+                      "image": "Refrain.jpg"
                   },
                   {
                       "french":  "La fille ne veut rien de spÃ©cial, elle veut juste de l\u0027eau.",
-                      "german":  "nur; bloÃŸ",
+                      "german":  "nur; bloß",
                       "vocabulary":  "juste",
-                      "image": ""
+                      "image": " bloß.jpg"
                   },
                   {
                       "french":  "Ã‡a sert Ã  (Inf: servir Ã  qc.) ouvrir des boÃ®tes.",
-                      "german":  "zu etw. nÃ¼tzen; zu etw. dienen",
-                      "vocabulary":  "servir Ã  qc.",
-                      "image": ""
+                      "german":  "zu etw. nützen; zu etw. dienen",
+                      "vocabulary":  "servir à qc.",
+                      "image": "nützen.jpg"
                   },
                   {
-                      "french":  "C\u0027est vieux et cassÃ©. Ã‡a ne sert plus Ã  rien.",
-                      "german":  "nichts mehr nÃ¼tzen",
-                      "vocabulary":  "ne plus servir Ã  rien",
-                      "image": ""
+                      "french":  "C\u0027est vieux et cassé. Ã‡a ne sert plus Ã  rien.",
+                      "german":  "nichts mehr nützen",
+                      "vocabulary":  "ne plus servir à rien",
+                      "image": "nichts mehr nützen.jpg"
                   },
                   {
                       "french":  "Mireille: Â»Je n\u0027aime pas le brocoliÂ« Antoine: Â»Moi non plus (â¤„aussi)Â«.",
                       "german":  "Ich auch nicht.",
                       "vocabulary":  "moi non plus",
-                      "image": ""
+                      "image": "Ich auch nicht.jpg"
                   },
                   {
                       "french":  "Antoine: Â»Moi, je pense queâ€¦Â« â€“ Claire: Â»Ã€ monâ€¿avisâ€¦Â« (unâ€¿avis = une chose qu\u0027on pense).",
                       "german":  "meiner Meinung nach",
                       "vocabulary":  "Ã  mon avis",
-                      "image": ""
+                      "image": "meiner Meinung nach.jpg"
                   },
                   {
                       "french":  "Elle est malade. C\u0027est pourquoi (â‡’) elle reste au lit.",
                       "german":  "deshalb",
                       "vocabulary":  "c\u0027est pourquoi",
-                      "image": ""
+                      "image": "deshalb.jpg"
                   },
                   {
-                      "french":  "C\u0027est super! Cette blouse coÃ»te seulement 10â‚¬.",
+                      "french":  "C\u0027est super! Cette blouse co\u00eete seulement 10\u20ac.",
                       "german":  "nur",
                       "vocabulary":  "seulement",
-                      "image": ""
+                      "image": "nur.jpg"
                   }
               ],
     "Count":  14
