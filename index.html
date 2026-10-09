@@ -4,19 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vokabelkasten</title>
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-window.OneSignalDeferred = window.OneSignalDeferred || [];
-OneSignalDeferred.push(async function(OneSignal) {
-  const serviceWorkerScope = new URL('.', window.location.href).pathname;
-  await OneSignal.init({
-    appId: '140c309e-c852-49b3-bdf3-1037273f7885',
-    serviceWorkerPath: `${serviceWorkerScope.replace(/^\/+/, '')}OneSignalSDKWorker.js`,
-    serviceWorkerParam: { scope: serviceWorkerScope },
-    notifyButton: { enable: true }
-  });
-});
-</script>
 <style>
 :root{color-scheme:light;--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#6b6a64;--acc:#2f6fed;--ok:#1f9d55;--bad:#d64545;--line:#e2e0d8}
 :root[data-theme="dark"]{color-scheme:dark;--bg:#161614;--card:#222220;--ink:#efeee8;--mut:#9a9890;--acc:#6b9bff;--line:#383733}
