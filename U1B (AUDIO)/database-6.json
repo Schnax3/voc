@@ -1,0 +1,100 @@
+[
+  {
+    "french": "Dans cette rue, il n'y a personne.",
+    "german": "In dieser Straße ist niemand",
+    "vocabulary": "personne",
+    "image": "Straße.jpg",
+    "audio": "personne_output.mp3"
+  },
+  {
+    "french": "Au supermarché, il n'y a rien.",
+    "german": "Im Supermarkt gibt es nichts.",
+    "vocabulary": "rien",
+    "image": "Supermarkt.jpg",
+    "audio": "rien_output.mp3"
+  },
+  {
+    "french": "La porte est fermée à clé.",
+    "german": "zugeschlossen; verschlossen",
+    "vocabulary": "fermée à clé",
+    "image": "verschlossen.jpg",
+    "audio": "fermée à clé_output.mp3"
+  },
+  {
+    "french": "Il est enfermé. Infinitif : enfermer qn.",
+    "german": "jdn./etw. einschließen",
+    "vocabulary": "enfermer",
+    "image": "einschließen.jpg",
+    "audio": "enfermer_output.mp3"
+  },
+  {
+    "french": "La docteure dit : « Tu es malade, mais avec cette médecine, tu vas bientôt aller mieux (= être moins malade). »",
+    "german": "Es wird dir besser gehen.",
+    "vocabulary": "aller mieux",
+    "image": "besser gehen.jpg",
+    "audio": "aller mieux_output.mp3"
+  },
+  {
+    "french": "L'alarme lui (← il) rappelle __(!) le rendez-vous (Infinitif : rappeler qc. à qn.).",
+    "german": "jemanden an etwas erinnern",
+    "vocabulary": "rappeler qc. à qn.",
+    "image": "erinnern.jpg",
+    "audio": "rappeler qc. à qn._output.mp3"
+  },
+  {
+    "french": "Dans une chanson, après chaque strophe, il y a un refrain.",
+    "german": "ein Refrain",
+    "vocabulary": "un refrain",
+    "image": "Refrain.jpg",
+    "audio": "un refrain_output.mp3"
+  },
+  {
+    "french": "La fille ne veut rien de spécial, elle veut juste de l'eau.",
+    "german": "nur; bloß",
+    "vocabulary": "juste",
+    "image": "nur.jpg",
+    "audio": "juste_output.mp3"
+  },
+  {
+    "french": "Ça sert à (Inf. : servir à qc.) ouvrir des boîtes.",
+    "german": "zu etw. nützen; zu etw. dienen",
+    "vocabulary": "servir à qc.",
+    "image": "nützen.jpg",
+    "audio": "servir à qc_output.mp3"
+  },
+  {
+    "french": "C'est vieux et cassé. Ça ne sert plus à rien.",
+    "german": "nichts mehr nützen",
+    "vocabulary": "ne plus servir à rien",
+    "image": "nichts mehr nützen.jpg",
+    "audio": "ne plus servir à rien_output.mp3"
+  },
+  {
+    "french": "Mireille : « Je n'aime pas le brocoli. » Antoine : « Moi non plus (⤄ aussi). »",
+    "german": "Ich auch nicht.",
+    "vocabulary": "moi non plus",
+    "image": "Ich auch nicht.jpg",
+    "audio": "moi non plus_output.mp3"
+  },
+  {
+    "french": "Antoine : « Moi, je pense que… » – Claire : « À mon‿avis… » (un‿avis = une chose qu'on pense).",
+    "german": "meiner Meinung nach",
+    "vocabulary": "à mon avis",
+    "image": "meiner Meinung nach.jpg",
+    "audio": "à mon avis_output.mp3"
+  },
+  {
+    "french": "Elle est malade. C'est pourquoi (⇒) elle reste au lit.",
+    "german": "deshalb",
+    "vocabulary": "c'est pourquoi",
+    "image": "deshalb.jpg",
+    "audio": "c'est pourquoi_output.mp3"
+  },
+  {
+    "french": "C'est super ! Cette blouse coûte seulement 10 €.",
+    "german": "nur",
+    "vocabulary": "seulement",
+    "image": "nur.jpg",
+    "audio": "seulement_output.mp3"
+  }
+]

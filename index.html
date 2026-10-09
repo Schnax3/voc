@@ -46,6 +46,7 @@ button:disabled{opacity:.45;cursor:default}
 .card img{max-width:100%;max-height:170px;border-radius:8px;margin:0 auto}
 .imgs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .q{font-size:1.35rem;font-weight:600}
+.q .spk{margin-left:.55em}
 .a{font-size:1.25rem;color:var(--acc)}
 .example{font-size:1rem;color:var(--mut)}
 hr{width:100%;border:0;border-top:1px solid var(--line)}
@@ -111,8 +112,50 @@ const rel = p => p.split('/').map(enc).join('/');
 const fileUrl = p => onPages ? rel(p) : `https://raw.githubusercontent.com/${R.owner}/${R.repo}/HEAD/${rel(p)}`;
 const dataUrl = t => fileUrl(`${t.dir}/${t.file}`);
 const imageUrl = (table, path) => /^(?:data:|https?:|blob:)/i.test(path) ? path : fileUrl(`${table}/${path}`);
-let au; // aktuell spielende Audiodatei
-const play = p => { if (au) au.pause(); au = new Audio(fileUrl(p)); au.play().catch(() => {}); };
+let au, audioPath; // aktuell spielende Audiodatei
+const updateAudioButtons = () => {
+  const playing = Boolean(au && !au.paused);
+  app.querySelectorAll('.spk').forEach(button => {
+    button.textContent = playing ? '⏹' : '🔊';
+    button.title = playing ? 'Stoppen (P)' : 'Anhören (P)';
+    button.setAttribute('aria-label', playing ? 'Stoppen' : 'Anhören');
+  });
+};
+const stopAudio = () => {
+  if (!au) return;
+  const current = au;
+  au = null;
+  audioPath = null;
+  current.pause();
+  current.currentTime = 0;
+  updateAudioButtons();
+};
+const play = p => {
+  if (au && audioPath === p && !au.paused) {
+    stopAudio();
+    return;
+  }
+  stopAudio();
+  const audio = new Audio(fileUrl(p));
+  au = audio;
+  audioPath = p;
+  audio.addEventListener('play', updateAudioButtons);
+  audio.addEventListener('pause', updateAudioButtons);
+  audio.addEventListener('ended', () => {
+    if (au === audio) {
+      au = null;
+      audioPath = null;
+      updateAudioButtons();
+    }
+  });
+  audio.play().catch(() => {
+    if (au === audio) {
+      au = null;
+      audioPath = null;
+      updateAudioButtons();
+    }
+  });
+};
 
 // ---- Tabellen automatisch finden (jeder Ordner mit einer .json = eine Tabelle) --
 let tables = [];
@@ -189,6 +232,7 @@ const idsOf = d => DB.has(d) ? DB.get(d).map(c => c.id) : (LS.get('vk:meta', {})
 
 // ---- Startseite ------------------------------------------------------------
 function home() {
+  stopAudio();
   document.onkeydown = null;
   app.innerHTML = `<h1>Vokabelkasten</h1><p class="mut">Wähle die Tabellen, die du üben willst.</p>
   <div id="list"></div>
@@ -276,6 +320,7 @@ function buildQueue() {
 function learn(q) {
   let shown = false, ok = 0, bad = 0;
   const answer = good => {
+    stopAudio();
     const it = q.shift(), s = st(it.c.id), nb = good ? Math.min(5, s.b + 1) : 1;
     P[it.c.id] = { b: nb, d: Date.now() + (good ? DAYS[nb - 1] * 864e5 : 0) };
     save();
@@ -310,6 +355,7 @@ function learn(q) {
     else if (shown && (e.key === 'ArrowRight' || e.key === '2')) answer(true);
   };
   const done = () => {
+    stopAudio();
     document.onkeydown = null;
     app.innerHTML = `<h1>Geschafft!</h1><p>${ok} richtig · ${bad} falsch</p><div class="btns"><button id="back" class="primary">Zurück zur Auswahl</button></div>`;
     app.querySelector('#back').onclick = home;

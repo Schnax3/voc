@@ -70,7 +70,7 @@
         "audio":  null
     },
     {
-        "french":  "je ris, tu ris, elle rit, nous rions, vous riez, elles rientpassé composé j\u0027ai ri, Infinitif: rire; Imparfait: je riais nous riions, vous riiez",
+        "french":  "Je ris, tu ris, elle rit, nous rions, vous riez, elles rient. Passé composé : j\u0027ai ri. Infinitif : rire ; imparfait : je riais, nous riions, vous riiez.",
         "german":  "(über jdn./etw.) lachen",
         "vocabulary":  "rire",
         "image":  "lachen.png",
@@ -105,7 +105,7 @@
         "audio":  null
     },
     {
-        "french":  "Ils restent assis – Il ne se lèvent pas. Il est⁔assis, elle est⁔assise",
+        "french":  "Ils restent assis – Ils ne se lèvent pas. Il est⁔assis, elle est⁔assise.",
         "german":  "sie bleiben sitzen; er / sie sitzt («ist hingesetzt»)",
         "vocabulary":  "rester assis",
         "image":  "sie bleiben sitzen.png",
@@ -147,14 +147,14 @@
         "audio":  null
     },
     {
-        "french":  "Tu dois faire du sport au moins deux fois par semaines. C\u0027est le minimum.",
+        "french":  "Tu dois faire du sport au moins deux fois par semaine. C\u0027est le minimum.",
         "german":  "mindestens; wenigstens",
         "vocabulary":  "au moins",
         "image":  "wenigstens.png",
         "audio":  null
     },
     {
-        "french":  "Voilà le secretariat d\u0027une école primaire. Les parents y vont pour inscrire leurs‿enfants à  l\u0027école: En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu\u0027ils veulent que leurs‿enfants entrent à cette école en septembre.j\u0027inscris, nous‿inscrivons, elles‿inscrivent; passé composé: jai inscrit…",
+        "french":  "Voilà le secrétariat d\u0027une école primaire. Les parents y vont pour inscrire leurs‿enfants à l\u0027école. En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu\u0027ils veulent que leurs‿enfants entrent dans cette école en septembre. J\u0027inscris, nous‿inscrivons, elles‿inscrivent ; passé composé : j\u0027ai inscrit…",
         "german":  "jemanden für etwas anmelden",
         "vocabulary":  "inscrire",
         "image":  "anmelden.jpg",
@@ -238,7 +238,7 @@
         "audio":  null
     },
     {
-        "french":  "Ils changent (Inf: changer qc.) leur appartement parce qu\u0027ils préfèrent la couleur bleu. – nous changeons, Imparfait: je changeais, nous changions.",
+        "french":  "Ils changent (Inf. : changer qc.) leur appartement parce qu\u0027ils préfèrent la couleur bleue. – Nous changeons, imparfait : je changeais, nous changions.",
         "german":  "etwas (ver)ändern (hier behalte ich dieselbe Sache)",
         "vocabulary":  "changer qc",
         "image":  "etwas (ver)ändern.jpg",

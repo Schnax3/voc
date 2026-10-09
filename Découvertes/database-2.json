@@ -1,6 +1,6 @@
 [
     {
-        "french": "Il est très motivé pour travailer.",
+        "french": "Il est très motivé pour travailler.",
         "german": "motiviert sein (etw. zu tun)",
         "vocabulary": "être motivé pour",
         "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMjIwIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIyMCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMjAiIGZpbGw9IiNFQUYzRkIiLz48cmVjdCB4PSIwIiB5PSIxNzAiIHdpZHRoPSIzMDAiIGhlaWdodD0iNTAiIGZpbGw9IiNEOUU3QzgiLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSI3MCIgcj0iMTYiIGZpbGw9IiNGMkMyOUIiLz48cmVjdCB4PSIxMzYiIHk9Ijg4IiB3aWR0aD0iMjgiIGhlaWdodD0iNDIiIHJ4PSI4IiBmaWxsPSIjRjU5RTBCIi8+PHJlY3QgeD0iMTM4IiB5PSIxMjgiIHdpZHRoPSIxMCIgaGVpZ2h0PSIzNCIgZmlsbD0iIzMzNDE1NSIvPjxyZWN0IHg9IjE1MiIgeT0iMTI4IiB3aWR0aD0iMTAiIGhlaWdodD0iMzQiIGZpbGw9IiMzMzQxNTUiLz48cGF0aCBkPSJNMTM2IDkyIEwxMDggNjAiIHN0cm9rZT0iI0YyQzI5QiIgc3Ryb2tlLXdpZHRoPSI5IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMTY0IDkyIEwxOTIgNjAiIHN0cm9rZT0iI0YyQzI5QiIgc3Ryb2tlLXdpZHRoPSI5IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSIxNDQiIGN5PSI2NiIgcj0iMi41IiBmaWxsPSIjMjIyIi8+PGNpcmNsZSBjeD0iMTU2IiBjeT0iNjYiIHI9IjIuNSIgZmlsbD0iIzIyMiIvPjxwYXRoIGQ9Ik0xNDMgNzQgUTE1MCA4MiAxNTcgNzQiIHN0cm9rZT0iIzIyMiIgc3Ryb2tlLXdpZHRoPSIyLjUiIGZpbGw9Im5vbmUiLz48cG9seWdvbiBwb2ludHM9IjYwLDQwIDY1LDUyIDc4LDUyIDY4LDYwIDcyLDczIDYwLDY1IDQ4LDczIDUyLDYwIDQyLDUyIDU1LDUyIiBmaWxsPSIjRkFDQzE1Ii8+PHBvbHlnb24gcG9pbnRzPSIyNDAsMzAgMjQ0LDQwIDI1NSw0MCAyNDcsNDYgMjUwLDU3IDI0MCw1MSAyMzAsNTcgMjMzLDQ2IDIyNSw0MCAyMzYsNDAiIGZpbGw9IiNGQUNDMTUiLz48L3N2Zz4=",
@@ -77,7 +77,7 @@
         "audio": null
     },
     {
-        "french": "Il joue de la guitare.Infinitif: jouer",
+        "french": "Il joue de la guitare. Infinitif : jouer.",
         "german": "er spielt Gitarre (für Instrumente!)",
         "vocabulary": "jouer de la guitare",
         "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMjIwIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIyMCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMjAiIGZpbGw9IiNGRUYzQzciLz48ZyB0cmFuc2Zvcm09InJvdGF0ZSgtMzUgMTUwIDExMCkiPjxyZWN0IHg9IjE0MCIgeT0iMTAiIHdpZHRoPSIyMCIgaGVpZ2h0PSI5NSIgZmlsbD0iIzc4MzUwRiIvPjxyZWN0IHg9IjEzNSIgeT0iMCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzQ1MUEwMyIvPjxlbGxpcHNlIGN4PSIxNTAiIGN5PSIxNDAiIHJ4PSI0OCIgcnk9IjM4IiBmaWxsPSIjRDk3NzA2Ii8+PGVsbGlwc2UgY3g9IjE1MCIgY3k9IjE4MiIgcng9IjYyIiByeT0iNDIiIGZpbGw9IiNEOTc3MDYiLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSIxNTAiIHI9IjE0IiBmaWxsPSIjMUYyOTM3Ii8+PHJlY3QgeD0iMTI4IiB5PSIxODgiIHdpZHRoPSI0NCIgaGVpZ2h0PSI4IiByeD0iMyIgZmlsbD0iIzQ1MUEwMyIvPjxwYXRoIGQ9Ik0xNDYgMjAgVjE5MCBNMTUwIDIwIFYxOTAgTTE1NCAyMCBWMTkwIiBzdHJva2U9IiNGM0Y0RjYiIHN0cm9rZS13aWR0aD0iMS4yIi8+PC9nPjwvc3ZnPg==",
