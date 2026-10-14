@@ -41,6 +41,8 @@ button:disabled{opacity:.45;cursor:default}
 .imgs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .q{font-size:1.35rem;font-weight:600}
 .q .spk{margin-left:15px}
+.answer-field{display:grid;gap:6px;text-align:left;color:var(--mut);font-size:.9rem}
+.answer-field input{width:100%;font:inherit;font-size:1rem;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 .a{font-size:1.25rem;color:var(--acc)}
 .example{font-size:1rem;color:var(--mut)}
 hr{width:100%;border:0;border-top:1px solid var(--line)}
@@ -247,14 +249,16 @@ function home() {
       <select id="dir"><option value="fr">Französisch → Deutsch</option><option value="de">Deutsch → Französisch</option><option value="mix">Gemischt</option></select></label>
     <label><input type="checkbox" id="all"> Auch noch nicht fällige Karten üben</label>
     <label><input type="checkbox" id="img"> Bilder anzeigen</label>
+    <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
     <label><input type="checkbox" id="theme"> Dunkles Design</label>
   </div>
   <div class="btns"><button id="go" class="primary">Starten</button><button id="reload">Tabellen neu laden</button><button id="reset">Fortschritt zurücksetzen</button></div>`;
   const $ = s => app.querySelector(s);
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#img').checked = opt.img;
+  $('#typing').checked = opt.typing || false;
   $('#theme').checked = document.documentElement.dataset.theme === 'dark';
-  const setOpt = () => { opt = { dir: $('#dir').value, all: $('#all').checked, img: $('#img').checked }; LS.set('vk:opt', opt); updateGo(); };
-  ['#dir', '#all', '#img'].forEach(s => $(s).onchange = setOpt);
+  const setOpt = () => { opt = { dir: $('#dir').value, all: $('#all').checked, img: $('#img').checked, typing: $('#typing').checked }; LS.set('vk:opt', opt); updateGo(); };
+  ['#dir', '#all', '#img', '#typing'].forEach(s => $(s).onchange = setOpt);
   $('#theme').onchange = () => {
     const theme = $('#theme').checked ? 'dark' : 'light';
     document.documentElement.dataset.theme = theme;
@@ -324,14 +328,14 @@ function buildQueue() {
 }
 
 function learn(q) {
-  let shown = false, ok = 0, bad = 0;
+  let shown = false, typedAnswer = '', ok = 0, bad = 0;
   const answer = good => {
     stopAudio();
     const it = q.shift(), s = st(it.c.id), nb = good ? Math.min(5, s.b + 1) : 1;
     P[it.c.id] = { b: nb, d: Date.now() + (good ? DAYS[nb - 1] * 864e5 : 0) };
     save();
     if (good) ok++; else { bad++; q.push(it); } // falsche Karten kommen am Ende nochmal
-    shown = false; draw();
+    shown = false; typedAnswer = ''; draw();
   };
   const draw = () => {
     if (!q.length) return done();
@@ -340,6 +344,9 @@ function learn(q) {
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="">`).join('')}</div>` : '';
     app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}</span></div>
     <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
+      ${opt.typing ? `<label class="answer-field">Deine Antwort (wird nicht automatisch geprüft)
+        <input id="typed-answer" type="text" autocomplete="off" spellcheck="false" placeholder="Antwort hier eingeben" value="${esc(typedAnswer)}">
+      </label>` : ''}
       ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>${c.example ? `<div class="example">${esc(c.example)}</div>` : ''}` : ''}</div>
     <div class="btns">${shown
       ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
@@ -349,11 +356,23 @@ function learn(q) {
     app.querySelectorAll('.spk').forEach(button => {
       button.onclick = event => { event.stopPropagation(); play(c.table, c.au); };
     });
+    const answerInput = $('#typed-answer');
+    if (answerInput) {
+      answerInput.oninput = () => { typedAnswer = answerInput.value; };
+      answerInput.onkeydown = event => {
+        if (event.key === 'Enter' && !shown) {
+          event.preventDefault();
+          shown = true;
+          draw();
+        }
+      };
+    }
     if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
     else $('#flip').onclick = () => { shown = true; draw(); };
   };
   document.onkeydown = e => {
     if (!q.length) return;
+    if (e.target instanceof HTMLInputElement) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
     if (key === 'p' && c.au) { e.preventDefault(); play(c.table, c.au); return; }
