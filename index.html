@@ -329,6 +329,19 @@ function buildQueue() {
 
 function learn(q) {
   let shown = false, typedAnswer = '', ok = 0, bad = 0;
+  const preloadedImages = new Set();
+  const preloadNextImages = () => {
+    const next = q[1];
+    if (!opt.img || !next) return;
+    for (const path of next.c.img) {
+      const url = imageUrl(next.c.table, path);
+      if (preloadedImages.has(url)) continue;
+      preloadedImages.add(url);
+      const image = new Image();
+      image.decoding = 'async';
+      image.src = url;
+    }
+  };
   const answer = good => {
     stopAudio();
     const it = q.shift(), s = st(it.c.id), nb = good ? Math.min(5, s.b + 1) : 1;
@@ -341,7 +354,7 @@ function learn(q) {
     if (!q.length) return done();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
     const spk = c.au ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
-    const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="">`).join('')}</div>` : '';
+    const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="" decoding="async" fetchpriority="high">`).join('')}</div>` : '';
     app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}</span></div>
     <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
       ${opt.typing ? `<label class="answer-field">Deine Antwort (wird nicht automatisch geprüft)
@@ -352,6 +365,11 @@ function learn(q) {
       ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
       : '<button id="flip" class="primary" style="flex:1">Antwort zeigen</button>'}</div>`;
     const $ = s => app.querySelector(s);
+    const currentImage = app.querySelector('.imgs img');
+    if (currentImage && !currentImage.complete) {
+      currentImage.addEventListener('load', preloadNextImages, { once: true });
+      currentImage.addEventListener('error', preloadNextImages, { once: true });
+    } else preloadNextImages();
     $('#end').onclick = home;
     app.querySelectorAll('.spk').forEach(button => {
       button.onclick = event => { event.stopPropagation(); play(c.table, c.au); };
