@@ -1,0 +1,310 @@
+[
+    {
+        "french":  "C\u0027est parti pour la rentrée.",
+        "german":  "Los geht’s mit dem Schulanfang!",
+        "vocabulary":  "C\u0027est parti pour la rentrée",
+        "image":  "Los geht’s mit dem Schulanfang!.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "un chemin",
+        "german":  "ein Weg",
+        "vocabulary":  "un chemin",
+        "image":  "ein Weg.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Voici des bonnes résolutions pour le nouvel an – une résolution",
+        "german":  "Vorsätze; auch: ein Beschluss",
+        "vocabulary":  "une résolution",
+        "image":  "Vorsätze.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Ce message lui a fait un choc.",
+        "german":  "Diese Nachricht hat in ihr einen Schock (\"Aufprall\") ausgelöst.",
+        "vocabulary":  "faire un choc à quelqu\u0027un",
+        "image":  "Nachricht hat in ihr einen Schock.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "la liberté",
+        "german":  "die Freiheit",
+        "vocabulary":  "la liberté",
+        "image":  "die Freiheit.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il reprend (=recommence) le travail après les vacances. Infinitif: reprendre",
+        "german":  "etw. wieder (auf)nehmen; etw. zurücknehmen; hier: von vorn beginnen",
+        "vocabulary":  "reprendre",
+        "image":  "von vorn beginnen.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "C\u0027est⁔une pêche.",
+        "german":  "ein Pfirsich",
+        "vocabulary":  "une pêche",
+        "image":  "ein Pfirsich.png",
+        "audio":  null
+    },
+    {
+        "french":  "Il motive les gens: Il donne la pêche aux gens.",
+        "german":  "jmd. motivieren (umgangssprachlich)",
+        "vocabulary":  "donner la pêche à quelqu\u0027un",
+        "image":  "motivieren.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il n\u0027a pas bien chanté du tout. - 0%!",
+        "german":  "überhaupt nicht",
+        "vocabulary":  "du tout",
+        "image":  "überhaupt nicht.png",
+        "audio":  null
+    },
+    {
+        "french":  "Je crois (Inf: croire) qu\u0027elle est une bonne personne – je crois, tu crois, elle croit, nous croyons, vous croyez, elles croient, PC: j\u0027ai cru, Imparfait: je croyais.",
+        "german":  "Ich glaube, dass…",
+        "vocabulary":  "croire",
+        "image":  "Ich glaube.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Je ris, tu ris, elle rit, nous rions, vous riez, elles rient. Passé composé : j\u0027ai ri. Infinitif : rire ; imparfait : je riais, nous riions, vous riiez.",
+        "german":  "(über jdn./etw.) lachen",
+        "vocabulary":  "rire",
+        "image":  "lachen.png",
+        "audio":  null
+    },
+    {
+        "french":  "Elle offre un cadeau à son amie (Inf: offrir), j\u0027offre, nous offrons, elles offrent, j\u0027ai offert – se conjugue comme »ouvrir«",
+        "german":  "jdm. etw. anbieten; jdm. etw. schenken",
+        "vocabulary":  "offrir",
+        "image":  "schenken.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Elle a réussi ___ son examen. Inf: réussir qc., je réussis, nous réussissons, elles réussissent.",
+        "german":  "Erfolg haben; erfolgreich sein",
+        "vocabulary":  "réussir qc",
+        "image":  "Erfolg.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il a beaucoup de succès (le succès).",
+        "german":  "Er hat viel Erfolg.",
+        "vocabulary":  "le succès",
+        "image":  "",
+        "audio":  null
+    },
+    {
+        "french":  "C\u0027est de l\u0027argent, c\u0027est même beaucoup d\u0027argent.",
+        "german":  "Geld",
+        "vocabulary":  "de l\u0027argent",
+        "image":  "Geld.png",
+        "audio":  null
+    },
+    {
+        "french":  "Ils restent assis – Ils ne se lèvent pas. Il est⁔assis, elle est⁔assise.",
+        "german":  "sie bleiben sitzen; er / sie sitzt («ist hingesetzt»)",
+        "vocabulary":  "rester assis",
+        "image":  "sie bleiben sitzen.png",
+        "audio":  null
+    },
+    {
+        "french":  "Elle sort de la maison pour prendre l\u0027air.",
+        "german":  "an die frische Luft gehen",
+        "vocabulary":  "prendre l\u0027air",
+        "image":  "an die frische Luft gehen.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il imagine qu\u0027il va gagner beaucoup d\u0027argent (Inf: imaginer qc).",
+        "german":  "er stellt sich vor…",
+        "vocabulary":  "imaginer qc",
+        "image":  "er stellt sich vor.png",
+        "audio":  null
+    },
+    {
+        "french":  "Il s\u0027imagine qu\u0027il est un grand sportif. Mais ce n\u0027est pas vrai.",
+        "german":  "er bildet sich ein…",
+        "vocabulary":  "s\u0027imaginer",
+        "image":  "er bildet sich ein.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "C\u0027est une publicité pour l\u0027énergie verte (fem).",
+        "german":  "die Energie",
+        "vocabulary":  "énergie",
+        "image":  "die Energie.png",
+        "audio":  null
+    },
+    {
+        "french":  "Elles font un‿entraînement de gymnastique ensemble.",
+        "german":  "ein Training",
+        "vocabulary":  "un‿entraînement",
+        "image":  "ein Training.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Tu dois faire du sport au moins deux fois par semaine. C\u0027est le minimum.",
+        "german":  "mindestens; wenigstens",
+        "vocabulary":  "au moins",
+        "image":  "wenigstens.png",
+        "audio":  null
+    },
+    {
+        "french":  "Voilà le secrétariat d\u0027une école primaire. Les parents y vont pour inscrire leurs‿enfants à l\u0027école. En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu\u0027ils veulent que leurs‿enfants entrent dans cette école en septembre. J\u0027inscris, nous‿inscrivons, elles‿inscrivent ; passé composé : j\u0027ai inscrit…",
+        "german":  "jemanden für etwas anmelden",
+        "vocabulary":  "inscrire",
+        "image":  "anmelden.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Quand on prend un selfie d\u0027ici, on risque de tomber. Infinitif: risquer",
+        "german":  "Gefahr laufen, etw. zu tun; riskieren, etw. zu tun",
+        "vocabulary":  "risquer",
+        "image":  "riskieren.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il veut arrêter (⤄ continuer) de fumer🚬.",
+        "german":  "aufhören (etw. zu tun)",
+        "vocabulary":  "arrêter",
+        "image":  "aufhören.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il travaille toujours mieux (+bien).",
+        "german":  "besser (Adv.)",
+        "vocabulary":  "mieux",
+        "image":  "besser.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "C\u0027est l\u0027enfer (un‿enfer).",
+        "german":  "die Hölle",
+        "vocabulary":  "l\u0027enfer",
+        "image":  "die Hölle.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Ces hommes ont créé (Inf: créer) les États-Unis.",
+        "german":  "etwas (erschaffen), gründen",
+        "vocabulary":  "créer",
+        "image":  "etwas (erschaffen), gründen.png",
+        "audio":  null
+    },
+    {
+        "french":  "C\u0027est⁔un groupe de musique.",
+        "german":  "hier: eine Band",
+        "vocabulary":  "un groupe de musique",
+        "image":  "eine Band.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il dit n\u0027importe quoi – Ce qu\u0027il dit, c\u0027est idiot.",
+        "german":  "irgendetwas; hier: Unsinn; Quatsch (ugs.)",
+        "vocabulary":  "n\u0027importe quoi",
+        "image":  "Unsinn.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il veut réaliser (←la réalité) son rêve.",
+        "german":  "etw. verwirklichen",
+        "vocabulary":  "réaliser",
+        "image":  "etw. verwirklichen.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Ils ont un projet important: Ils veulent construire une super machine.",
+        "german":  "ein Projekt",
+        "vocabulary":  "un projet",
+        "image":  "ein Projekt.png",
+        "audio":  null
+    },
+    {
+        "french":  "Elle s\u0027occupe de son petit frère (s\u0027occuper de qn).",
+        "german":  "sie kümmert sich um ihren kleinen Bruder; sich mit jdm./etw. beschäftigen; sich um jdn./etw. kümmern",
+        "vocabulary":  "s\u0027occuper de",
+        "image":  "sie kümmert sich um ihren kleinen Bruder.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il lit les annonces (une annonce) dans le journal.",
+        "german":  "eine Anzeige",
+        "vocabulary":  "une annonce",
+        "image":  "eine Anzeige.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Ils changent (Inf. : changer qc.) leur appartement parce qu\u0027ils préfèrent la couleur bleue. – Nous changeons, imparfait : je changeais, nous changions.",
+        "german":  "etwas (ver)ändern (hier behalte ich dieselbe Sache)",
+        "vocabulary":  "changer qc",
+        "image":  "etwas (ver)ändern.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Ils changent d\u0027 appartement (changer de qc.) parce qu\u0027ils veulent habiter dans un‿appartement plus grand.",
+        "german":  "etw. wechseln (erst habe ich A, dann habe ich B)",
+        "vocabulary":  "changer de qc.",
+        "image":  "etw. wechseln.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Il motive les gens (Inf: motiver qn.) = Il leur donne la pêche🍑.",
+        "german":  "jdn. motivieren",
+        "vocabulary":  "motiver qn",
+        "image":  "motivieren.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Elles partagent (Inf: partager qc.) les bonbons. – nous partageons, Imparfait: je partageais, nous partagions.",
+        "german":  "etwas teilen",
+        "vocabulary":  "partager qc",
+        "image":  "etwas teilen.png",
+        "audio":  null
+    },
+    {
+        "french":  "C\u0027est⁔un numéro du magazine »Okapi«.",
+        "german":  "eine Nummer, Ausgabe",
+        "vocabulary":  "un numéro",
+        "image":  "Ausgabe.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "C\u0027est⁔un nombre.",
+        "german":  "eine Zahl",
+        "vocabulary":  "un nombre",
+        "image":  "eine Zahl.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "C\u0027est le numéro de téléphone de notre école.",
+        "german":  "eine (Telefon-)Nummer",
+        "vocabulary":  "un numéro de téléphone",
+        "image":  "eine (Telefon-)Nummer.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Elle ___ stresse (Inf.: ___ stresser) avant son‿examen.",
+        "german":  "(sich) stressen",
+        "vocabulary":  "se stresser",
+        "image":  "stressen.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "C\u0027est le bac(calauréat) – l\u0027examen final de l\u0027école.",
+        "german":  "das Abitur",
+        "vocabulary":  "le baccalauréat",
+        "image":  "das Abitur.jpg",
+        "audio":  null
+    },
+    {
+        "french":  "Quand Pinocchio ment (Inf: mentir), il a un grand nez – je mens, nous mentons, elles mentent, j\u0027ai menti.",
+        "german":  "lügen",
+        "vocabulary":  "mentir",
+        "image":  "lügen.png",
+        "audio":  null
+    }
+]

@@ -20,7 +20,7 @@
         "audio":  null
     },
     {
-        "french":  "Il pense (infintif: penser) (à) quelque chose.",
+        "french":  "Il pense (infinitif: penser) (à) quelque chose.",
         "german":  "denken, dass",
         "vocabulary":  "penser",
         "image":  "denken.png"
@@ -71,7 +71,7 @@
         "image":  "träumen.svg"
     },
     {
-        "french":  "Il aide (infinitif: aider) NIX son copain.",
+        "french":  "Il aide (infinitif: aider) son copain.",
         "german":  "helfen",
         "vocabulary":  "aider",
         "image":  "helfen.png",
