@@ -359,25 +359,27 @@ function learn(q) {
     const answerInput = $('#typed-answer');
     if (answerInput) {
       answerInput.oninput = () => { typedAnswer = answerInput.value; };
-      answerInput.onkeydown = event => {
-        if (event.key === 'Enter' && !shown) {
-          event.preventDefault();
-          shown = true;
-          draw();
-        }
-      };
+      answerInput.focus();
     }
     if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
     else $('#flip').onclick = () => { shown = true; draw(); };
   };
   document.onkeydown = e => {
     if (!q.length) return;
-    if (e.target instanceof HTMLInputElement) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
-    if (key === 'p' && c.au) { e.preventDefault(); play(c.table, c.au); return; }
-    if (shown && (e.key === 'ArrowLeft' || e.key === '1')) answer(false);
-    else if (shown && (e.key === 'ArrowRight' || e.key === '2')) answer(true);
+    if (key === 'p' && c.au && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); play(c.table, c.au); return; }
+    if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      shown = true;
+      draw();
+    } else if (shown && (e.key === 'ArrowLeft' || e.key === '1')) {
+      e.preventDefault();
+      answer(false);
+    } else if (shown && (e.key === 'ArrowRight' || e.key === '2')) {
+      e.preventDefault();
+      answer(true);
+    }
   };
   const done = () => {
     stopAudio();
