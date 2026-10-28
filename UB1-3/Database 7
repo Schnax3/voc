@@ -1,0 +1,72 @@
+[
+    {
+        "french": "On ne connaît pas encore le criminel, mais la police a un soupçon : La police croit savoir qui est le criminel",
+        "german": "Verdacht",
+        "vocabulary": "un soupçon",
+        "image": "Verdacht.jpg",
+        "audio": "U2DE (AUDIO)/soupçon.mp3"
+    },
+    {
+        "french": "Ils lisent un livre de jeunesse (pour les jeunes).",
+        "german": "Jugendbuch",
+        "vocabulary": "un livre de jeunesse",
+        "image": "Jugendbuch.jpg",
+        "audio": "U2DE (AUDIO)/livre de jeunesse.mp3"
+    },
+    {
+        "french": "C'est‿un‿objet (=une chose) bizarre.",
+        "german": "Objekt, Gegenstand",
+        "vocabulary": "un objet",
+        "image": "Objekt.jpg",
+        "audio": "U2DE (AUDIO)/objet.mp3"
+    },
+    {
+        "french": "Tout le monde me regarde – Je suis l'objet de tous les regards.",
+        "german": "Alle Blicke richten sich auf mich.",
+        "vocabulary": "l'objet de tous les regards",
+        "image": "Alle Blicke.jpg",
+        "audio": "U2DE (AUDIO)/objet de tous les regards.mp3"
+    },
+    {
+        "french": "Il y a un cheveu dans la soupe!",
+        "german": "Haar in der Suppe",
+        "vocabulary": "un cheveu",
+        "image": "Haar in der Suppe.jpg",
+        "audio": "U2DE (AUDIO)/cheveu.mp3"
+    },
+    {
+        "french": "Ils/Elles‿ont les cheveux longs / les cheveux courts / les cheveux blonds",
+        "german": "sie haben lange / kurze / blonde Haare - achte auf den Artikel!",
+        "vocabulary": "les cheveux longs / courts / blonds",
+        "image": "Haare.jpg",
+        "audio": "U2DE (AUDIO)/cheveux.mp3"
+    },
+    {
+        "french": "Elle a les‿yeux bleus.",
+        "german": "blaue Augen - achte auf den Artikel!",
+        "vocabulary": "les yeux bleus",
+        "image": "blaue Augen.jpg",
+        "audio": "U2DE (AUDIO)/yeux.mp3"
+    },
+    {
+        "french": "Elle a une coiffure bizarre.",
+        "german": "Frisur",
+        "vocabulary": "une coiffure",
+        "image": "Frisur.jpg",
+        "audio": "U2DE (AUDIO)/coiffure.mp3"
+    },
+    {
+        "french": "Les autres dans la classe ne l'acceptent pas (accepter qn.).",
+        "german": "akzeptieren",
+        "vocabulary": "accepter qn.",
+        "image": "akzeptieren.jpg",
+        "audio": "U2DE (AUDIO)/accepter.mp3"
+    },
+    {
+        "french": "Voilà la couverture d'un livre.",
+        "german": "Buch-Umschlag",
+        "vocabulary": "la couverture",
+        "image": "Buch-Umschlag.jpg",
+        "audio": "U2DE (AUDIO)/couverture.mp3"
+    }
+]
