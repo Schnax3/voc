@@ -45,6 +45,7 @@ button:disabled{opacity:.45;cursor:default}
 .answer-field input{width:100%;font:inherit;font-size:1rem;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 .a{font-size:1.25rem;color:var(--acc)}
 .example{font-size:1rem;color:var(--mut)}
+.cheat{position:fixed;right:8px;bottom:6px;font-size:.75rem;color:var(--mut);opacity:.15;pointer-events:none;user-select:none}
 hr{width:100%;border:0;border-top:1px solid var(--line)}
 @media(max-width:560px){
   main{padding:16px 12px calc(32px + env(safe-area-inset-bottom))}
@@ -235,13 +236,20 @@ const st = id => P[id] || { b: 1, d: 0 };
 const save = () => LS.set('vk:progress', P);
 let sel = new Set(LS.get('vk:sel', []));
 let opt = LS.get('vk:opt', { dir: 'fr', all: false, img: true });
+let cheat = LS.get('vk:cheat', false); // versteckter Cheat-Modus (Alt+Shift+C im Hauptmenue)
 
 const idsOf = d => DB.has(d) ? DB.get(d).map(c => c.id) : (LS.get('vk:meta', {})[d] || null);
 
 // ---- Startseite ------------------------------------------------------------
 function home() {
   stopAudio();
-  document.onkeydown = null;
+  document.onkeydown = e => {
+    if (e.altKey && e.shiftKey && e.code === 'KeyC') {
+      e.preventDefault();
+      cheat = !cheat;
+      LS.set('vk:cheat', cheat);
+    }
+  };
   app.innerHTML = `<h1>Vokabelkasten</h1><p class="mut">Wähle die Tabellen, die du üben willst.</p>
   <div id="list"></div>
   <div class="opts">
@@ -363,7 +371,8 @@ function learn(q) {
       ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>${c.example ? `<div class="example">${esc(c.example)}</div>` : ''}` : ''}</div>
     <div class="btns">${shown
       ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
-      : '<button id="flip" class="primary" style="flex:1">Antwort zeigen</button>'}</div>`;
+      : '<button id="flip" class="primary" style="flex:1">Antwort zeigen</button>'}</div>
+    ${cheat ? `<div class="cheat">${esc(back)}</div>` : ''}`;
     const $ = s => app.querySelector(s);
     const currentImage = app.querySelector('.imgs img');
     if (currentImage && !currentImage.complete) {
