@@ -1,0 +1,233 @@
+[
+    {
+        "french": "Voilà un voleur (f: une voleuse).",
+        "german": "Dieb",
+        "vocabulary": "un voleur",
+        "image": "Dieb.jpg",
+        "audio": "U2A (AUDIO)/voleur.mp3"
+    },
+    {
+        "french": "C'est‿un système compliqué.",
+        "german": "System",
+        "vocabulary": "un système",
+        "image": "System.jpg",
+        "audio": "U2A (AUDIO)/système.mp3"
+    },
+    {
+        "french": "La moyenne des nombres 1,3,5 et 7, c'est 4.",
+        "german": "Durchschnitt",
+        "vocabulary": "la moyenne",
+        "image": "Durchschnitt.jpg",
+        "audio": "U2A (AUDIO)/moyenne.mp3"
+    },
+    {
+        "french": "En France, pour réussir un test, il faut avoir la note 10 (le maximum est 20). C'est «la moyenne».",
+        "german": "Durchschnitts-Note",
+        "vocabulary": "la moyenne",
+        "image": "Durchschnitts-Note.jpg",
+        "audio": "U2A (AUDIO)/moyenne (note).mp3"
+    },
+    {
+        "french": "La professeure rend (Inf: rendre) l'examen à l'élève avec une bonne note. Je rends, nous rendons, j'ai rendu",
+        "german": "herausgeben",
+        "vocabulary": "rendre",
+        "image": "herausgeben.jpg",
+        "audio": "U2A (AUDIO)/rend.mp3"
+    },
+    {
+        "french": "Le mécanicien a réparé la voiture. Maintenant, il rend la clé à la dame.",
+        "german": "zurückgeben",
+        "vocabulary": "rendre",
+        "image": "zurückgeben.jpg",
+        "audio": "U2A (AUDIO)/rend (clé).mp3"
+    },
+    {
+        "french": "Ils‿ont terminé l'université: Ils l'ont finie avec un diplôme. Infinitif: terminer qc.",
+        "german": "etw. erfolgreich beenden; auch: etw. fertigstellen",
+        "vocabulary": "terminer qc.",
+        "image": "beenden.jpg",
+        "audio": "U2A (AUDIO)/terminer.mp3"
+    },
+    {
+        "french": "En ville, il y a des rues. À la campagne, il y a des routes (une route).",
+        "german": "Landstraße",
+        "vocabulary": "une route",
+        "image": "Landstraße.jpg",
+        "audio": "U2A (AUDIO)/route.mp3"
+    },
+    {
+        "french": "On buvait (boire) du café tranquillement lorsque (=quand) le téléphone a sonné.",
+        "german": "als",
+        "vocabulary": "lorsque",
+        "image": "als.jpg",
+        "audio": "U2A (AUDIO)/lorsque.mp3"
+    },
+    {
+        "french": "C'est‿une épaule / Ce sont deux‿épaules.",
+        "german": "Schulter",
+        "vocabulary": "une épaule",
+        "image": "Schulter.jpg",
+        "audio": "U2A (AUDIO)/épaule.mp3"
+    },
+    {
+        "french": "Il pense que Maman aime son petit frère >plusieurs que lui. Donc, il est jaloux (f: jalouse) de son petit frère.",
+        "german": "eifersuchtig; auch: neidisch auf jmdn.",
+        "vocabulary": "jaloux / jalouse de",
+        "image": "eifersüchtig.jpg",
+        "audio": "U2A (AUDIO)/jaloux.mp3"
+    },
+    {
+        "french": "J'ai l'impression (une impression) (=je pense) que tu passes trop de temps sur ton portable.",
+        "german": "Ich habe den Eindruck, dass…",
+        "vocabulary": "une impression",
+        "image": "Eindruck.jpg",
+        "audio": "U2A (AUDIO)/impression.mp3"
+    },
+    {
+        "french": "J'ai quelques questions.",
+        "german": "Ich habe einige Fragen.",
+        "vocabulary": "quelques",
+        "image": "einige Fragen.jpg",
+        "audio": "U2A (AUDIO)/quelques.mp3"
+    },
+    {
+        "french": "Ils sont très motivés – Ils‿ont la pêche.",
+        "german": "gut drauf sein",
+        "vocabulary": "avoir la pêche",
+        "image": "gut drauf sein.jpg",
+        "audio": "U2A (AUDIO)/pêche.mp3"
+    },
+    {
+        "french": "Voilà un masque africain (←d'Afrique).",
+        "german": "afrikanisch",
+        "vocabulary": "africain",
+        "image": "afrikanisch.jpg",
+        "audio": "U2A (AUDIO)/africain.mp3"
+    },
+    {
+        "french": "Voici la Côte d'Ivoire. C'est un pays d'Afrique. On fait de l'ivoire des dents des‿éléphants.",
+        "german": "Elfenbein-Küste",
+        "vocabulary": "la Côte d'Ivoire",
+        "image": "Elfenbein-Küste.jpg",
+        "audio": "U2A (AUDIO)/Côte d'Ivoire.mp3"
+    },
+    {
+        "french": "J'aime bien dessiner.",
+        "german": "zeichnen",
+        "vocabulary": "dessiner",
+        "image": "zeichnen.jpg",
+        "audio": "U2A (AUDIO)/dessiner.mp3"
+    },
+    {
+        "french": "L'entraîneuse encourage (Inf: encourager qn.) son équipe: «Vous‿allez gagner!»",
+        "german": "ermutigen",
+        "vocabulary": "encourager qn.",
+        "image": "ermutigen.jpg",
+        "audio": "U2A (AUDIO)/encourager.mp3"
+    },
+    {
+        "french": "C'est‿un sourire. La personne sourit (Infinitif: sourire), je souris, nous sourions, elles sourient, P.C.: elle a souri",
+        "german": "Lächeln",
+        "vocabulary": "un sourire",
+        "image": "Lächeln.jpg",
+        "audio": "U2A (AUDIO)/sourire.mp3"
+    },
+    {
+        "french": "La fille en rouge est assise au fond du bus. Il y a encore quelques frites au fond du sac.",
+        "german": "hinten in, unten in",
+        "vocabulary": "au fond de",
+        "image": "hinten in.jpg",
+        "audio": "U2A (AUDIO)/au fond du.mp3"
+    },
+    {
+        "french": "Une statuette, c'est une petite statue.",
+        "german": "Figur, Statuette",
+        "vocabulary": "une statuette",
+        "image": "Statuette.jpg",
+        "audio": "U2A (AUDIO)/statuette.mp3"
+    },
+    {
+        "french": "Le magicien avait un lapin dans son chapeau. Puis, il a fait sa magie, et le lapin a disparu: Il n'était plus là. (Inf: disparaître, je disparais, nous disparaissons, ils disparaissent)",
+        "german": "verschwinden",
+        "vocabulary": "disparaître",
+        "image": "verschwinden.jpg",
+        "audio": "U2A (AUDIO)/disparaître.mp3"
+    },
+    {
+        "french": "Une main touche (Inf: toucher) l'autre.",
+        "german": "berühren; auch: jdn./etw. anfassen",
+        "vocabulary": "toucher",
+        "image": "berühren.jpg",
+        "audio": "U2A (AUDIO)/toucher.mp3"
+    },
+    {
+        "french": "C'est un visage avec une larme.",
+        "german": "Träne",
+        "vocabulary": "une larme",
+        "image": "Träne.jpg",
+        "audio": "U2A (AUDIO)/larme.mp3"
+    },
+    {
+        "french": "Il fouille dans ses‿affaires (Inf: fouiller).",
+        "german": "wühlen; auch: etw. durchsuchen; in etw. herumkramen (ugs.)",
+        "vocabulary": "fouiller",
+        "image": "wühlen.jpg",
+        "audio": "U2A (AUDIO)/fouiller.mp3"
+    },
+    {
+        "french": "L'homme vole (Inf: voler) le portefeuille de la dame.",
+        "german": "stehlen",
+        "vocabulary": "voler",
+        "image": "stehlen.jpg",
+        "audio": "U2A (AUDIO)/voler.mp3"
+    },
+    {
+        "french": "c'est le principal / la principale.",
+        "german": "Schulleiter/in",
+        "vocabulary": "le principal / la principale",
+        "image": "Schulleiter.jpg",
+        "audio": "U2A (AUDIO)/principal.mp3"
+    },
+    {
+        "french": "Le chat est content: Il n'est pas dehors – il est dans l'appartement.",
+        "german": "draußen; auch: im Freien",
+        "vocabulary": "dehors",
+        "image": "draußen.jpg",
+        "audio": "U2A (AUDIO)/dehors.mp3"
+    },
+    {
+        "french": "Regarde, je t'ai rapporté (Inf: rapporter qc.) un cadeau de mon voyage.",
+        "german": "mitbringen",
+        "vocabulary": "rapporter qc.",
+        "image": "mitbringen.jpg",
+        "audio": "U2A (AUDIO)/rapporter.mp3"
+    },
+    {
+        "french": "Parmi les membres du groupe (=dans le groupe), il y a un criminel, qui veut tuer les autres. Ce jeu s'appelle «Parmi nous».",
+        "german": "unter (🇬🇧 among)",
+        "vocabulary": "parmi",
+        "image": "unter.jpg",
+        "audio": "U2A (AUDIO)/parmi.mp3"
+    },
+    {
+        "french": "Voilà l'Afrique sur la carte.",
+        "german": "Afrika",
+        "vocabulary": "l'Afrique",
+        "image": "Afrika.jpg",
+        "audio": "U2A (AUDIO)/Afrique.mp3"
+    },
+    {
+        "french": "Elle est furieuse / Il est furieux / Ils sont furieux / Elles sont furieuses.",
+        "german": "wütend; auch: zornig",
+        "vocabulary": "furieux / furieuse",
+        "image": "wütend.jpg",
+        "audio": "U2A (AUDIO)/furieux.mp3"
+    },
+    {
+        "french": "Il fait beau ce week-end. Pour profiter du beau temps, on va aller à la mer.",
+        "german": "etw. nutzen / genießen",
+        "vocabulary": "profiter de",
+        "image": "nutzen.jpg",
+        "audio": "U2A (AUDIO)/profiter.mp3"
+    }
+]
