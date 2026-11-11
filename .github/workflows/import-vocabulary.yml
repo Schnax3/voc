@@ -1,0 +1,39 @@
+name: Import vocabulary pages
+
+on:
+  push:
+    paths:
+      - sources.csv
+      - scripts/import_vocabulary.py
+      - .github/workflows/import-vocabulary.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Import vocabulary pages
+        run: python scripts/import_vocabulary.py
+
+      - name: Commit imported HTML and JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          if git diff --cached --quiet; then
+            echo "No imported files changed."
+            exit 0
+          fi
+          git commit -m "Import vocabulary pages"
+          git push
