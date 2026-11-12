@@ -76,6 +76,9 @@ def text_content(element: Element) -> str:
 
 
 def clean_text(value: str) -> str:
+    # Das Liaison-Zeichen steht in den Quellseiten teils als U+2054 (⁔), das in vielen Schriftarten fehlt.
+    # Die gepflegten Lektionen nutzen U+203F (‿), deshalb wird einheitlich dieses verwendet.
+    value = value.replace("⁔", "‿")
     value = re.sub(r"\s+", " ", value).strip()
     return re.sub(r"\s+([,.;:!?])", r"\1", value)
 

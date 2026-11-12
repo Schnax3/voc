@@ -64,6 +64,21 @@ class ParseVocabularyHtmlTests(unittest.TestCase):
         self.assertEqual(result[0]["french"], "Il fait un coup sur la table.")
         self.assertEqual(result[0]["vocabulary"], "un coup")
 
+    def test_normalizes_liaison_mark(self):
+        html = """
+        <div class="row key check">
+          <div class="question">
+            <span class="translation"><span class="content">ein Stadion</span></span>
+          </div>
+          <div class="answer"><span>C'est⁔u<span class="secret">n stade.</span></span></div>
+        </div>
+        """
+
+        result = parse_vocabulary_html(html, "https://example.test/lesson.html")
+
+        self.assertNotIn("⁔", result[0]["french"])
+        self.assertIn("‿", result[0]["french"])
+
     def test_rejects_pages_without_vocabulary_rows(self):
         with self.assertRaisesRegex(ValueError, "keine erkennbaren Vokabelzeilen"):
             parse_vocabulary_html("<html><body>Keine Einträge</body></html>", "https://example.test/")

@@ -42,7 +42,7 @@
         "audio":  null
     },
     {
-        "french":  "C\u0027est⁔une pêche.",
+        "french":  "C\u0027est‿une pêche.",
         "german":  "ein Pfirsich",
         "vocabulary":  "une pêche",
         "image":  "ein Pfirsich.png",
@@ -105,7 +105,7 @@
         "audio":  null
     },
     {
-        "french":  "Ils restent assis – Ils ne se lèvent pas. Il est⁔assis, elle est⁔assise.",
+        "french":  "Ils restent assis – Ils ne se lèvent pas. Il est‿assis, elle est‿assise.",
         "german":  "sie bleiben sitzen; er / sie sitzt («ist hingesetzt»)",
         "vocabulary":  "rester assis",
         "image":  "sie bleiben sitzen.png",
@@ -196,7 +196,7 @@
         "audio":  null
     },
     {
-        "french":  "C\u0027est⁔un groupe de musique.",
+        "french":  "C\u0027est‿un groupe de musique.",
         "german":  "hier: eine Band",
         "vocabulary":  "un groupe de musique",
         "image":  "eine Band.jpg",
@@ -266,14 +266,14 @@
         "audio":  null
     },
     {
-        "french":  "C\u0027est⁔un numéro du magazine »Okapi«.",
+        "french":  "C\u0027est‿un numéro du magazine »Okapi«.",
         "german":  "eine Nummer, Ausgabe",
         "vocabulary":  "un numéro",
         "image":  "Ausgabe.jpg",
         "audio":  null
     },
     {
-        "french":  "C\u0027est⁔un nombre.",
+        "french":  "C\u0027est‿un nombre.",
         "german":  "eine Zahl",
         "vocabulary":  "un nombre",
         "image":  "eine Zahl.jpg",

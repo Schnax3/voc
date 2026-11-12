@@ -21,3 +21,11 @@ Vor jedem Import laufen die Tests (`python -m unittest tests.test_import_vocabul
 Du kannst den Import später erneut starten, indem du `sources.csv` änderst und pushst oder GitHub unter **Actions → Import vocabulary pages → Run workflow** verwendest. Die Action committet die erzeugten Dateien automatisch zurück ins Repository.
 
 Die HTML-Quellen müssen direkte HTTPS-Links auf Vokabelseiten sein. Der Import erwartet Vokabelzeilen mit deutscher Übersetzung, französischer Antwort und markiertem Vokabeltext.
+
+## Entwickeln und testen mit dem Branch `dev`
+
+- `main` ist die echte Seite, `dev` ist zum Ausprobieren. Änderungen kommen zuerst auf `dev`.
+- Die Testseite liegt unter `…/voc/dev/`. Sie liest den Branch `dev`, speichert Fortschritt und Einstellungen **getrennt** von der echten Seite, zeigt oben einen orangen Hinweis und sendet keine Statistik.
+- Sind die Änderungen in Ordnung, wird `dev` nach `main` übernommen (am einfachsten über einen Pull Request auf GitHub: `dev` → `main`, „Merge“).
+- Der Workflow `.github/workflows/pages.yml` veröffentlicht beide Branches. Dafür muss unter *Settings → Pages → Build and deployment → Source* **GitHub Actions** eingestellt sein.
+- Lokal testen: `python -m http.server` im Repo starten und `http://localhost:8000/?env=dev` öffnen. Die Lektionsliste kommt dann aus dem Branch `dev` auf GitHub.

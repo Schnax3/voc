@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   import:
@@ -31,6 +32,8 @@ jobs:
         run: python scripts/import_vocabulary.py
 
       - name: Commit imported JSON
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -41,3 +44,5 @@ jobs:
           fi
           git commit -m "Import vocabulary pages"
           git push
+          # Pushes mit dem Workflow-Token lösen keine anderen Workflows aus: Seite bei Bedarf selbst neu veröffentlichen.
+          gh workflow run pages.yml --ref "$GITHUB_REF_NAME" || echo "Pages-Workflow nicht gestartet (existiert er auf diesem Branch?)"

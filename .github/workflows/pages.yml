@@ -1,0 +1,53 @@
+name: Deploy Pages (main + dev)
+
+# Veröffentlicht den Branch "main" als normale Seite und den Branch "dev" als Testseite unter /dev/.
+# Voraussetzung: Repository-Einstellungen -> Pages -> Source = "GitHub Actions".
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out main (normale Seite)
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: site
+
+      - name: Check out dev (Testseite, falls der Branch existiert)
+        uses: actions/checkout@v7
+        continue-on-error: true
+        with:
+          ref: dev
+          path: site/dev
+
+      - name: Assemble site
+        run: |
+          rm -rf site/.git site/dev/.git
+          touch site/.nojekyll
+          echo "Seiten-Dateien:" && find site -maxdepth 2 -name index.html
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
