@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import csv
-import hashlib
 import json
 import re
 import sys
@@ -13,7 +12,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Iterator
 from urllib.error import URLError
-from urllib.parse import unquote, urljoin, urlparse
+from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -109,10 +108,31 @@ def vocabulary_text(answer: str, secrets: list[Element]) -> str:
     return clean_text(" ".join(terms))
 
 
+def _is_inline_asset(value: object) -> bool:
+    return isinstance(value, str) and value.lstrip().lower().startswith("data:")
+
+
 def _resolve_asset(value: str, source_url: str) -> str | None:
-    if not value:
+    # Eingebettete data:-URIs (base64-Bilder/-Audios) blähen Repo und JSON auf und werden nicht übernommen.
+    if not value or _is_inline_asset(value):
         return None
     return urljoin(source_url, value)
+
+
+def strip_inline_assets(records: list[dict[str, str | None]]) -> list[dict[str, str | None]]:
+    """Entfernt data:-URIs aus image/audio (auch aus bereits vorhandenen Einträgen)."""
+    cleaned = []
+    for record in records:
+        record = dict(record)
+        for key in ("image", "audio"):
+            value = record.get(key)
+            if _is_inline_asset(value):
+                record[key] = None
+            elif isinstance(value, list):
+                kept = [item for item in value if not _is_inline_asset(item)]
+                record[key] = kept or None
+        cleaned.append(record)
+    return cleaned
 
 
 def parse_vocabulary_html(html: str, source_url: str) -> list[dict[str, str | None]]:
@@ -209,28 +229,18 @@ def _decode_response(body: bytes, content_type: str) -> str:
             return body.decode("cp1252", errors="replace")
 
 
-def download(url: str) -> tuple[bytes, str]:
+def download(url: str) -> str:
     request = Request(url, headers={"User-Agent": "voc-vocabulary-import/1.0"})
     with urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
         body = response.read(MAX_RESPONSE_BYTES + 1)
         if len(body) > MAX_RESPONSE_BYTES:
             raise ValueError(f"HTML-Datei ist größer als {MAX_RESPONSE_BYTES // (1024 * 1024)} MB: {url}")
-        return body, _decode_response(body, response.headers.get("Content-Type", ""))
-
-
-def html_filename(url: str) -> str:
-    candidate = unquote(Path(urlparse(url).path).name)
-    candidate = re.sub(r"[^\w.-]", "-", candidate, flags=re.UNICODE).strip(".-")
-    if not candidate:
-        candidate = "source.html"
-    if not candidate.lower().endswith(".html"):
-        candidate += ".html"
-    return candidate
+        return _decode_response(body, response.headers.get("Content-Type", ""))
 
 
 def _prepare_outputs(
     sources: list[tuple[str, str, bool]],
-) -> dict[str, tuple[dict[str, bytes], list[dict[str, str | None]], list[str], bool]]:
+) -> dict[str, tuple[list[dict[str, str | None]], list[str], bool]]:
     grouped: dict[str, tuple[bool, list[str]]] = {}
     for folder, url, merge_existing in sources:
         if folder in grouped and grouped[folder][0] != merge_existing:
@@ -240,7 +250,6 @@ def _prepare_outputs(
 
     outputs = {}
     for folder, (merge_existing, urls) in grouped.items():
-        html_files: dict[str, bytes] = {}
         records: list[dict[str, str | None]] = []
         seen_records = set()
         seen_urls = set()
@@ -248,19 +257,13 @@ def _prepare_outputs(
             if url in seen_urls:
                 continue
             seen_urls.add(url)
-            body, html = download(url)
-            name = html_filename(url)
-            if name in html_files:
-                suffix = hashlib.sha256(url.encode("utf-8")).hexdigest()[:8]
-                stem, extension = name.rsplit(".", 1)
-                name = f"{stem}-{suffix}.{extension}"
-            html_files[name] = body
+            html = download(url)
             for record in parse_vocabulary_html(html, url):
                 key = (record["french"], record["german"], record["vocabulary"])
                 if key not in seen_records:
                     records.append(record)
                     seen_records.add(key)
-        outputs[folder] = (html_files, records, sorted(seen_urls), merge_existing)
+        outputs[folder] = (records, sorted(seen_urls), merge_existing)
     return outputs
 
 
@@ -283,10 +286,10 @@ def merge_records(
 
 
 def _write_outputs(
-    outputs: dict[str, tuple[dict[str, bytes], list[dict[str, str | None]], list[str], bool]],
+    outputs: dict[str, tuple[list[dict[str, str | None]], list[str], bool]],
 ) -> None:
     merge_targets: dict[str, tuple[Path, list[dict[str, str | None]]]] = {}
-    for folder, (html_files, records, urls, merge_existing) in outputs.items():
+    for folder, (records, urls, merge_existing) in outputs.items():
         directory = ROOT / folder
         manifest_path = directory / ".vocabulary-import.json"
         existing_databases = sorted(directory.glob("database*.json")) if directory.exists() else []
@@ -312,22 +315,21 @@ def _write_outputs(
         elif any(path.name != "database.json" for path in existing_databases):
             raise ValueError(f"{directory.relative_to(ROOT)} enthält eine nicht verwaltete database*.json-Datei.")
 
-    for folder, (html_files, records, urls, merge_existing) in outputs.items():
+    for folder, (records, urls, merge_existing) in outputs.items():
         directory = ROOT / folder
         directory.mkdir(parents=True, exist_ok=True)
-        for name, body in html_files.items():
-            (directory / name).write_bytes(body)
         if merge_existing:
             database_path, existing_records = merge_targets[folder]
             records = merge_records(existing_records, records)
         else:
             database_path = directory / "database.json"
+        records = strip_inline_assets(records)
         database_path.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         (directory / ".vocabulary-import.json").write_text(
             json.dumps({"generated_by": "scripts/import_vocabulary.py", "sources": urls}, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-        print(f"{folder}: {len(records)} Vokabeln, {len(html_files)} HTML-Datei(en)")
+        print(f"{folder}: {len(records)} Vokabeln")
 
 
 def main() -> None:

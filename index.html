@@ -4,13 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vokabelkasten</title>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-244LVTNJQX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-244LVTNJQX');
-</script>
 <style>
 :root{color-scheme:light;--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#6b6a64;--acc:#2f6fed;--ok:#1f9d55;--bad:#d64545;--line:#e2e0d8}
 :root[data-theme="dark"]{color-scheme:dark;--bg:#161614;--card:#222220;--ink:#efeee8;--mut:#9a9890;--acc:#6b9bff;--line:#383733}
@@ -111,8 +104,11 @@ const dataUrl = t => fileUrl(`${t.dir}/${t.file}`);
 const imageUrl = (table, path) => /^(?:data:|https?:|blob:)/i.test(path) ? path : fileUrl(`${table}/${path}`);
 const audioUrl = (table, path) => /^(?:data:|https?:|blob:)/i.test(path) ? path : fileUrl(path.includes('/') ? path : `${table}/${path}`);
 let au, audioPath; // aktuell spielende Audiodatei
+// Sprachausgabe des Browsers als Ersatz, wenn eine Karte keine Audiodatei hat
+const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+let speech = null; // aktuell gesprochene Ausgabe
 const updateAudioButtons = () => {
-  const playing = Boolean(au && !au.paused);
+  const playing = Boolean((au && !au.paused) || speech);
   app.querySelectorAll('.spk').forEach(button => {
     button.textContent = playing ? '⏹' : '🔊';
     button.title = playing ? 'Stoppen (P)' : 'Anhören (P)';
@@ -120,6 +116,11 @@ const updateAudioButtons = () => {
   });
 };
 const stopAudio = () => {
+  if (speech) {
+    speech = null;
+    speechSynthesis.cancel();
+    updateAudioButtons();
+  }
   if (!au) return;
   const current = au;
   au = null;
@@ -165,6 +166,24 @@ const play = (table, p) => {
     console.error(`Audio konnte nicht abgespielt werden: ${url}`, error);
   });
 };
+const speak = text => {
+  if (!canSpeak || !text) return;
+  if (speech) { stopAudio(); return; } // zweiter Klick stoppt die Sprachausgabe
+  stopAudio();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'fr-FR';
+  utterance.rate = 0.9;
+  const voice = speechSynthesis.getVoices().find(v => v.lang.toLowerCase().startsWith('fr'));
+  if (voice) utterance.voice = voice;
+  const finished = () => { if (speech === utterance) { speech = null; updateAudioButtons(); } };
+  utterance.onend = finished;
+  utterance.onerror = finished;
+  speech = utterance;
+  speechSynthesis.speak(utterance);
+  updateAudioButtons();
+};
+const hasSound = c => Boolean(c.au) || canSpeak;
+const sound = c => c.au ? play(c.table, c.au) : speak(c.fr);
 
 // ---- Tabellen automatisch finden (jeder Ordner mit einer .json = eine Tabelle) --
 let tables = [];
@@ -260,7 +279,9 @@ function home() {
     <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
     <label><input type="checkbox" id="theme"> Dunkles Design</label>
   </div>
-  <div class="btns"><button id="go" class="primary">Starten</button><button id="reload">Tabellen neu laden</button><button id="reset">Fortschritt zurücksetzen</button></div>`;
+  <div class="btns"><button id="go" class="primary">Starten</button><button id="reload">Tabellen neu laden</button><button id="reset">Fortschritt zurücksetzen</button>
+    <button id="export">Fortschritt exportieren</button><button id="import">Fortschritt importieren</button></div>
+  <input type="file" id="import-file" accept="application/json,.json" hidden>`;
   const $ = s => app.querySelector(s);
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#img').checked = opt.img;
   $('#typing').checked = opt.typing || false;
@@ -288,6 +309,35 @@ function home() {
     if (!sel.size || !confirm('Fortschritt der ausgewählten Tabellen zurücksetzen?')) return;
     for (const k of Object.keys(P)) if (sel.has(k.split('::')[0])) delete P[k];
     save(); list(); updateGo();
+  };
+  // Fortschritt sichern bzw. auf einem anderen Gerät einspielen (Daten liegen sonst nur in diesem Browser)
+  $('#export').onclick = () => {
+    const data = { app: 'vokabelkasten', version: 1, exported: new Date().toISOString(), progress: P };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vokabelkasten-fortschritt-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  $('#import').onclick = () => $('#import-file').click();
+  $('#import-file').onchange = async event => {
+    const file = event.target.files[0]; event.target.value = '';
+    if (!file) return;
+    try {
+      const data = JSON.parse((await file.text()).replace(/^﻿/, ''));
+      const incoming = data && data.progress;
+      if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new Error('Keine gültige Fortschrittsdatei.');
+      const valid = Object.entries(incoming).filter(([id, s]) => typeof id === 'string' && id.includes('::') && s
+        && Number.isInteger(s.b) && s.b >= 1 && s.b <= 5 && Number.isFinite(s.d));
+      if (!valid.length) throw new Error('Die Datei enthält keinen verwertbaren Fortschritt.');
+      if (!confirm(`${valid.length} Karten aus der Datei übernehmen? Bei Überschneidungen gilt der höhere Kasten.`)) return;
+      for (const [id, s] of valid) {
+        const cur = P[id];
+        if (!cur || s.b > cur.b || (s.b === cur.b && s.d > cur.d)) P[id] = { b: s.b, d: s.d };
+      }
+      save(); list(); updateGo();
+    } catch (e) { alert(`Import fehlgeschlagen: ${e.message}`); }
   };
   list(); updateGo();
 }
@@ -361,7 +411,7 @@ function learn(q) {
   const draw = () => {
     if (!q.length) return done();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
-    const spk = c.au ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
+    const spk = hasSound(c) ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="" decoding="async" fetchpriority="high">`).join('')}</div>` : '';
     app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}</span></div>
     <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
@@ -381,7 +431,7 @@ function learn(q) {
     } else preloadNextImages();
     $('#end').onclick = home;
     app.querySelectorAll('.spk').forEach(button => {
-      button.onclick = event => { event.stopPropagation(); play(c.table, c.au); };
+      button.onclick = event => { event.stopPropagation(); sound(c); };
     });
     const answerInput = $('#typed-answer');
     if (answerInput) {
@@ -395,7 +445,7 @@ function learn(q) {
     if (!q.length) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
-    if (key === 'p' && c.au && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); play(c.table, c.au); return; }
+    if (key === 'p' && hasSound(c) && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); sound(c); return; }
     if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown')) {
       e.preventDefault();
       shown = true;

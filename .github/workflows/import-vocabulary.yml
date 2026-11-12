@@ -5,6 +5,7 @@ on:
     paths:
       - sources.csv
       - scripts/import_vocabulary.py
+      - tests/**
       - .github/workflows/import-vocabulary.yml
   workflow_dispatch:
 
@@ -23,10 +24,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Run tests
+        run: python -m unittest tests.test_import_vocabulary -v
+
       - name: Import vocabulary pages
         run: python scripts/import_vocabulary.py
 
-      - name: Commit imported HTML and JSON
+      - name: Commit imported JSON
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
