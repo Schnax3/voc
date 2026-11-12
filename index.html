@@ -40,6 +40,7 @@ button:disabled{opacity:.45;cursor:default}
 .example{font-size:1rem;color:var(--mut)}
 .cheat{position:fixed;right:8px;bottom:6px;font-size:.75rem;color:var(--mut);opacity:.15;pointer-events:none;user-select:none}
 hr{width:100%;border:0;border-top:1px solid var(--line)}
+#devbar{position:sticky;top:0;z-index:20;background:#d97706;color:#fff;text-align:center;font-size:.8rem;font-weight:600;padding:6px 10px}
 #consent{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.12);padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
 #consent[hidden]{display:none}
 #consent .in{max-width:640px;margin:0 auto}
@@ -89,10 +90,20 @@ const DAYS = [0, 1, 3, 7, 21]; // Wartezeit in Tagen, bis eine Karte im Kasten 1
 
 // ---- Helfer ---------------------------------------------------------------
 const app = document.getElementById('app');
+// Testversion: liegt auf GitHub Pages unter .../dev/ (oder lokal mit ?env=dev) und liest den Branch "dev".
+// Fortschritt und Einstellungen werden dort getrennt gespeichert, damit Tests den echten Stand nicht verändern.
+const IS_DEV = /\/dev(\/|$)/.test(location.pathname) || new URLSearchParams(location.search).get('env') === 'dev';
+const REF = IS_DEV ? 'dev' : 'HEAD';
+const NS = IS_DEV ? 'dev:' : '';
 const LS = {
-  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  get(k, d) { try { return JSON.parse(localStorage.getItem(NS + k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); } catch {} }
 };
+if (IS_DEV) {
+  document.title = 'TEST · ' + document.title;
+  document.body.insertAdjacentHTML('afterbegin',
+    '<div id="devbar">TESTVERSION (Branch dev) · Fortschritt wird getrennt von der echten Seite gespeichert</div>');
+}
 const storedTheme = LS.get('vk:theme', null);
 document.documentElement.dataset.theme = storedTheme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -112,7 +123,7 @@ const R = (() => {
   return { owner, repo };
 })();
 const rel = p => p.split('/').map(enc).join('/');
-const fileUrl = p => onPages ? rel(p) : `https://raw.githubusercontent.com/${R.owner}/${R.repo}/HEAD/${rel(p)}`;
+const fileUrl = p => onPages ? rel(p) : `https://raw.githubusercontent.com/${R.owner}/${R.repo}/${REF}/${rel(p)}`;
 const dataUrl = t => fileUrl(`${t.dir}/${t.file}`);
 const imageUrl = (table, path) => /^(?:data:|https?:|blob:)/i.test(path) ? path : fileUrl(`${table}/${path}`);
 const audioUrl = (table, path) => /^(?:data:|https?:|blob:)/i.test(path) ? path : fileUrl(path.includes('/') ? path : `${table}/${path}`);
@@ -141,7 +152,7 @@ const stopAudio = () => {
   current.pause();
   updateAudioButtons();
 };
-const play = (table, p) => {
+const play = (table, p, onFail) => {
   const url = audioUrl(table, p);
   if (au && audioPath === url) {
     if (au.paused && !au.ended) {
@@ -171,12 +182,14 @@ const play = (table, p) => {
     }
   });
   audio.play().catch(error => {
-    if (au === audio) {
+    const stillCurrent = au === audio; // false, wenn der Nutzer inzwischen gestoppt hat
+    if (stillCurrent) {
       au = null;
       audioPath = null;
       updateAudioButtons();
     }
     console.error(`Audio konnte nicht abgespielt werden: ${url}`, error);
+    if (stillCurrent && onFail) onFail(); // Datei fehlt/defekt: Sprachausgabe als Ersatz
   });
 };
 const speak = text => {
@@ -196,7 +209,7 @@ const speak = text => {
   updateAudioButtons();
 };
 const hasSound = c => Boolean(c.au) || canSpeak;
-const sound = c => c.au ? play(c.table, c.au) : speak(c.fr);
+const sound = c => c.au ? play(c.table, c.au, () => speak(c.fr)) : speak(c.fr);
 
 // ---- Tabellen automatisch finden (jeder Ordner mit einer .json = eine Tabelle) --
 let tables = [];
@@ -204,7 +217,7 @@ async function discover(force) {
   const key = `vk:tables2:${R.owner}/${R.repo}`, c = LS.get(key);
   if (c && !force && Date.now() - c.t < 18e5) return c.tables; // 30 Min Cache (API-Limit schonen)
   try {
-    const r = await fetch(`https://api.github.com/repos/${R.owner}/${R.repo}/git/trees/HEAD?recursive=1`);
+    const r = await fetch(`https://api.github.com/repos/${R.owner}/${R.repo}/git/trees/${REF}?recursive=1`);
     if (!r.ok) throw new Error('GitHub-API ' + r.status);
     const { tree } = await r.json(), map = {};
     for (const e of tree) {
@@ -425,7 +438,7 @@ function learn(q) {
     if (!q.length) return done();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
     const spk = hasSound(c) ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
-    const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="" decoding="async" fetchpriority="high">`).join('')}</div>` : '';
+    const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="" decoding="async" fetchpriority="high" onerror="this.remove()">`).join('')}</div>` : '';
     app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}</span></div>
     <div class="card" id="card"><span class="mut">${esc(c.table)}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
       ${opt.typing ? `<label class="answer-field">Deine Antwort (wird nicht automatisch geprüft)
@@ -530,6 +543,10 @@ function learn(q) {
   document.getElementById('consent-yes').onclick = () => decide('yes');
   document.getElementById('consent-no').onclick = () => decide('no');
   document.getElementById('stat-link').onclick = () => { box.hidden = false; };
+  if (typeof IS_DEV !== 'undefined' && IS_DEV) { // Testversion: keine Statistik, keine Abfrage
+    document.getElementById('stat-link').hidden = true;
+    return;
+  }
   const saved = read();
   if (saved === 'yes') load();
   else if (saved !== 'no') box.hidden = false;
