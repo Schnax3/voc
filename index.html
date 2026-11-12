@@ -40,6 +40,12 @@ button:disabled{opacity:.45;cursor:default}
 .example{font-size:1rem;color:var(--mut)}
 .cheat{position:fixed;right:8px;bottom:6px;font-size:.75rem;color:var(--mut);opacity:.15;pointer-events:none;user-select:none}
 hr{width:100%;border:0;border-top:1px solid var(--line)}
+#consent{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.12);padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
+#consent[hidden]{display:none}
+#consent .in{max-width:640px;margin:0 auto}
+#consent p{margin:0 0 10px;font-size:.9rem}
+#consent .btns{margin:0}
+#stat-link{position:fixed;left:8px;bottom:6px;font-size:.75rem;color:var(--mut);background:none;border:0;padding:4px;text-decoration:underline;cursor:pointer;opacity:.6}
 @media(max-width:560px){
   main{padding:16px 12px calc(32px + env(safe-area-inset-bottom))}
   h1{font-size:1.4rem}
@@ -68,6 +74,13 @@ hr{width:100%;border:0;border-top:1px solid var(--line)}
 </head>
 <body>
 <main id="app"></main>
+<div id="consent" role="dialog" aria-label="Statistik" hidden>
+  <div class="in">
+    <p>Darf diese Seite anonyme Besuchsstatistik mit Google Analytics erfassen? Dabei werden Daten an Google übertragen. Ohne deine Zustimmung wird nichts geladen und die App funktioniert genauso. Du kannst die Entscheidung jederzeit unten links ändern.</p>
+    <div class="btns"><button id="consent-yes" class="primary">Erlauben</button><button id="consent-no">Ablehnen</button></div>
+  </div>
+</div>
+<button id="stat-link" type="button">Statistik-Einstellung</button>
 <script>
 // ---- Einstellungen ---------------------------------------------------------
 // owner/repo leer lassen = automatisch aus der GitHub-Pages-Adresse ermitteln.
@@ -484,6 +497,42 @@ function learn(q) {
   }
   home();
   for (const d of sel) load(tables.find(t => t.dir === d)).then(() => { list(); updateGo(); }).catch(() => {});
+})();
+</script>
+<script>
+// ---- Google Analytics nur nach Einwilligung -----------------------------------
+(() => {
+  const GA_ID = 'G-244LVTNJQX';
+  const KEY = 'vk:analytics'; // 'yes' | 'no'
+  const box = document.getElementById('consent');
+  const read = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
+  const write = v => { try { localStorage.setItem(KEY, v); } catch {} };
+  let loaded = false;
+  const load = () => {
+    if (loaded) return;
+    loaded = true;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', GA_ID);
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    document.head.appendChild(s);
+  };
+  const decide = v => {
+    write(v);
+    box.hidden = true;
+    if (v === 'yes') load();
+    // Beim Widerruf wird nichts mehr gesendet; ein bereits geladenes Skript endet mit dem Neuladen.
+    else if (loaded) { alert('Die Statistik wird nach dem Neuladen der Seite nicht mehr geladen.'); }
+  };
+  document.getElementById('consent-yes').onclick = () => decide('yes');
+  document.getElementById('consent-no').onclick = () => decide('no');
+  document.getElementById('stat-link').onclick = () => { box.hidden = false; };
+  const saved = read();
+  if (saved === 'yes') load();
+  else if (saved !== 'no') box.hidden = false;
 })();
 </script>
 </body>
