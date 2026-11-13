@@ -28,4 +28,22 @@ Die HTML-Quellen müssen direkte HTTPS-Links auf Vokabelseiten sein. Der Import 
 - Die Testseite liegt unter `…/voc/dev/`. Sie liest den Branch `dev`, speichert Fortschritt und Einstellungen **getrennt** von der echten Seite, zeigt oben einen orangen Hinweis und sendet keine Statistik.
 - Sind die Änderungen in Ordnung, wird `dev` nach `main` übernommen (am einfachsten über einen Pull Request auf GitHub: `dev` → `main`, „Merge“).
 - Der Workflow `.github/workflows/pages.yml` veröffentlicht beide Branches. Dafür muss unter *Settings → Pages → Build and deployment → Source* **GitHub Actions** eingestellt sein.
-- Lokal testen: `python -m http.server` im Repo starten und `http://localhost:8000/?env=dev` öffnen. Die Lektionsliste kommt dann aus dem Branch `dev` auf GitHub.
+- Lokal testen: `python -m http.server` im Repo starten und `http://localhost:8000/?env=dev` öffnen. Die App liest dann direkt deine lokalen Dateien (auch nicht committete) und braucht kein GitHub.
+
+## Lektionsliste (`index.json`) und Anzeigenamen
+
+- Jeder Ordner mit einer Vokabel-JSON ist eine Lektion. Die App liest die Liste aus `index.json`, damit sie nicht die GitHub-API fragen muss (nur 60 Anfragen pro Stunde und IP).
+- `index.json` wird automatisch erzeugt (Workflows „Import vocabulary pages“ und „Update lesson index“). Von Hand: `python scripts/build_index.py`.
+- Anzeigenamen stehen in `titles.json` (`{"ordnername": "Anzeigename"}`). Fehlt ein Eintrag, zeigt die App den Ordnernamen.
+- Ordnernamen: klein, ohne Leerzeichen und Sonderzeichen, z. B. `dec3-u1a`. Der Lernfortschritt hängt am Ordnernamen. Wird ein Ordner umbenannt, muss der alte Name in `DIR_RENAMES` in `index.html` eingetragen werden, sonst geht der Fortschritt verloren.
+- Audio und Bilder stehen als reine Dateinamen in der JSON (`"audio": "voleur.mp3"`) und liegen im Ordner der Lektion.
+
+## Offline-Nutzung
+
+Die Seite lässt sich als App installieren (PWA). Die App selbst und die Vokabeln merkt sie sich automatisch. Audio und Bilder werden nur für Lektionen gespeichert, die du auswählst und mit „Ausgewählte Lektionen offline speichern“ sicherst. Das hält den Speicher klein. Der Service Worker steht in `sw.js`.
+
+## Tests
+
+- Python: `python -m unittest discover -s tests -t .`
+- Browser (Playwright): `npm install --no-save playwright && npx playwright install chromium && node tests/e2e/app.test.cjs`
+- Beides läuft bei jedem Push im Workflow „Tests“.
