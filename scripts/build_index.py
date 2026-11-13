@@ -23,6 +23,7 @@ INDEX_FILE = "index.json"
 TITLES_FILE = "titles.json"
 IGNORED_FOLDERS = {"node_modules", "assets", "docs"}  # wie CFG.ignore in index.html
 PREFERRED_FILE = re.compile(r"^database", re.IGNORECASE)  # wie CFG.prefer in index.html
+EXERCISE_ROOT = "uebungen"  # Unterordner mit Übungen: uebungen/<name>/uebung.json
 
 
 def load_titles(root: Path) -> dict[str, str]:
@@ -38,9 +39,12 @@ def load_titles(root: Path) -> dict[str, str]:
 def discover_tables(root: Path) -> list[dict[str, str]]:
     titles = load_titles(root)
     tables: list[dict[str, str]] = []
-    for directory in sorted((p for p in root.iterdir() if p.is_dir()), key=lambda p: p.name.casefold()):
-        name = directory.name
-        if name[0] in "._" or name in IGNORED_FOLDERS:
+    candidates = [(p.name, p) for p in root.iterdir() if p.is_dir()]
+    exercises = root / EXERCISE_ROOT
+    if exercises.is_dir():  # Übungen kommen nach den Vokabellektionen
+        candidates += [(f"{EXERCISE_ROOT}/{p.name}", p) for p in exercises.iterdir() if p.is_dir()]
+    for name, directory in sorted(candidates, key=lambda c: (c[0].startswith(EXERCISE_ROOT + "/"), c[0].casefold())):
+        if directory.name[0] in "._" or name in IGNORED_FOLDERS:
             continue
         files = sorted(
             f.name for f in directory.iterdir()
