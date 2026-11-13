@@ -5,6 +5,7 @@ on:
     paths:
       - sources.csv
       - scripts/import_vocabulary.py
+      - scripts/build_index.py
       - tests/**
       - .github/workflows/import-vocabulary.yml
   workflow_dispatch:
@@ -12,6 +13,11 @@ on:
 permissions:
   contents: write
   actions: write
+
+# Import und Index-Workflow schreiben beide in den Branch: nie gleichzeitig.
+concurrency:
+  group: data-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   import:
@@ -26,10 +32,13 @@ jobs:
           python-version: "3.12"
 
       - name: Run tests
-        run: python -m unittest tests.test_import_vocabulary -v
+        run: python -m unittest discover -s tests -t . -v
 
       - name: Import vocabulary pages
         run: python scripts/import_vocabulary.py
+
+      - name: Build lesson index
+        run: python scripts/build_index.py
 
       - name: Commit imported JSON
         env:
@@ -43,6 +52,7 @@ jobs:
             exit 0
           fi
           git commit -m "Import vocabulary pages"
+          git pull --rebase origin "$GITHUB_REF_NAME"
           git push
           # Pushes mit dem Workflow-Token lösen keine anderen Workflows aus: Seite bei Bedarf selbst neu veröffentlichen.
           gh workflow run pages.yml --ref "$GITHUB_REF_NAME" || echo "Pages-Workflow nicht gestartet (existiert er auf diesem Branch?)"

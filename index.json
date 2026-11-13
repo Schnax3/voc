@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "tables": [
+    {
+      "dir": "dec2-u7a",
+      "file": "database-4.json",
+      "title": "Dec2 · U7 A"
+    },
+    {
+      "dir": "dec3-u1-de",
+      "file": "database-2.json",
+      "title": "Dec3 · U1 Découvertes"
+    },
+    {
+      "dir": "dec3-u1-rapp",
+      "file": "database-1.json",
+      "title": "Dec3 · U1 Tu te rappelles"
+    },
+    {
+      "dir": "dec3-u1-revision-negation",
+      "file": "database.json",
+      "title": "Dec3 · U1 Wiederholung Verneinung"
+    },
+    {
+      "dir": "dec3-u1a",
+      "file": "database-5.json",
+      "title": "Dec3 · U1 A"
+    },
+    {
+      "dir": "dec3-u1a-letztes-jahr",
+      "file": "database-3.json",
+      "title": "Dec3 · U1 A (letztes Jahr)"
+    },
+    {
+      "dir": "dec3-u1b",
+      "file": "database-6.json",
+      "title": "Dec3 · U1 B"
+    },
+    {
+      "dir": "dec3-u1b3-verben",
+      "file": "database-5.json",
+      "title": "Dec3 · U1 B3 Verben + Präposition"
+    },
+    {
+      "dir": "dec3-u2-a",
+      "file": "database.json",
+      "title": "Dec3 · U2 A"
+    },
+    {
+      "dir": "dec3-u2-de",
+      "file": "database.json",
+      "title": "Dec3 · U2 Découvertes"
+    },
+    {
+      "dir": "dec3-u2-rapp",
+      "file": "database.json",
+      "title": "Dec3 · U2 Tu te rappelles"
+    }
+  ]
+}
