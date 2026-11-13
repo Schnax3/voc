@@ -284,6 +284,21 @@ test('Übung Passé composé: Verb sehen, Deutsch aufdecken, eintippen, Lösung 
   await second.context.close();
 });
 
+test('Abstand zwischen Wort und Audio-Button (Frage und Antwort)', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['dec3-u2-a'], 'vk:opt': { dir: 'de', all: true, img: false } } });
+  await page.click('#go'); await page.waitForSelector('#flip');
+  await page.click('#flip'); await page.waitForSelector('.a .spk');
+  for (const sel of ['.a .spk']) {
+    assert.ok(await page.$eval(sel, el => parseFloat(getComputedStyle(el).marginLeft)) >= 20, `${sel} braucht Abstand`);
+  }
+  await page.click('#yes');
+  await context.close();
+  const fr = await openApp(browser, base, { seed: { 'vk:sel': ['dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false } } });
+  await fr.page.click('#go'); await fr.page.waitForSelector('.q .spk');
+  assert.ok(await fr.page.$eval('.q .spk', el => parseFloat(getComputedStyle(el).marginLeft)) >= 20);
+  await fr.context.close();
+});
+
 (async () => {
   const server = await startServer();
   const browser = await chromium.launch();
