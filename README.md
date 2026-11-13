@@ -22,6 +22,16 @@ Du kannst den Import später erneut starten, indem du `sources.csv` änderst und
 
 Die HTML-Quellen müssen direkte HTTPS-Links auf Vokabelseiten sein. Der Import erwartet Vokabelzeilen mit deutscher Übersetzung, französischer Antwort und markiertem Vokabeltext.
 
+## Übungen (Unterordner `uebungen/`)
+
+Übungen liegen in `uebungen/<name>/uebung.json` und erscheinen in der App wie Lektionen. Die erste ist `uebungen/passe-compose` („Les formes du passé composé“). Die Karte zeigt das französische Verb. Du kannst das Deutsche aufdecken, tippst das passé composé ein und lässt dir dann die Lösung zeigen. Die App vergleicht deine Eingabe (Groß-/Kleinschreibung egal, „(e)“ darf als „e“ stehen) und du entscheidest mit „Richtig“ oder „Falsch“ wie sonst.
+
+```json
+{"french": "venir", "german": "kommen", "answer": "je suis venu(e)", "ref": "Déc-Kl-6"}
+```
+
+Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche, incopiable, de, mix1 und mix2 haben denselben Inhalt und werden nicht gebraucht. Die Adresse steht in `sources_uebungen.csv` (`folder,url`). Der Import läuft im Workflow „Import vocabulary pages“, von Hand mit `python scripts/import_exercises.py`, oder mit einer lokal gespeicherten Seite: `python scripts/import_exercises.py seite.html passe-compose`.
+
 ## Entwickeln und testen mit dem Branch `dev`
 
 - `main` ist die echte Seite, `dev` ist zum Ausprobieren. Änderungen kommen zuerst auf `dev`.

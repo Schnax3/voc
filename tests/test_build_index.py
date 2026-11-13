@@ -46,6 +46,18 @@ class BuildIndexTests(unittest.TestCase):
             self.assertEqual(tables[0], {"dir": "dec3-u1a", "file": "database-5.json", "title": "Dec3 · U1 A"})
             self.assertNotIn("title", tables[1])
 
+    def test_exercises_in_subfolder_come_after_lessons(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            make_repo(root, {"zzz": ["database.json"], "uebungen/passe-compose": ["uebung.json"], "uebungen/.versteckt": ["uebung.json"]})
+
+            tables = discover_tables(root)
+
+            self.assertEqual(tables, [
+                {"dir": "zzz", "file": "database.json"},
+                {"dir": "uebungen/passe-compose", "file": "uebung.json"},
+            ])
+
     def test_output_is_stable_json_with_version(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

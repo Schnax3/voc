@@ -243,6 +243,47 @@ test('Offline: gespeicherte Lektion läuft ohne Server, nicht gespeicherte nicht
   await context.close();
 });
 
+test('Übung Passé composé: Verb sehen, Deutsch aufdecken, eintippen, Lösung zeigen', async ({ browser, base }) => {
+  const data = readJson('uebungen/passe-compose/uebung.json');
+  const first = data[0];
+  const { context, page, stats } = await openApp(browser, base, { seed: { 'vk:sel': ['uebungen/passe-compose'] } });
+  const row = page.locator('.row', { hasText: 'Les formes du passé composé' });
+  assert.match(await row.innerText(), new RegExp(`${data.length} Karten`));
+  assert.equal(await page.textContent('#go'), `Starten (${data.length} Karten)`);
+
+  // Karte mit bekannter Lösung nach vorn holen: nur diese eine Karte als "schwierig" markieren
+  await page.evaluate(id => localStorage.setItem('vk:progress', JSON.stringify({ [id]: { b: 1, d: 0, w: 2 } })), cardId('uebungen/passe-compose', first));
+  await page.reload(); await page.waitForSelector('.row');
+  await page.check('#hard');
+  assert.equal(await page.textContent('#go'), 'Starten (1 Karten)');
+  await page.click('#go');
+  await page.waitForSelector('#typed-answer');
+  assert.match(await page.textContent('.q'), new RegExp(first.french));
+  assert.doesNotMatch(await page.innerText('#card'), new RegExp(first.german), 'Deutsch darf erst auf Wunsch erscheinen');
+  assert.doesNotMatch(await page.innerText('#card'), /suis venu/, 'Lösung darf noch nicht sichtbar sein');
+  await page.click('#hint');
+  assert.match(await page.innerText('.hintde'), new RegExp(first.german));
+
+  // "(e)" darf als "e" geschrieben werden, Großschreibung und Apostroph-Form sind egal
+  await page.fill('#typed-answer', 'Je suis venue');
+  await page.click('#flip');
+  assert.match(await page.innerText('#card'), /je suis venu\(e\)/);
+  assert.match(await page.innerText('#card'), /Deine Eingabe stimmt/);
+  await page.click('#yes');
+  await page.waitForSelector('h1');
+  const progress = await storage(page, 'vk:progress');
+  assert.equal(progress[cardId('uebungen/passe-compose', first)].b, 2);
+  assert.equal(stats.errors.length, 0, stats.errors.join('; '));
+  await context.close();
+
+  // falsche Eingabe wird als Abweichung gezeigt
+  const second = await openApp(browser, base, { seed: { 'vk:sel': ['uebungen/passe-compose'], 'vk:opt': { dir: 'fr', all: false, img: true } } });
+  await second.page.click('#go'); await second.page.waitForSelector('#typed-answer');
+  await second.page.fill('#typed-answer', 'falsch'); await second.page.click('#flip');
+  assert.match(await second.page.innerText('#card'), /weicht ab: falsch/);
+  await second.context.close();
+});
+
 (async () => {
   const server = await startServer();
   const browser = await chromium.launch();

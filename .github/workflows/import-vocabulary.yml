@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - sources.csv
+      - sources_uebungen.csv
+      - scripts/import_exercises.py
       - scripts/import_vocabulary.py
       - scripts/build_index.py
       - tests/**
@@ -36,6 +38,11 @@ jobs:
 
       - name: Import vocabulary pages
         run: python scripts/import_vocabulary.py
+
+      # Übungen (uebungen/<name>/uebung.json). Schlägt dieser Schritt fehl, bleibt die vorhandene Übung unverändert.
+      - name: Import exercise pages
+        continue-on-error: true
+        run: python scripts/import_exercises.py
 
       - name: Build lesson index
         run: python scripts/build_index.py

@@ -1,0 +1,320 @@
+[
+  {
+    "french": "venir",
+    "german": "kommen",
+    "answer": "je suis venu(e)",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "dormir",
+    "german": "schlafen",
+    "answer": "j'ai dormi",
+    "ref": "Déc-Kl-7.3"
+  },
+  {
+    "french": "vivre",
+    "german": "leben",
+    "answer": "j'ai vécu",
+    "ref": "Déc-Kl-7.4"
+  },
+  {
+    "french": "se lever",
+    "german": "aufstehen",
+    "answer": "je me suis levé(e)",
+    "ref": "Déc-Kl-7.3"
+  },
+  {
+    "french": "avancer",
+    "german": "vorankommen; vorgehen",
+    "answer": "j'ai avancé",
+    "ref": "Déc-Kl-7.5"
+  },
+  {
+    "french": "marcher",
+    "german": "zu Fuß gehen",
+    "answer": "j'ai marché",
+    "ref": "Déc-Kl-7.5"
+  },
+  {
+    "french": "partir",
+    "german": "weggehen; abreisen",
+    "answer": "je suis parti(e)",
+    "ref": "Déc-Kl-7.3"
+  },
+  {
+    "french": "réfléchir",
+    "german": "nachdenken; überlegen",
+    "answer": "j'ai réfléchi",
+    "ref": "Déc-Kl-7.5"
+  },
+  {
+    "french": "croire",
+    "german": "glauben",
+    "answer": "j'ai cru",
+    "ref": "Déc-Kl-8.1"
+  },
+  {
+    "french": "rire",
+    "german": "lachen",
+    "answer": "j'ai ri",
+    "ref": "Déc-Kl-8.2"
+  },
+  {
+    "french": "falloir",
+    "german": "notwendig sein; müssen",
+    "answer": "il a fallu",
+    "ref": "Déc-Kl-7.6"
+  },
+  {
+    "french": "mettre",
+    "german": "setzen; stellen; legen",
+    "answer": "j'ai mis",
+    "ref": "Déc-Kl-7.1"
+  },
+  {
+    "french": "savoir",
+    "german": "wissen; können (Fähigkeit)",
+    "answer": "j'ai su",
+    "ref": "Déc-Kl-7.1"
+  },
+  {
+    "french": "apprendre",
+    "german": "lernen; erfahren",
+    "answer": "j'ai appris",
+    "ref": "Déc-Kl-7.4"
+  },
+  {
+    "french": "mentir",
+    "german": "lügen",
+    "answer": "j'ai menti",
+    "ref": "Déc-Kl-8.1"
+  },
+  {
+    "french": "réussir",
+    "german": "gelingen; Erfolg haben",
+    "answer": "j'ai réussi",
+    "ref": "Déc-Kl-7.5"
+  },
+  {
+    "french": "choisir",
+    "german": "wählen; aussuchen",
+    "answer": "j'ai choisi",
+    "ref": "Déc-Kl-7.5"
+  },
+  {
+    "french": "voir",
+    "german": "sehen",
+    "answer": "j'ai vu",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "attendre",
+    "german": "warten",
+    "answer": "j'ai attendu",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "sortir",
+    "german": "hinausgehen; ausgehen",
+    "answer": "je suis sorti(e)",
+    "ref": "Déc-Kl-7.3"
+  },
+  {
+    "french": "offrir",
+    "german": "schenken; anbieten",
+    "answer": "j'ai offert",
+    "ref": "Déc-Kl-8.1"
+  },
+  {
+    "french": "écrire",
+    "german": "schreiben",
+    "answer": "j'ai écrit",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "monter",
+    "german": "hochgehen; hinaufsteigen",
+    "answer": "je suis monté(e)",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "pleuvoir",
+    "german": "regnen",
+    "answer": "il a plu",
+    "ref": "Déc-Kl-7.4"
+  },
+  {
+    "french": "perdre",
+    "german": "verlieren",
+    "answer": "j'ai perdu",
+    "ref": "Déc-Kl-6.2"
+  },
+  {
+    "french": "prendre",
+    "german": "nehmen",
+    "answer": "j'ai pris",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "naître",
+    "german": "geboren werden",
+    "answer": "je suis né(e)",
+    "ref": "Déc-Kl-7.1"
+  },
+  {
+    "french": "comprendre",
+    "german": "verstehen",
+    "answer": "j'ai compris",
+    "ref": "Déc-Kl-7.1"
+  },
+  {
+    "french": "descendre",
+    "german": "hinuntergehen; aussteigen",
+    "answer": "je suis descendu(e)",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "boire",
+    "german": "trinken",
+    "answer": "j'ai bu",
+    "ref": "Déc-Kl-7.6"
+  },
+  {
+    "french": "dire",
+    "german": "sagen",
+    "answer": "j'ai dit",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "connaître",
+    "german": "kennen",
+    "answer": "j'ai connu",
+    "ref": "Déc-Kl-7.1"
+  },
+  {
+    "french": "devenir",
+    "german": "werden",
+    "answer": "je suis devenu(e)",
+    "ref": "Déc-Kl-8.2"
+  },
+  {
+    "french": "servir",
+    "german": "dienen; servieren",
+    "answer": "j'ai servi",
+    "ref": "Déc-Kl-8.1"
+  },
+  {
+    "french": "avoir",
+    "german": "haben",
+    "answer": "j'ai eu",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "arriver",
+    "german": "ankommen",
+    "answer": "je suis arrivé(e)",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "disparaître",
+    "german": "verschwinden",
+    "answer": "j'ai disparu",
+    "ref": "Déc-Kl-8.2"
+  },
+  {
+    "french": "finir",
+    "german": "beenden; enden",
+    "answer": "j'ai fini",
+    "ref": "Déc-Kl-7.5"
+  },
+  {
+    "french": "devoir",
+    "german": "müssen; schulden",
+    "answer": "j'ai dû",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "vouloir",
+    "german": "wollen",
+    "answer": "j'ai voulu",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "plaire",
+    "german": "gefallen",
+    "answer": "j'ai plu",
+    "ref": "Déc-Kl-7.3"
+  },
+  {
+    "french": "répondre",
+    "german": "antworten",
+    "answer": "j'ai répondu",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "rester",
+    "german": "bleiben",
+    "answer": "je suis resté(e)",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "courir",
+    "german": "laufen; rennen",
+    "answer": "j'ai couru",
+    "ref": "Déc-Kl-8.2"
+  },
+  {
+    "french": "rendre",
+    "german": "zurückgeben; etw. zu etwas machen",
+    "answer": "j'ai rendu",
+    "ref": "Déc-Kl-8.2"
+  },
+  {
+    "french": "entrer",
+    "german": "hineingehen; eintreten",
+    "answer": "je suis entré(e)",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "aller",
+    "german": "gehen; fahren",
+    "answer": "je suis allé(e)",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "pouvoir",
+    "german": "können",
+    "answer": "j'ai pu",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "faire",
+    "german": "machen; tun",
+    "answer": "j'ai fait",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "être",
+    "german": "sein",
+    "answer": "j'ai été",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "découvrir",
+    "german": "entdecken",
+    "answer": "j'ai découvert",
+    "ref": "Déc-Kl-7.7"
+  },
+  {
+    "french": "tomber",
+    "german": "fallen; stürzen",
+    "answer": "je suis tombé(e)",
+    "ref": "Déc-Kl-6"
+  },
+  {
+    "french": "ouvrir",
+    "german": "öffnen",
+    "answer": "j'ai ouvert",
+    "ref": "Déc-Kl-7.2"
+  }
+]

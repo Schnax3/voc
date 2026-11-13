@@ -56,6 +56,8 @@ hr{width:100%;border:0;border-top:1px solid var(--line)}
 #foot [hidden]{display:none}
 #consent a{color:var(--acc)}
 .hint{font-size:.85rem;color:var(--mut);margin:4px 0}
+.hintde{margin:8px 0;min-height:2.2em;color:var(--mut)}
+.hintde button{padding:6px 10px;font-size:.9rem}
 .btns.small button{padding:8px 12px;font-size:.9rem}
 @media(max-width:560px){
   main{padding:16px 12px calc(32px + env(safe-area-inset-bottom))}
@@ -252,6 +254,8 @@ async function discover(force) {
     const { tree } = await r.json(), map = {};
     for (const e of tree) {
       if (e.type !== 'blob') continue;
+      const ex = e.path.match(/^uebungen\/([^/._][^/]*)\/([^/]+\.json)$/); // Übungen: uebungen/<name>/uebung.json
+      if (ex) { (map['uebungen/' + ex[1]] ??= []).push(ex[2]); continue; }
       const top = e.path.split('/')[0];
       if (top === e.path || '._'.includes(top[0]) || CFG.ignore.includes(top)) continue;
       const m = e.path.match(/^[^/]+\/([^/]+\.json)$/);
@@ -274,6 +278,9 @@ async function load(t, force = false) {
   const raw = JSON.parse((await r.text()).replace(/^\uFEFF/, ''));
   const cards = raw.filter(e => e && e.french && e.german).map(e => {
     const fr = e.vocabulary || e.french;
+    // Übung (Verb -> Passé composé): french = Verb, german = Übersetzung, answer = richtige Form
+    if (e.answer) return { id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir, fr: e.french, de: e.german,
+      pc: String(e.answer), ref: e.ref || '', example: '', img: [], au: null };
     return {
       id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir,
       fr, de: e.german, example: e.french, img: [].concat(e.image || []).filter(Boolean),
@@ -560,13 +567,20 @@ function updateGo() {
 function buildQueue() {
   const now = Date.now(), q = [];
   for (const d of sel) for (const c of DB.get(d) || [])
-    if (opt.hard ? isHard(c.id) : (opt.all || st(c.id).d <= now)) q.push({ c, dir: opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
+    if (opt.hard ? isHard(c.id) : (opt.all || st(c.id).d <= now)) q.push({ c, dir: c.pc ? 'fr' : opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
   q.sort(() => Math.random() - .5);                    // mischen
   return q.sort((a, b) => st(a.c.id).b - st(b.c.id).b); // niedrige Kaesten zuerst
 }
 
+// Eingabe prüfen: Groß-/Kleinschreibung, Apostroph-Form und Leerzeichen sind egal; "(e)" darf fehlen oder als "e" stehen.
+const normPc = s => s.toLowerCase().replace(/[’‘`´]/g, "'").replace(/\s+/g, ' ').trim();
+const checkPc = (typed, expected) => {
+  const t = normPc(typed);
+  return t !== '' && [normPc(expected).replace(/\(e\)/g, ''), normPc(expected).replace(/\(e\)/g, 'e')].includes(t);
+};
+
 function learn(q) {
-  let shown = false, typedAnswer = '', ok = 0, bad = 0;
+  let shown = false, hint = false, typedAnswer = '', ok = 0, bad = 0;
   const preloadedImages = new Set();
   const preloadNextImages = () => {
     const next = q[1];
@@ -586,10 +600,11 @@ function learn(q) {
     P[it.c.id] = { b: nb, d: Date.now() + (good ? DAYS[nb - 1] * 864e5 : 0), w: good ? Math.max(0, (s.w || 0) - 1) : (s.w || 0) + 1 };
     save();
     if (good) ok++; else { bad++; q.push(it); } // falsche Karten kommen am Ende nochmal
-    shown = false; typedAnswer = ''; draw();
+    shown = false; hint = false; typedAnswer = ''; draw();
   };
   const draw = () => {
     if (!q.length) return done();
+    if (q[0].c.pc) return drawPc();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
     const spk = hasSound(c) ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="" decoding="async" fetchpriority="high" onerror="this.remove()">`).join('')}</div>` : '';
@@ -621,11 +636,38 @@ function learn(q) {
     if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
     else $('#flip').onclick = () => { shown = true; draw(); };
   };
+  // Übung: französisches Verb zeigen, Deutsch auf Wunsch aufdecken, Passé composé eintippen, dann die Lösung zeigen
+  const drawPc = () => {
+    const { c } = q[0], hit = shown && checkPc(typedAnswer, c.pc);
+    const spk = canSpeak ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
+    app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}${isHard(c.id) ? ' · schwierig' : ''}</span></div>
+    <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>
+      <div class="q">${esc(c.fr)}${spk}</div>
+      <div class="hintde">${hint ? '🇩🇪 ' + esc(c.de) : '<button id="hint" type="button">🇩🇪 Deutsch aufdecken</button>'}</div>
+      <label class="answer-field">Passé composé (mit Personalpronomen, z. B. „j’ai dormi“)
+        <input id="typed-answer" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Passé composé eintippen" value="${esc(typedAnswer)}" ${shown ? 'readonly' : ''}>
+      </label>
+      ${shown ? `<hr><div class="a">${esc(c.pc)}</div>
+        <div class="mut">${hit ? '✓ Deine Eingabe stimmt.' : typedAnswer.trim() ? '✗ Deine Eingabe weicht ab: ' + esc(typedAnswer) : 'Nichts eingegeben.'}${c.ref ? ' · ' + esc(c.ref) : ''}</div>` : ''}</div>
+    <div class="btns">${shown
+      ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
+      : '<button id="flip" class="primary" style="flex:1">Lösung zeigen</button>'}</div>
+    ${cheat ? `<div class="cheat">${esc(c.pc)}</div>` : ''}`;
+    const $ = s => app.querySelector(s);
+    $('#end').onclick = home;
+    app.querySelectorAll('.spk').forEach(button => { button.onclick = event => { event.stopPropagation(); speak(c.fr); }; });
+    const input = $('#typed-answer');
+    input.oninput = () => { typedAnswer = input.value; };
+    if (!shown) input.focus();
+    if ($('#hint')) $('#hint').onclick = () => { hint = true; drawPc(); };
+    if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
+    else $('#flip').onclick = () => { shown = true; drawPc(); };
+  };
   document.onkeydown = e => {
     if (!q.length) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
-    if (key === 'p' && hasSound(c) && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); sound(c); return; }
+    if (key === 'p' && hasSound(c) && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); c.pc ? speak(c.fr) : sound(c); return; }
     if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown')) {
       e.preventDefault();
       shown = true;

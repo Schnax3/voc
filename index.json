@@ -55,6 +55,11 @@
       "dir": "dec3-u2-rapp",
       "file": "database.json",
       "title": "Dec3 · U2 Tu te rappelles"
+    },
+    {
+      "dir": "uebungen/passe-compose",
+      "file": "uebung.json",
+      "title": "Übung · Les formes du passé composé"
     }
   ]
 }
