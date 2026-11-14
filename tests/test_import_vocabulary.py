@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from scripts.import_vocabulary import (
+    read_sources,
     _write_outputs,
     merge_records,
     parse_vocabulary_html,
@@ -159,6 +160,22 @@ class WriteOutputsTests(unittest.TestCase):
 
             records = json.loads((root / "new-module" / "database.json").read_text(encoding="utf-8"))
             self.assertIsNone(records[0]["image"])
+
+class ReadSourcesTests(unittest.TestCase):
+    def _read(self, body):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "sources.csv"
+            path.write_text("folder,url,merge_existing\n" + body, encoding="utf-8")
+            return read_sources(path)
+
+    def test_accepts_plain_folder_and_lektionen_prefix(self):
+        rows = self._read("a,https://example.org/a.html,false\nlektionen/b,https://example.org/b.html,true\n")
+        self.assertEqual([r[0] for r in rows], ["a", "lektionen/b"])
+
+    def test_rejects_other_paths(self):
+        for folder in ("../x", "x/y", "lektionen/", "lektionen/x/y", "lektionen/.."):
+            with self.assertRaises(ValueError, msg=folder):
+                self._read(f"{folder},https://example.org/a.html,false\n")
 
 
 if __name__ == "__main__":

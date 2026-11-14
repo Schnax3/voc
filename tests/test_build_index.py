@@ -58,6 +58,13 @@ class BuildIndexTests(unittest.TestCase):
                 {"dir": "uebungen/passe-compose", "file": "uebung.json"},
             ])
 
+    def test_lessons_in_lektionen_come_before_exercises(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            make_repo(root, {"lektionen/b": ["database.json"], "lektionen/a": ["database-2.json"], "uebungen/x": ["uebung.json"], "lektionen/_alt": ["database.json"]})
+
+            self.assertEqual([t["dir"] for t in discover_tables(root)], ["lektionen/a", "lektionen/b", "uebungen/x"])
+
     def test_output_is_stable_json_with_version(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -209,8 +209,9 @@ def read_sources(path: Path) -> list[tuple[str, str, bool]]:
         merge_existing = (row.get("merge_existing") or "").strip().lower()
         if not folder or not url:
             raise ValueError(f"sources.csv, Zeile {line_number}: folder und url sind erforderlich.")
-        if folder.startswith(".") or folder in {".", ".."} or "/" in folder or "\\" in folder:
-            raise ValueError(f"sources.csv, Zeile {line_number}: folder muss ein einfacher Ordnername sein.")
+        name = folder[len("lektionen/"):] if folder.startswith("lektionen/") else folder  # Lektionen liegen in lektionen/
+        if not name or name.startswith(".") or name in {".", ".."} or "/" in name or "\\" in name:
+            raise ValueError(f"sources.csv, Zeile {line_number}: folder muss ein einfacher Ordnername sein (optional mit Präfix lektionen/).")
         if urlparse(url).scheme.lower() != "https":
             raise ValueError(f"sources.csv, Zeile {line_number}: nur HTTPS-URLs sind erlaubt.")
         if merge_existing not in {"true", "false"}:

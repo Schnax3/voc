@@ -23,7 +23,7 @@ INDEX_FILE = "index.json"
 TITLES_FILE = "titles.json"
 IGNORED_FOLDERS = {"node_modules", "assets", "docs"}  # wie CFG.ignore in index.html
 PREFERRED_FILE = re.compile(r"^database", re.IGNORECASE)  # wie CFG.prefer in index.html
-EXERCISE_ROOT = "uebungen"  # Unterordner mit Übungen: uebungen/<name>/uebung.json
+SUBFOLDER_ROOTS = ("lektionen", "uebungen")  # lektionen/<name>/database*.json, uebungen/<name>/uebung.json (Übungen zuletzt)
 
 
 def load_titles(root: Path) -> dict[str, str]:
@@ -39,11 +39,13 @@ def load_titles(root: Path) -> dict[str, str]:
 def discover_tables(root: Path) -> list[dict[str, str]]:
     titles = load_titles(root)
     tables: list[dict[str, str]] = []
-    candidates = [(p.name, p) for p in root.iterdir() if p.is_dir()]
-    exercises = root / EXERCISE_ROOT
-    if exercises.is_dir():  # Übungen kommen nach den Vokabellektionen
-        candidates += [(f"{EXERCISE_ROOT}/{p.name}", p) for p in exercises.iterdir() if p.is_dir()]
-    for name, directory in sorted(candidates, key=lambda c: (c[0].startswith(EXERCISE_ROOT + "/"), c[0].casefold())):
+    candidates = [(p.name, p) for p in root.iterdir() if p.is_dir() and p.name not in SUBFOLDER_ROOTS]
+    for sub in SUBFOLDER_ROOTS:
+        base = root / sub
+        if base.is_dir():
+            candidates += [(f"{sub}/{p.name}", p) for p in base.iterdir() if p.is_dir()]
+    rank = lambda name: SUBFOLDER_ROOTS.index(name.split("/")[0]) + 1 if name.split("/")[0] in SUBFOLDER_ROOTS and "/" in name else 0
+    for name, directory in sorted(candidates, key=lambda c: (rank(c[0]), c[0].casefold())):
         if directory.name[0] in "._" or name in IGNORED_FOLDERS:
             continue
         files = sorted(

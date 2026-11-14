@@ -2,7 +2,10 @@ name: Tests
 
 on:
   push:
+    branches: [main, dev]
   pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -35,8 +38,8 @@ jobs:
 
       - name: Install Playwright
         run: |
-          npm install --no-save playwright
+          npm install
           npx playwright install --with-deps chromium
 
       - name: Run browser tests
-        run: node tests/e2e/app.test.cjs
+        run: npm run test:e2e
