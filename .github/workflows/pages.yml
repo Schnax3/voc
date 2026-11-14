@@ -1,11 +1,10 @@
-name: Deploy Pages (main + dev)
+name: Publish site (main)
 
-# Veröffentlicht den Branch "main" als normale Seite und den Branch "dev" als Testseite unter /dev/.
-# Voraussetzung: Repository-Einstellungen -> Pages -> Source = "GitHub Actions".
-
+# Läuft nur, wenn es einen neuen Commit auf main gibt (oder von Hand): veröffentlicht die normale Seite.
+# Die Testseite unter /dev/ wird dabei mit dem aktuellen Stand von dev mitveröffentlicht (siehe deploy-site.yml).
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -13,41 +12,6 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Check out main (normale Seite)
-        uses: actions/checkout@v7
-        with:
-          ref: main
-          path: site
-
-      - name: Check out dev (Testseite, falls der Branch existiert)
-        uses: actions/checkout@v7
-        continue-on-error: true
-        with:
-          ref: dev
-          path: site/dev
-
-      - name: Assemble site
-        run: |
-          rm -rf site/.git site/dev/.git
-          touch site/.nojekyll
-          echo "Seiten-Dateien:" && find site -maxdepth 2 -name index.html
-
-      - name: Upload site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+  publish:
+    uses: ./.github/workflows/deploy-site.yml

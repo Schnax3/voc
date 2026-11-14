@@ -62,4 +62,5 @@ jobs:
           git pull --rebase origin "$GITHUB_REF_NAME"
           git push
           # Pushes mit dem Workflow-Token lösen keine anderen Workflows aus: Seite bei Bedarf selbst neu veröffentlichen.
-          gh workflow run pages.yml --ref "$GITHUB_REF_NAME" || echo "Pages-Workflow nicht gestartet (existiert er auf diesem Branch?)"
+          if [ "$GITHUB_REF_NAME" = "main" ]; then pages=pages.yml; else pages=pages-dev.yml; fi
+          gh workflow run "$pages" --ref "$GITHUB_REF_NAME" || echo "Pages-Workflow $pages nicht gestartet (existiert er auf diesem Branch?)"

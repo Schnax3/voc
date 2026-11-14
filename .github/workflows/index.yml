@@ -48,4 +48,5 @@ jobs:
           git commit -m "Update lesson index"
           git pull --rebase origin "$GITHUB_REF_NAME"
           git push
-          gh workflow run pages.yml --ref "$GITHUB_REF_NAME" || echo "Pages-Workflow nicht gestartet (existiert er auf diesem Branch?)"
+          if [ "$GITHUB_REF_NAME" = "main" ]; then pages=pages.yml; else pages=pages-dev.yml; fi
+          gh workflow run "$pages" --ref "$GITHUB_REF_NAME" || echo "Pages-Workflow $pages nicht gestartet (existiert er auf diesem Branch?)"

@@ -37,7 +37,7 @@ Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche
 - `main` ist die echte Seite, `dev` ist zum Ausprobieren. Änderungen kommen zuerst auf `dev`.
 - Die Testseite liegt unter `…/voc/dev/`. Sie liest den Branch `dev`, speichert Fortschritt und Einstellungen **getrennt** von der echten Seite, zeigt oben einen orangen Hinweis und sendet keine Statistik.
 - Sind die Änderungen in Ordnung, wird `dev` nach `main` übernommen (am einfachsten über einen Pull Request auf GitHub: `dev` → `main`, „Merge“).
-- Der Workflow `.github/workflows/pages.yml` veröffentlicht beide Branches. Dafür muss unter *Settings → Pages → Build and deployment → Source* **GitHub Actions** eingestellt sein.
+- Zwei Workflows veröffentlichen die Seite: `pages.yml` bei jedem Commit auf `main`, `pages-dev.yml` bei jedem Commit auf `dev` (beide bauen über `deploy-site.yml` die Seite aus `main` und `dev`, weil GitHub Pages nur eine Veröffentlichung kennt). Dafür muss unter *Settings → Pages → Build and deployment → Source* **GitHub Actions** eingestellt sein.
 - Lokal testen: `python -m http.server` im Repo starten und `http://localhost:8000/?env=dev` öffnen. Die App liest dann direkt deine lokalen Dateien (auch nicht committete) und braucht kein GitHub.
 
 ## Lektionsliste (`index.json`) und Anzeigenamen

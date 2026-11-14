@@ -56,6 +56,22 @@ hr{width:100%;border:0;border-top:1px solid var(--line)}
 #foot [hidden]{display:none}
 #consent a{color:var(--acc)}
 .hint{font-size:.85rem;color:var(--mut);margin:4px 0}
+h2{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0}
+.lead{margin:0 0 14px}
+.grp{margin:18px 0 6px}
+.grp-h{display:flex;align-items:baseline;gap:10px}
+.grp-h .mut{font-size:.8rem}
+.lnk{margin-left:auto;background:none;border:0;padding:4px 2px;color:var(--acc);font-size:.85rem;cursor:pointer}
+.row .mut{display:block}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:22px 0 0}
+.panel .opts{margin:10px 0 0;gap:8px}
+.panel .opts+h2{margin-top:16px}
+.panel .opts select{margin-left:auto;min-width:0}
+.start{margin:16px 0 8px}
+.start #go{width:100%;padding:14px 16px;font-size:1.05rem}
+details.more{margin:14px 0;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--mut);font-size:.9rem;padding:4px 0}
+details.more .btns{margin:10px 0}
 .hintde{margin:8px 0;min-height:2.2em;color:var(--mut)}
 .hintde button{padding:6px 10px;font-size:.9rem}
 .btns.small button{padding:8px 12px;font-size:.9rem}
@@ -421,23 +437,33 @@ function home() {
       LS.set('vk:cheat', cheat);
     }
   };
-  app.innerHTML = `<h1>Vokabelkasten</h1><p class="mut">Wähle die Tabellen, die du üben willst.</p>
+  app.innerHTML = `<h1>Vokabelkasten</h1><p class="mut lead">Wähle die Lektionen, die du üben willst.</p>
   <div id="list"></div>
-  <div class="opts">
-    <label>Richtung
-      <select id="dir"><option value="fr">Französisch → Deutsch</option><option value="de">Deutsch → Französisch</option><option value="mix">Gemischt</option></select></label>
-    <label><input type="checkbox" id="all"> Auch noch nicht fällige Karten üben</label>
-    <label><input type="checkbox" id="hard"> Nur schwierige Karten (mehrfach falsch)</label>
-    <label><input type="checkbox" id="img"> Bilder anzeigen</label>
-    <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
-    <label><input type="checkbox" id="theme"> Dunkles Design</label>
-  </div>
-  <div class="btns"><button id="go" class="primary">Starten</button><button id="reload">Tabellen neu laden</button><button id="reset">Fortschritt zurücksetzen</button>
-    <button id="export">Fortschritt exportieren</button><button id="import">Fortschritt importieren</button></div>
-  <div id="offline-box" hidden>
-    <p class="hint" id="offline-status" role="status"></p>
-    <div class="btns small"><button id="offline-save">Ausgewählte Lektionen offline speichern</button><button id="offline-clear">Offline-Speicher leeren</button></div>
-  </div>
+  <section class="panel" aria-label="Einstellungen">
+    <h2>Lernen</h2>
+    <div class="opts">
+      <label>Richtung
+        <select id="dir"><option value="fr">Französisch → Deutsch</option><option value="de">Deutsch → Französisch</option><option value="mix">Gemischt</option></select></label>
+      <label><input type="checkbox" id="all"> Auch noch nicht fällige Karten üben</label>
+      <label><input type="checkbox" id="hard"> Nur schwierige Karten (mehrfach falsch)</label>
+      <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
+    </div>
+    <h2>Darstellung</h2>
+    <div class="opts">
+      <label><input type="checkbox" id="img"> Bilder anzeigen</label>
+      <label><input type="checkbox" id="theme"> Dunkles Design</label>
+    </div>
+  </section>
+  <div class="start"><button id="go" class="primary">Starten</button></div>
+  <details class="more">
+    <summary>Mehr: Fortschritt und Offline-Nutzung</summary>
+    <div class="btns small"><button id="reload">Tabellen neu laden</button><button id="reset">Fortschritt zurücksetzen</button>
+      <button id="export">Fortschritt exportieren</button><button id="import">Fortschritt importieren</button></div>
+    <div id="offline-box" hidden>
+      <p class="hint" id="offline-status" role="status"></p>
+      <div class="btns small"><button id="offline-save">Ausgewählte Lektionen offline speichern</button><button id="offline-clear">Offline-Speicher leeren</button></div>
+    </div>
+  </details>
   <input type="file" id="import-file" accept="application/json,.json" hidden>`;
   const $ = s => app.querySelector(s);
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#img').checked = opt.img;
@@ -529,30 +555,57 @@ function home() {
   list(); updateGo();
 }
 
+// Lektionen nach Einheit gruppieren: "Dec3 · U1 Tu te rappelles" -> Gruppe "Dec3 · U1", Name "Tu te rappelles"
+const groupOf = t => {
+  const title = t.title || t.dir;
+  if (t.dir.startsWith('uebungen/')) return { key: 'Übungen', rank: 9, name: title.replace(/^Übung\s*·\s*/, '') };
+  const m = title.match(/^(\S+ · U\d+)\s+(.+)$/);
+  if (m) return { key: m[1], rank: 1, name: /^[A-Z](\s|$)/.test(m[2]) ? 'Teil ' + m[2] : m[2] };
+  return { key: 'Weitere', rank: 5, name: title };
+};
+async function setSelected(dirs, on) {
+  for (const d of dirs) on ? sel.add(d) : sel.delete(d);
+  LS.set('vk:sel', [...sel]);
+  list(); updateGo();
+  if (on) {
+    await Promise.all(dirs.map(async d => {
+      try { await load(tables.find(t => t.dir === d)); } catch { sel.delete(d); }
+    }));
+    LS.set('vk:sel', [...sel]);
+  }
+  list(); updateGo();
+}
+
 function list() {
   const el = app.querySelector('#list'); if (!el) return;
-  const now = Date.now();
-  el.innerHTML = tables.map(t => {
-    const ids = idsOf(t.dir), n = ids ? ids.length : null;
-    let info = 'noch nicht geladen', bar = '';
-    if (n !== null) {
-      const box = [0, 0, 0, 0, 0]; let due = 0, hard = 0;
-      ids.forEach(id => { const s = st(id); box[s.b - 1]++; if (s.d <= now) due++; if (isHard(id)) hard++; });
-      info = `${n} Karten · ${due} fällig${hard ? ` · ${hard} schwierig` : ''}`;
-      bar = `<div class="bar" title="Kasten 1–5: ${box.join(' / ')}">${box.map(x => `<i style="width:${n ? x / n * 100 : 0}%"></i>`).join('')}</div>`;
-    }
-    return `<label class="row"><input type="checkbox" data-d="${esc(t.dir)}" ${sel.has(t.dir) ? 'checked' : ''}>
-      <span style="flex:1"><b>${esc(t.title || t.dir)}</b><span class="mut">${info}</span>${bar}</span></label>`;
+  const now = Date.now(), groups = new Map();
+  for (const t of tables) {
+    const g = groupOf(t);
+    if (!groups.has(g.key)) groups.set(g.key, { ...g, items: [] });
+    groups.get(g.key).items.push({ t, name: g.name });
+  }
+  const ordered = [...groups.values()].sort((a, b) => a.rank - b.rank || a.key.localeCompare(b.key, 'de', { numeric: true }));
+  el.innerHTML = ordered.map((g, gi) => {
+    const dirs = g.items.map(x => x.t.dir), chosen = dirs.filter(d => sel.has(d)).length;
+    const rows = g.items.map(({ t, name }) => {
+      const ids = idsOf(t.dir), n = ids ? ids.length : null;
+      let info = 'noch nicht geladen', bar = '';
+      if (n !== null) {
+        const box = [0, 0, 0, 0, 0]; let due = 0, hard = 0;
+        ids.forEach(id => { const s = st(id); box[s.b - 1]++; if (s.d <= now) due++; if (isHard(id)) hard++; });
+        info = `${n} Karten · ${due} fällig${hard ? ` · ${hard} schwierig` : ''}`;
+        bar = `<div class="bar" title="Kasten 1–5: ${box.join(' / ')}">${box.map(x => `<i style="width:${n ? x / n * 100 : 0}%"></i>`).join('')}</div>`;
+      }
+      return `<label class="row" title="${esc(t.title || t.dir)}"><input type="checkbox" data-d="${esc(t.dir)}" ${sel.has(t.dir) ? 'checked' : ''}>
+        <span style="flex:1"><b>${esc(name)}</b><span class="mut">${info}</span>${bar}</span></label>`;
+    }).join('');
+    return `<section class="grp"><div class="grp-h"><h2>${esc(g.key)}</h2><span class="mut">${chosen} von ${dirs.length} gewählt</span>
+      <button type="button" class="lnk" data-g="${gi}">${chosen === dirs.length ? 'keine' : 'alle'}</button></div>${rows}</section>`;
   }).join('') || '<p class="mut">Keine Tabellen gefunden. Lege einen Ordner mit einer .json-Datei an.</p>';
-  el.querySelectorAll('input').forEach(cb => cb.onchange = async () => {
-    const d = cb.dataset.d;
-    cb.checked ? sel.add(d) : sel.delete(d);
-    LS.set('vk:sel', [...sel]);
-    if (cb.checked) {
-      try { await load(tables.find(t => t.dir === d)); }
-      catch { sel.delete(d); }
-    }
-    list(); updateGo();
+  el.querySelectorAll('input').forEach(cb => cb.onchange = () => setSelected([cb.dataset.d], cb.checked));
+  el.querySelectorAll('.lnk').forEach(button => button.onclick = () => {
+    const dirs = ordered[Number(button.dataset.g)].items.map(x => x.t.dir);
+    setSelected(dirs, !dirs.every(d => sel.has(d)));
   });
 }
 
