@@ -79,7 +79,9 @@ test('Lektionsliste kommt aus index.json, nicht aus der GitHub-API', async ({ br
   assert.ok(stats.indexJson >= 1, 'index.json wurde nicht geladen');
   assert.equal(stats.api, 0, 'die GitHub-API darf nicht gebraucht werden');
   const titles = await page.locator('.row b').allTextContents();
-  assert.ok(titles.includes('Dec3 · U1 A'), `Anzeigename fehlt: ${titles}`);
+  assert.ok(titles.includes('Teil A') && titles.includes('Tu te rappelles'), `Anzeigename fehlt: ${titles}`);
+  const groups = await page.locator('.grp h2').allTextContents();
+  assert.deepEqual(groups, ['Dec2 · U7', 'Dec3 · U1', 'Dec3 · U2', 'Übungen'], 'Lektionen sind nach Einheit gruppiert');
   assert.deepEqual(stats.errors, []);
   await context.close();
 });
@@ -105,7 +107,7 @@ test('Testmodus ?env=dev: Hinweisleiste, getrennter Speicher, keine Statistik', 
   assert.ok(await page.locator('#devbar').isVisible());
   assert.ok((await page.title()).startsWith('TEST'));
   assert.equal(await page.locator('#consent').isVisible(), false);
-  await page.click('.row:first-child');
+  await page.locator('.row input').first().click();
   const keys = await appKeys(page);
   assert.ok(keys.length > 0 && keys.every(k => k.startsWith('dev:')), `Schlüssel ohne dev:-Präfix: ${keys}`);
   assert.equal(stats.gtm, 0);
@@ -156,7 +158,7 @@ test('Schwierige Karten: Anzeige, Filter und Fehlerzähler', async ({ browser, b
   const { context, page } = await openApp(browser, base, {
     seed: { 'vk:progress': { [hardKey]: { b: 1, d: 0, w: 2 }, [softKey]: { b: 2, d: 0, w: 1 } }, 'vk:sel': ['dec3-u2-a'] },
   });
-  const row = page.locator('.row', { hasText: 'Dec3 · U2 A' });
+  const row = page.locator('.grp:has(h2:text-is("Dec3 · U2")) .row:has(b:text-is("Teil A"))');
   assert.match(await row.innerText(), /1 schwierig/);
   await page.check('#hard');
   assert.equal(await page.textContent('#go'), 'Starten (1 Karten)');
@@ -175,7 +177,7 @@ test('Export und Import behalten den Fehlerzähler', async ({ browser, base }) =
   const db = readJson('dec3-u2-a/database.json');
   const key = cardId('dec3-u2-a', db[0]);
   const a = await openApp(browser, base, { seed: { 'vk:progress': { [key]: { b: 3, d: 1234, w: 2 } } } });
-  const [download] = await Promise.all([a.page.waitForEvent('download'), a.page.click('#export')]);
+  const [download] = await Promise.all([a.page.waitForEvent('download'), a.page.click('details.more summary').then(() => a.page.click('#export'))]);
   // Playwright löscht Downloads beim Schließen des Kontexts: Kopie für den zweiten Browser anlegen
   const file = path.join(os.tmpdir(), `vk-export-${process.pid}.json`);
   fs.copyFileSync(await download.path(), file);
@@ -219,7 +221,8 @@ test('Offline: gespeicherte Lektion läuft ohne Server, nicht gespeicherte nicht
   const { context, page } = await openApp(browser, server.base);
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null, null, { timeout: 15000 });
   await page.click('#consent-no'); // sonst liegt die Hinweisleiste über den unteren Schaltflächen
-  await page.click('.row:has(b:text-is("Dec3 · U1 A"))'); // dec3-u1a (mit Audio), nicht "letztes Jahr"
+  await page.click('.grp:has(h2:text-is("Dec3 · U1")) .row:has(b:text-is("Teil A"))'); // dec3-u1a (mit Audio), nicht "letztes Jahr"
+  await page.click('details.more summary');
   await page.click('#offline-save');
   await page.waitForFunction(() => /Offline gespeichert: \d+/.test(document.querySelector('#offline-status').textContent), null, { timeout: 30000 });
 
@@ -240,6 +243,20 @@ test('Offline: gespeicherte Lektion läuft ohne Server, nicht gespeicherte nicht
   assert.deepEqual(partial, { status: 206, length: 100 }, 'gespeichertes Audio muss Range-Anfragen beantworten');
   const missing = await page.evaluate(url => fetch(url).then(() => 'geladen', () => 'fehlgeschlagen'), notSaved);
   assert.equal(missing, 'fehlgeschlagen', 'nicht gespeicherte Medien dürfen offline nicht verfügbar sein');
+  await context.close();
+});
+
+test('Startseite: Gruppen lassen sich komplett an- und abwählen', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  const group = page.locator('.grp:has(h2:text-is("Dec3 · U2"))');
+  const total = await group.locator('.row').count();
+  await group.locator('.lnk').click();
+  await page.waitForFunction(n => document.querySelectorAll('.grp:nth-of-type(3) input:checked').length === n, total);
+  assert.match(await group.locator('.grp-h .mut').innerText(), new RegExp(`${total} von ${total}`));
+  assert.deepEqual((await storage(page, 'vk:sel')).sort(), ['dec3-u2-a', 'dec3-u2-de', 'dec3-u2-rapp']);
+  assert.equal(await group.locator('.lnk').innerText(), 'keine');
+  await group.locator('.lnk').click();
+  assert.deepEqual(await storage(page, 'vk:sel'), []);
   await context.close();
 });
 

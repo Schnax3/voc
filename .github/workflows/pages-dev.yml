@@ -1,0 +1,17 @@
+name: Deploy test page (dev)
+
+# Läuft nur, wenn es einen neuen Commit auf dev gibt (oder von Hand): aktualisiert die Testseite unter /dev/.
+# Commits auf main lösen diesen Workflow NICHT aus, dafür gibt es "Publish site (main)".
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    uses: ./.github/workflows/deploy-site.yml
