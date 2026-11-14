@@ -359,6 +359,48 @@ test('Startseite: Hinweis, warum nichts gestartet werden kann', async ({ browser
   await due.context.close();
 });
 
+test('Aussprache automatisch, große Schrift, Tageszähler und Zurück-Taste', async ({ browser, base }) => {
+  const data = readJson('uebungen/passe-compose/uebung.json');
+  const { context, page, stats } = await openApp(browser, base, { seed: { 'vk:sel': ['uebungen/passe-compose'], 'vk:opt': { dir: 'fr', all: true, img: false, auto: true, big: true } } });
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('big')), true, 'Große Schrift');
+  await page.click('#go'); await page.waitForSelector('#typed-answer');
+  const verb = await page.$eval('.q', el => el.firstChild.textContent.trim());
+  assert.deepEqual(await page.evaluate(() => window.__spoken), [verb], 'Verb wird automatisch gesprochen');
+  await page.click('#hint');
+  assert.equal((await page.evaluate(() => window.__spoken)).length, 1, 'Hinweis spricht nicht nochmal');
+  await page.click('#flip');
+  const spoken = await page.evaluate(() => window.__spoken);
+  assert.deepEqual(spoken, [verb, data.find(e => e.french === verb).answer], 'Lösung wird beim Aufdecken gesprochen');
+  await page.click('#yes');
+  await page.click('#end'); // über die Zurück-Funktion des Browsers
+  await page.waitForSelector('#go');
+  assert.equal(await page.innerText('#today'), 'Heute geübt: 1 Karte');
+  await page.click('#go'); await page.waitForSelector('#typed-answer');
+  await page.goBack(); // Zurück-Taste beendet nur die Runde
+  await page.waitForSelector('#go');
+  assert.equal(await page.$('#typed-answer'), null);
+  assert.equal(stats.errors.length, 0, stats.errors.join('; '));
+  await context.close();
+
+  const key = daysAgo => { const d = new Date(); d.setDate(d.getDate() - daysAgo); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const streak = await openApp(browser, base, { seed: { 'vk:stats': { [key(0)]: 2, [key(1)]: 5, [key(2)]: 3, [key(4)]: 9 } } });
+  assert.equal(await streak.page.innerText('#today'), 'Heute geübt: 2 Karten · 3 Tage in Folge 🔥');
+  await streak.context.close();
+  const yesterday = await openApp(browser, base, { seed: { 'vk:stats': { [key(1)]: 5 } } });
+  assert.equal(await yesterday.page.innerText('#today'), 'Heute geübt: 0 Karten', 'eine Serie von einem Tag wird nicht beworben');
+  await yesterday.context.close();
+});
+
+test('Leertaste deckt die Antwort auf', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false } } });
+  await page.click('#go'); await page.waitForSelector('#flip');
+  await page.keyboard.press('Space');
+  await page.waitForSelector('#yes');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForSelector('#flip');
+  await context.close();
+});
+
 (async () => {
   const server = await startServer();
   const browser = await chromium.launch();

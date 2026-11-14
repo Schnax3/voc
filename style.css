@@ -39,7 +39,7 @@ hr{width:100%;border:0;border-top:1px solid var(--line)}
 #consent .in{max-width:640px;margin:0 auto}
 #consent p{margin:0 0 10px;font-size:.9rem}
 #consent .btns{margin:0}
-#foot{position:fixed;left:8px;bottom:6px;font-size:.75rem;color:var(--mut);opacity:.7;display:flex;gap:10px;align-items:center}
+#foot{max-width:640px;margin:0 auto;padding:4px 16px calc(24px + env(safe-area-inset-bottom));font-size:.8rem;color:var(--mut);opacity:.8;display:flex;gap:14px;align-items:center}
 #foot a,#stat-link{color:var(--mut);background:none;border:0;padding:4px;font:inherit;text-decoration:underline;cursor:pointer}
 #foot [hidden]{display:none}
 #consent a{color:var(--acc)}
@@ -60,6 +60,14 @@ h2{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase
 details.more{margin:14px 0;border-top:1px solid var(--line);padding-top:10px}
 details.more summary{cursor:pointer;color:var(--mut);font-size:.9rem;padding:4px 0}
 details.more .btns{margin:10px 0}
+.today{margin:0 0 10px;font-weight:600;min-height:0}
+.today:empty{display:none}
+details.help{margin:0 0 6px;font-size:.92rem}
+details.help summary{cursor:pointer;color:var(--acc)}
+details.help p{margin:8px 0;color:var(--mut)}
+html.big .q{font-size:1.9rem}
+html.big .a{font-size:1.6rem}
+html.big .example,html.big .hintde{font-size:1.2rem}
 .progress{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:10px 0 0}
 .progress i{display:block;height:100%;background:var(--ok);transition:width .25s}
 .tl{display:flex;gap:8px;flex-wrap:wrap}
