@@ -294,6 +294,27 @@ const save = () => LS.set('vk:progress', P);
 let sel = new Set(LS.get('vk:sel', []));
 let opt = LS.get('vk:opt', { dir: 'fr', all: false, img: true });
 let cheat = LS.get('vk:cheat', false); // versteckter Cheat-Modus (Alt+Shift+C im Hauptmenue)
+document.documentElement.classList.toggle('big', Boolean(opt.big));
+
+// Tageszähler und Serie (nur lokal): { 'JJJJ-MM-TT': Anzahl bewerteter Karten }
+let S = LS.get('vk:stats', {});
+const dayKey = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const bumpToday = by => {
+  const key = dayKey(new Date()), n = (S[key] || 0) + by;
+  if (n > 0) S[key] = n; else delete S[key];
+  LS.set('vk:stats', S);
+};
+const streakDays = () => {
+  const day = new Date();
+  if (!S[dayKey(day)]) day.setDate(day.getDate() - 1); // heute noch nichts geübt: Serie von gestern zählt weiter
+  let n = 0;
+  while (S[dayKey(day)] > 0) { n++; day.setDate(day.getDate() - 1); }
+  return n;
+};
+
+// Zurück-Taste (Android, Browser): beendet die Runde statt die Seite zu verlassen
+let learning = false;
+const leaveLearning = () => { if (window.history.state && window.history.state.learn) window.history.back(); else home(); };
 
 // ---- Offline (Service Worker + gezielter Audio-/Bilder-Speicher) -----------------
 // Die App selbst und die Vokabel-JSONs merkt sich der Service Worker automatisch (sw.js).
@@ -328,6 +349,7 @@ const idsOf = d => DB.has(d) ? DB.get(d).map(c => c.id) : (LS.get('vk:meta', {})
 
 // ---- Startseite ------------------------------------------------------------
 function home() {
+  learning = false;
   stopAudio();
   document.onkeydown = e => {
     if (e.altKey && e.shiftKey && e.code === 'KeyC') {
@@ -337,6 +359,11 @@ function home() {
     }
   };
   app.innerHTML = `<h1>Vokabelkasten</h1><p class="mut lead">Wähle die Lektionen, die du üben willst.</p>
+  <p class="today" id="today" role="status"></p>
+  <details class="help"><summary>So funktioniert's</summary>
+    <p>Jede Karte liegt in einem von 5 Kästen. Weißt du sie, rückt sie einen Kasten weiter und kommt erst nach ${DAYS.slice(1).join(', ')} Tagen wieder. Weißt du sie nicht, geht sie zurück in Kasten 1 und kommt in der Runde gleich nochmal.</p>
+    <p>Karten, die du mehrfach falsch hattest, gelten als „schwierig“ und lassen sich gezielt üben. Alles wird nur in diesem Browser gespeichert. Mit Export und Import ziehst du auf ein anderes Gerät um.</p>
+  </details>
   <div id="list"></div>
   <section class="panel" aria-label="Einstellungen">
     <h2>Lernen</h2>
@@ -346,10 +373,12 @@ function home() {
       <label><input type="checkbox" id="all"> Auch noch nicht fällige Karten üben</label>
       <label><input type="checkbox" id="hard"> Nur schwierige Karten (mehrfach falsch)</label>
       <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
+      <label><input type="checkbox" id="auto"> Aussprache automatisch abspielen</label>
     </div>
     <h2>Darstellung</h2>
     <div class="opts">
       <label><input type="checkbox" id="img"> Bilder anzeigen</label>
+      <label><input type="checkbox" id="big"> Große Schrift</label>
       <label><input type="checkbox" id="theme"> Dunkles Design</label>
     </div>
   </section>
@@ -367,9 +396,11 @@ function home() {
   const $ = s => app.querySelector(s);
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#img').checked = opt.img;
   $('#typing').checked = opt.typing || false; $('#hard').checked = opt.hard || false;
+  $('#auto').checked = opt.auto || false; $('#big').checked = opt.big || false;
+  renderToday();
   $('#theme').checked = document.documentElement.dataset.theme === 'dark';
-  const setOpt = () => { opt = { dir: $('#dir').value, all: $('#all').checked, img: $('#img').checked, typing: $('#typing').checked, hard: $('#hard').checked }; LS.set('vk:opt', opt); updateGo(); };
-  ['#dir', '#all', '#img', '#typing', '#hard'].forEach(s => $(s).onchange = setOpt);
+  const setOpt = () => { opt = { dir: $('#dir').value, all: $('#all').checked, img: $('#img').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, big: $('#big').checked }; LS.set('vk:opt', opt); document.documentElement.classList.toggle('big', opt.big); updateGo(); };
+  ['#dir', '#all', '#img', '#typing', '#hard', '#auto', '#big'].forEach(s => $(s).onchange = setOpt);
   $('#theme').onchange = () => {
     const theme = $('#theme').checked ? 'dark' : 'light';
     document.documentElement.dataset.theme = theme;
@@ -509,6 +540,11 @@ function list() {
 }
 
 const cards = n => `${n} ${n === 1 ? 'Karte' : 'Karten'}`;
+function renderToday() {
+  const el = app.querySelector('#today'); if (!el) return;
+  const n = S[dayKey(new Date())] || 0, days = streakDays();
+  el.textContent = n || days ? `Heute geübt: ${cards(n)}${days >= 2 ? ` · ${days} Tage in Folge 🔥` : ''}` : '';
+}
 function updateGo() {
   const go = app.querySelector('#go'); if (!go) return;
   const n = buildQueue().length;
@@ -543,6 +579,9 @@ const checkPc = (typed, expected) => {
 };
 
 function learn(q) {
+  learning = true;
+  if (!(window.history.state && window.history.state.learn)) window.history.pushState({ learn: true }, '');
+  let lastAuto = null;
   let shown = false, hint = false, typedAnswer = '', ok = 0, bad = 0;
   const total = q.length, missed = new Map(), history = [];
   const preloadedImages = new Set();
@@ -558,12 +597,22 @@ function learn(q) {
       image.src = url;
     }
   };
+  // Aussprache automatisch: Französisch vorn -> beim Zeigen der Karte, sonst beim Aufdecken. Nur einmal je Seite.
+  const autoPlay = (c, key, fn) => {
+    if (!opt.auto) return;
+    const mark = c.id + key;
+    if (lastAuto === mark) return;
+    lastAuto = mark;
+    stopAudio(); // läuft noch die vorige Ausgabe, würde ein zweiter Aufruf sie nur stoppen
+    fn();
+  };
   const resetCard = () => { shown = false; hint = false; typedAnswer = ''; };
   const answer = good => {
     stopAudio();
     const it = q.shift(), s = st(it.c.id), nb = good ? Math.min(5, s.b + 1) : 1;
     const newlyMissed = !good && !missed.has(it.c.id);
     history.push({ it, prev: P[it.c.id], good, newlyMissed });
+    bumpToday(1);
     P[it.c.id] = { b: nb, d: Date.now() + (good ? DAYS[nb - 1] * 864e5 : 0), w: good ? Math.max(0, (s.w || 0) - 1) : (s.w || 0) + 1 };
     save();
     if (good) ok++; else { bad++; missed.set(it.c.id, it.c); q.push(it); } // falsche Karten kommen am Ende nochmal
@@ -573,6 +622,7 @@ function learn(q) {
   const undo = () => {
     const h = history.pop(); if (!h) return;
     stopAudio();
+    bumpToday(-1);
     if (h.good) ok--; else { q.pop(); bad--; if (h.newlyMissed) missed.delete(h.it.c.id); }
     q.unshift(h.it);
     if (h.prev) P[h.it.c.id] = h.prev; else delete P[h.it.c.id];
@@ -590,7 +640,7 @@ function learn(q) {
   // gemeinsame Bedienung beider Kartenarten: Knöpfe, Tippen zum Aufdecken, Wischen zum Bewerten
   const bind = (onSpeak, rerender) => {
     const $ = x => app.querySelector(x);
-    $('#end').onclick = home;
+    $('#end').onclick = leaveLearning;
     if ($('#undo')) $('#undo').onclick = undo;
     app.querySelectorAll('.spk').forEach(button => { button.onclick = event => { event.stopPropagation(); onSpeak(); }; });
     if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
@@ -625,6 +675,7 @@ function learn(q) {
       currentImage.addEventListener('error', preloadNextImages, { once: true });
     } else preloadNextImages();
     bind(() => sound(c), draw);
+    if (hasSound(c) && ((dir === 'fr' && !shown) || (dir === 'de' && shown))) autoPlay(c, shown ? 'a' : 'q', () => sound(c));
     const answerInput = app.querySelector('#typed-answer');
     if (answerInput) {
       answerInput.oninput = () => { typedAnswer = answerInput.value; };
@@ -647,6 +698,7 @@ function learn(q) {
     ${buttonsHtml('Lösung zeigen')}
     ${cheat ? `<div class="cheat">${esc(c.pc)}</div>` : ''}`;
     bind(() => speak(c.fr), drawPc);
+    if (canSpeak) autoPlay(c, shown ? 'a' : 'q', () => speak(shown ? c.pc : c.fr));
     const input = app.querySelector('#typed-answer');
     input.oninput = () => { typedAnswer = input.value; };
     if (!shown) input.focus();
@@ -658,7 +710,7 @@ function learn(q) {
     const key = e.key.toLowerCase();
     if (key === 'p' && hasSound(c) && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); c.pc ? speak(c.fr) : sound(c); return; }
     if (key === 'z' && (e.ctrlKey || e.metaKey) && history.length) { e.preventDefault(); undo(); return; }
-    if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown')) {
+    if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown' || (e.key === ' ' && !(e.target instanceof HTMLInputElement)))) {
       e.preventDefault();
       shown = true;
       draw();
@@ -679,12 +731,14 @@ function learn(q) {
       : '<p class="mut">Alle Karten gleich beim ersten Mal richtig. Stark!</p>';
     app.innerHTML = `<h1>Geschafft! 🎉</h1><p class="big">${first} von ${total} beim ersten Mal richtig</p>${list}
       <div class="btns">${more ? `<button id="again" class="primary">Nächste Runde (${cards(more)})</button>` : ''}<button id="back"${more ? '' : ' class="primary"'}>Zurück zur Auswahl</button></div>`;
-    app.querySelector('#back').onclick = home;
+    app.querySelector('#back').onclick = leaveLearning;
     if (more) app.querySelector('#again').onclick = () => learn(buildQueue());
     window.scrollTo(0, 0);
   };
   draw();
 }
+
+window.addEventListener('popstate', () => { if (learning) home(); });
 
 // ---- Start -----------------------------------------------------------------
 if (SW_OK) navigator.serviceWorker.register('sw.js').catch(e => console.warn('Offline-Modus nicht verfügbar:', e));
