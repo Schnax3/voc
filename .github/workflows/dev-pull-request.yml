@@ -1,0 +1,33 @@
+name: Pull request dev -> main
+
+# Hält einen offenen Pull Request von dev nach main bereit, sobald dev neue Commits hat.
+# Du musst dann nur noch auf GitHub auf "Merge" klicken (nachdem die Testseite /dev/ in Ordnung war).
+# Falls GitHub das Anlegen verweigert: Settings -> Actions -> General -> "Allow GitHub Actions to create
+# and approve pull requests" einschalten. Der Schritt bricht den Workflow sonst nicht ab.
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open pull request if none exists
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          open=$(gh pr list --base main --head dev --state open --json number --jq 'length')
+          if [ "$open" != "0" ]; then
+            echo "Es gibt schon einen offenen Pull Request dev -> main."
+            exit 0
+          fi
+          gh pr create --base main --head dev \
+            --title "Änderungen von dev übernehmen" \
+            --body "Automatisch angelegt. Die Testseite unter /dev/ ausprobieren, dann mergen."

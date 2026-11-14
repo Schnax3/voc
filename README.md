@@ -2,14 +2,34 @@
 
 Vokabeltrainer für Französisch (Découvertes, 8. Jahrgangsstufe).
 
+## Projektstruktur
+
+```
+index.html, style.css, app.js, consent.js   die App (statisch, kein Build nötig)
+sw.js, manifest.webmanifest, icons/          Offline-Modus und Installation als App
+datenschutz.html                             Datenschutzerklärung
+lektionen/<name>/database*.json (+ Audio/Bilder)   Vokabellektionen
+uebungen/<name>/uebung.json                  Übungen (z. B. passé composé)
+index.json, titles.json                      Lektionsliste (automatisch erzeugt) und Anzeigenamen
+sources.csv, sources_uebungen.csv            Quellen für den automatischen Import
+scripts/, tests/                             Import, Index, Tests
+.github/workflows/                           Automatisierung (siehe unten)
+```
+
+Wichtige Befehle (nach `npm run setup`): `npm test` (alle Tests), `npm run serve` (lokal ansehen), `npm run index` (Lektionsliste neu erzeugen), `npm run import`.
+
+**Workflows:** `pages.yml` veröffentlicht bei Commits auf `main`, `pages-dev.yml` bei Commits auf `dev`, `dev-pull-request.yml` hält einen Pull Request `dev` → `main` bereit, `tests.yml` führt alle Tests aus, `import-vocabulary.yml` und `index.yml` pflegen die Daten.
+
+**Empfohlene GitHub-Einstellungen (nur im Browser möglich):** *Settings → Branches*: Regel für `main` mit „Require a pull request“ und „Require status checks“ (Tests). *Settings → General*: „Allow squash merging“. *Settings → Actions → General*: „Allow GitHub Actions to create and approve pull requests“ einschalten, damit `dev-pull-request.yml` den Pull Request anlegen kann.
+
 ## Vokabelseiten automatisch importieren
 
 In `sources.csv` sind die direkten Découvertes-3-HTML-Quellen eingetragen. Jede Zeile enthält Zielordner, direkte HTML-URL und `merge_existing`:
 
 ```csv
 folder,url,merge_existing
-Dec3-U2-DE,https://jsgdruethkarperancis.s3.eu-central-1.amazonaws.com/Dec3/U2/Dec3-U2_DE_tout.html,false
-Découvertes,https://jsgdruethkarperancis.s3.eu-central-1.amazonaws.com/Dec3/U1/Dec3-U1DE-tout.html,true
+lektionen/dec3-u2-de,https://jsgdruethkarperancis.s3.eu-central-1.amazonaws.com/Dec3/U2/Dec3-U2_DE_projecteur.html,false
+lektionen/dec3-u1-de,https://jsgdruethkarperancis.s3.eu-central-1.amazonaws.com/Dec3/U1/Dec3-U1DE-projecteur.html,true
 ```
 
 Setze `merge_existing` auf `false` für einen neuen Ordner oder auf `true`, wenn genau eine passende `database*.json` im Zielordner liegt. Beim Zusammenführen bleiben vorhandene Einträge erhalten; neue Einträge mit einer noch nicht vorhandenen deutschen Abfrage werden ergänzt. Mehrere URLs können denselben Zielordner verwenden; ihre HTML-Dateien werden dort gespeichert und ihre Einträge in einem JSON zusammengeführt.
@@ -45,7 +65,7 @@ Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche
 - Jeder Ordner mit einer Vokabel-JSON ist eine Lektion. Die App liest die Liste aus `index.json`, damit sie nicht die GitHub-API fragen muss (nur 60 Anfragen pro Stunde und IP).
 - `index.json` wird automatisch erzeugt (Workflows „Import vocabulary pages“ und „Update lesson index“). Von Hand: `python scripts/build_index.py`.
 - Anzeigenamen stehen in `titles.json` (`{"ordnername": "Anzeigename"}`). Fehlt ein Eintrag, zeigt die App den Ordnernamen.
-- Ordnernamen: klein, ohne Leerzeichen und Sonderzeichen, z. B. `dec3-u1a`. Der Lernfortschritt hängt am Ordnernamen. Wird ein Ordner umbenannt, muss der alte Name in `DIR_RENAMES` in `index.html` eingetragen werden, sonst geht der Fortschritt verloren.
+- Ordnernamen: klein, ohne Leerzeichen und Sonderzeichen, z. B. `lektionen/dec3-u1a`. Der Lernfortschritt hängt am Ordnernamen. Wird ein Ordner umbenannt, muss der alte Name in `DIR_RENAMES` in `app.js` eingetragen werden, sonst geht der Fortschritt verloren.
 - Audio und Bilder stehen als reine Dateinamen in der JSON (`"audio": "voleur.mp3"`) und liegen im Ordner der Lektion.
 
 ## Offline-Nutzung

@@ -14,7 +14,7 @@ const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const MIME = {
-  '.html': 'text/html; charset=utf-8', '.json': 'application/json', '.js': 'text/javascript',
+  '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.js': 'text/javascript',
   '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.jpg': 'image/jpeg',
   '.mp3': 'audio/mpeg', '.csv': 'text/csv',
 };
@@ -93,7 +93,7 @@ test('Fällt index.json aus, springt die GitHub-API als Ersatz ein', async ({ br
   await context.route('**/index.json', route => route.fulfill({ status: 404, body: 'x' }));
   await context.route('https://api.github.com/**', route => {
     apiCalls++;
-    route.fulfill({ json: { tree: [{ type: 'blob', path: 'dec3-u1a/database-5.json' }, { type: 'blob', path: 'index.json' }] } });
+    route.fulfill({ json: { tree: [{ type: 'blob', path: 'lektionen/dec3-u1a/database-5.json' }, { type: 'blob', path: 'index.json' }] } });
   });
   await page.goto(`${base}/`);
   await page.waitForSelector('.row');
@@ -132,31 +132,34 @@ test('Google Analytics lädt nur nach Einwilligung', async ({ browser, base }) =
 });
 
 test('Fortschritt zieht bei umbenannten Ordnern und geändertem Liaison-Zeichen um', async ({ browser, base }) => {
-  const db = readJson('dec3-u2-a/database.json');
+  const db = readJson('lektionen/dec3-u2-a/database.json');
   const card = db.find(e => e.french.includes('‿'));
   assert.ok(card, 'Testkarte mit ‿ fehlt');
   const oldFrench = card.french.split('‿').join('⁔'); // früher: ⁔
   const oldKey = `Dec3-U2-A::${hash(oldFrench + '|' + card.german)}`;
   const otherKey = `U1A (AUDIO)::${hash('x|y')}`;
+  const preMoveKey = `dec3-u1b::${hash('p|q')}`; // Name vor dem Umzug nach lektionen/
   const { context, page } = await openApp(browser, base, {
-    seed: { 'vk:progress': { [oldKey]: { b: 4, d: 999, w: 1 }, [otherKey]: { b: 3, d: 5 } }, 'vk:sel': ['Dec3-U2-A'] },
+    seed: { 'vk:progress': { [oldKey]: { b: 4, d: 999, w: 1 }, [otherKey]: { b: 3, d: 5 }, [preMoveKey]: { b: 2, d: 7 } }, 'vk:sel': ['Dec3-U2-A'] },
   });
-  const newKey = cardId('dec3-u2-a', card);
+  const newKey = cardId('lektionen/dec3-u2-a', card);
   await page.waitForFunction(k => k in (JSON.parse(localStorage.getItem('vk:progress')) || {}), newKey);
   const progress = await storage(page, 'vk:progress');
   assert.deepEqual(progress[newKey], { b: 4, d: 999, w: 1 });
   assert.equal(oldKey in progress, false, 'alte ID muss entfernt sein');
-  assert.deepEqual(progress[`dec3-u1a::${hash('x|y')}`], { b: 3, d: 5 });
+  assert.deepEqual(progress[`lektionen/dec3-u1a::${hash('x|y')}`], { b: 3, d: 5 });
   assert.equal(Object.keys(progress).some(k => k.startsWith('U1A (AUDIO)')), false);
-  assert.deepEqual(await storage(page, 'vk:sel'), ['dec3-u2-a']);
+  assert.deepEqual(progress[`lektionen/dec3-u1b::${hash('p|q')}`], { b: 2, d: 7 });
+  assert.equal(Object.keys(progress).some(k => k.startsWith('dec3-u1b::')), false);
+  assert.deepEqual(await storage(page, 'vk:sel'), ['lektionen/dec3-u2-a']);
   await context.close();
 });
 
 test('Schwierige Karten: Anzeige, Filter und Fehlerzähler', async ({ browser, base }) => {
-  const db = readJson('dec3-u2-a/database.json');
-  const hardKey = cardId('dec3-u2-a', db[0]), softKey = cardId('dec3-u2-a', db[1]);
+  const db = readJson('lektionen/dec3-u2-a/database.json');
+  const hardKey = cardId('lektionen/dec3-u2-a', db[0]), softKey = cardId('lektionen/dec3-u2-a', db[1]);
   const { context, page } = await openApp(browser, base, {
-    seed: { 'vk:progress': { [hardKey]: { b: 1, d: 0, w: 2 }, [softKey]: { b: 2, d: 0, w: 1 } }, 'vk:sel': ['dec3-u2-a'] },
+    seed: { 'vk:progress': { [hardKey]: { b: 1, d: 0, w: 2 }, [softKey]: { b: 2, d: 0, w: 1 } }, 'vk:sel': ['lektionen/dec3-u2-a'] },
   });
   const row = page.locator('.grp:has(h2:text-is("Dec3 · U2")) .row:has(b:text-is("Teil A"))');
   assert.match(await row.innerText(), /1 schwierig/);
@@ -174,8 +177,8 @@ test('Schwierige Karten: Anzeige, Filter und Fehlerzähler', async ({ browser, b
 });
 
 test('Export und Import behalten den Fehlerzähler', async ({ browser, base }) => {
-  const db = readJson('dec3-u2-a/database.json');
-  const key = cardId('dec3-u2-a', db[0]);
+  const db = readJson('lektionen/dec3-u2-a/database.json');
+  const key = cardId('lektionen/dec3-u2-a', db[0]);
   const a = await openApp(browser, base, { seed: { 'vk:progress': { [key]: { b: 3, d: 1234, w: 2 } } } });
   const [download] = await Promise.all([a.page.waitForEvent('download'), a.page.click('details.more summary').then(() => a.page.click('#export'))]);
   // Playwright löscht Downloads beim Schließen des Kontexts: Kopie für den zweiten Browser anlegen
@@ -195,7 +198,7 @@ test('Export und Import behalten den Fehlerzähler', async ({ browser, base }) =
 });
 
 test('Fehlendes Audio: Sprachausgabe als Ersatz, kaputte Bilder verschwinden', async ({ browser, base }) => {
-  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['dec3-u1b3-verben'] } });
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u1b3-verben'] } });
   await page.click('#go'); await page.waitForSelector('.card');
   await page.click('.spk');
   await page.waitForFunction(() => window.__spoken.length > 0);
@@ -221,15 +224,15 @@ test('Offline: gespeicherte Lektion läuft ohne Server, nicht gespeicherte nicht
   const { context, page } = await openApp(browser, server.base);
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null, null, { timeout: 15000 });
   await page.click('#consent-no'); // sonst liegt die Hinweisleiste über den unteren Schaltflächen
-  await page.click('.grp:has(h2:text-is("Dec3 · U1")) .row:has(b:text-is("Teil A"))'); // dec3-u1a (mit Audio), nicht "letztes Jahr"
+  await page.click('.grp:has(h2:text-is("Dec3 · U1")) .row:has(b:text-is("Teil A"))'); // lektionen/dec3-u1a (mit Audio), nicht "letztes Jahr"
   await page.click('details.more summary');
   await page.click('#offline-save');
   await page.waitForFunction(() => /Offline gespeichert: \d+/.test(document.querySelector('#offline-status').textContent), null, { timeout: 30000 });
 
-  const audio = readJson('dec3-u1a/database-5.json').find(e => e.audio).audio;
-  const saved = `${server.base}/dec3-u1a/${encodeURIComponent(audio)}`;
-  const other = readJson('dec2-u7a/database-4.json').find(e => e.audio).audio;
-  const notSaved = `${server.base}/dec2-u7a/${encodeURIComponent(other)}`;
+  const audio = readJson('lektionen/dec3-u1a/database-5.json').find(e => e.audio).audio;
+  const saved = `${server.base}/lektionen/dec3-u1a/${encodeURIComponent(audio)}`;
+  const other = readJson('lektionen/dec2-u7a/database-4.json').find(e => e.audio).audio;
+  const notSaved = `${server.base}/lektionen/dec2-u7a/${encodeURIComponent(other)}`;
 
   await server.close(); // ab jetzt gibt es kein Netz mehr
   await page.reload();
@@ -253,7 +256,7 @@ test('Startseite: Gruppen lassen sich komplett an- und abwählen', async ({ brow
   await group.locator('.lnk').click();
   await page.waitForFunction(n => document.querySelectorAll('.grp:nth-of-type(3) input:checked').length === n, total);
   assert.match(await group.locator('.grp-h .mut').innerText(), new RegExp(`${total} von ${total}`));
-  assert.deepEqual((await storage(page, 'vk:sel')).sort(), ['dec3-u2-a', 'dec3-u2-de', 'dec3-u2-rapp']);
+  assert.deepEqual((await storage(page, 'vk:sel')).sort(), ['lektionen/dec3-u2-a', 'lektionen/dec3-u2-de', 'lektionen/dec3-u2-rapp']);
   assert.equal(await group.locator('.lnk').innerText(), 'keine');
   await group.locator('.lnk').click();
   assert.deepEqual(await storage(page, 'vk:sel'), []);
@@ -302,7 +305,7 @@ test('Übung Passé composé: Verb sehen, Deutsch aufdecken, eintippen, Lösung 
 });
 
 test('Abstand zwischen Wort und Audio-Button (Frage und Antwort)', async ({ browser, base }) => {
-  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['dec3-u2-a'], 'vk:opt': { dir: 'de', all: true, img: false } } });
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'de', all: true, img: false } } });
   await page.click('#go'); await page.waitForSelector('#flip');
   await page.click('#flip'); await page.waitForSelector('.a .spk');
   for (const sel of ['.a .spk']) {
@@ -310,7 +313,7 @@ test('Abstand zwischen Wort und Audio-Button (Frage und Antwort)', async ({ brow
   }
   await page.click('#yes');
   await context.close();
-  const fr = await openApp(browser, base, { seed: { 'vk:sel': ['dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false } } });
+  const fr = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false } } });
   await fr.page.click('#go'); await fr.page.waitForSelector('.q .spk');
   assert.ok(await fr.page.$eval('.q .spk', el => parseFloat(getComputedStyle(el).marginLeft)) >= 20);
   await fr.context.close();

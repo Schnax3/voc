@@ -1,0 +1,17 @@
+{
+  "name": "vokabelkasten",
+  "private": true,
+  "description": "Vokabeltrainer für Französisch (Découvertes) – statische Seite, kein Build nötig",
+  "scripts": {
+    "test": "npm run test:py && npm run test:e2e",
+    "test:py": "python -m unittest discover -s tests -t . -v",
+    "test:e2e": "node tests/e2e/app.test.cjs",
+    "index": "python scripts/build_index.py",
+    "import": "python scripts/import_vocabulary.py && python scripts/import_exercises.py && python scripts/build_index.py",
+    "serve": "python -m http.server 8000",
+    "setup": "npm install && npx playwright install chromium"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

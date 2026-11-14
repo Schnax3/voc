@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Schlägt neue Versionen der in den Workflows benutzten GitHub-Actions vor
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: monthly
+  - package-ecosystem: npm
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: monthly
