@@ -60,6 +60,22 @@ h2{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase
 details.more{margin:14px 0;border-top:1px solid var(--line);padding-top:10px}
 details.more summary{cursor:pointer;color:var(--mut);font-size:.9rem;padding:4px 0}
 details.more .btns{margin:10px 0}
+.progress{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:10px 0 0}
+.progress i{display:block;height:100%;background:var(--ok);transition:width .25s}
+.tl{display:flex;gap:8px;flex-wrap:wrap}
+.key{opacity:.75;font-weight:400}
+.swipe{display:none;text-align:center}
+@media(pointer:coarse){.key{display:none}.swipe{display:block}}
+.card{touch-action:pan-y}
+.good,.bad{min-height:52px;font-size:1.05rem}
+.big{font-size:1.15rem}
+.sp{margin-top:22px}
+.miss{padding-left:18px;margin:8px 0}
+.miss li{margin:5px 0}
+button:hover:not(:disabled){filter:brightness(.97)}
+.row:hover,.row:focus-within{border-color:var(--acc)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .hintde{margin:8px 0;min-height:2.2em;color:var(--mut)}
 .hintde button{padding:6px 10px;font-size:.9rem}
 .btns.small button{padding:8px 12px;font-size:.9rem}

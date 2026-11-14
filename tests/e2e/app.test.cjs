@@ -164,7 +164,7 @@ test('Schwierige Karten: Anzeige, Filter und Fehlerzähler', async ({ browser, b
   const row = page.locator('.grp:has(h2:text-is("Dec3 · U2")) .row:has(b:text-is("Teil A"))');
   assert.match(await row.innerText(), /1 schwierig/);
   await page.check('#hard');
-  assert.equal(await page.textContent('#go'), 'Starten (1 Karten)');
+  assert.equal(await page.textContent('#go'), 'Starten (1 Karte)');
   await page.uncheck('#hard');
 
   // eine falsche Antwort erhöht den Zähler der Karte
@@ -275,7 +275,7 @@ test('Übung Passé composé: Verb sehen, Deutsch aufdecken, eintippen, Lösung 
   await page.evaluate(id => localStorage.setItem('vk:progress', JSON.stringify({ [id]: { b: 1, d: 0, w: 2 } })), cardId('uebungen/passe-compose', first));
   await page.reload(); await page.waitForSelector('.row');
   await page.check('#hard');
-  assert.equal(await page.textContent('#go'), 'Starten (1 Karten)');
+  assert.equal(await page.textContent('#go'), 'Starten (1 Karte)');
   await page.click('#go');
   await page.waitForSelector('#typed-answer');
   assert.match(await page.textContent('.q'), new RegExp(first.french));
@@ -317,6 +317,46 @@ test('Abstand zwischen Wort und Audio-Button (Frage und Antwort)', async ({ brow
   await fr.page.click('#go'); await fr.page.waitForSelector('.q .spk');
   assert.ok(await fr.page.$eval('.q .spk', el => parseFloat(getComputedStyle(el).marginLeft)) >= 20);
   await fr.context.close();
+});
+
+test('Runde: Fortschrittsbalken, Tippen zum Aufdecken, Zurück-Knopf und Zusammenfassung', async ({ browser, base }) => {
+  const { context, page, stats } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u1-revision-negation'], 'vk:opt': { dir: 'fr', all: true, img: false } } });
+  assert.equal(await page.textContent('#go'), 'Starten (5 Karten)');
+  await page.click('#go'); await page.waitForSelector('#flip');
+  assert.equal(await page.getAttribute('.progress', 'aria-valuenow'), '0');
+  assert.equal(await page.$('#undo'), null, 'Zurück erst nach einer Antwort');
+  await page.click('.q'); // Tippen auf die Karte deckt auf
+  await page.waitForSelector('#yes');
+  await page.click('#no');
+  await page.waitForSelector('#undo');
+  assert.match(await page.innerText('.top .mut'), /noch 5/, 'falsche Karte kommt wieder');
+  await page.click('#undo');
+  assert.match(await page.innerText('.top .mut'), /noch 5/);
+  assert.deepEqual(await storage(page, 'vk:progress'), {}, 'Zurück stellt den Fortschritt wieder her');
+  await page.click('#flip'); await page.click('#no'); // erster Fehler zählt
+  for (let i = 0; i < 20 && !(await page.$('h1')); i++) { await page.click('#flip'); await page.click('#yes'); }
+  assert.match(await page.innerText('h1'), /Geschafft/);
+  assert.match(await page.innerText('.big'), /4 von 5 beim ersten Mal richtig/);
+  assert.equal(await page.locator('.miss li').count(), 1);
+  assert.match(await page.innerText('#again'), /Nächste Runde \(5 Karten\)/);
+  assert.equal(stats.errors.length, 0, stats.errors.join('; '));
+  await context.close();
+});
+
+test('Startseite: Hinweis, warum nichts gestartet werden kann', async ({ browser, base }) => {
+  const none = await openApp(browser, base);
+  assert.equal(await none.page.isDisabled('#go'), true);
+  assert.match(await none.page.innerText('#go-hint'), /mindestens eine Lektion/);
+  await none.context.close();
+  const db = readJson('lektionen/dec3-u2-a/database.json');
+  const later = Date.now() + 1e10, progress = Object.fromEntries(db.map(c => [cardId('lektionen/dec3-u2-a', c), { b: 2, d: later }]));
+  const due = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:progress': progress, 'vk:opt': { dir: 'fr', all: false, img: false } } });
+  assert.equal(await due.page.isDisabled('#go'), true);
+  assert.match(await due.page.innerText('#go-hint'), /Heute ist nichts fällig/);
+  await due.page.check('#all');
+  assert.equal(await due.page.isDisabled('#go'), false);
+  assert.equal(await due.page.innerText('#go-hint'), '');
+  await due.context.close();
 });
 
 (async () => {

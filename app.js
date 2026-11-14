@@ -508,11 +508,22 @@ function list() {
   });
 }
 
+const cards = n => `${n} ${n === 1 ? 'Karte' : 'Karten'}`;
 function updateGo() {
   const go = app.querySelector('#go'); if (!go) return;
   const n = buildQueue().length;
-  go.textContent = `Starten (${n} Karten)`;
+  go.textContent = n ? `Starten (${cards(n)})` : 'Starten';
   go.disabled = n === 0;
+  let note = app.querySelector('#go-hint');
+  if (!note) {
+    note = document.createElement('p');
+    note.id = 'go-hint'; note.className = 'hint'; note.setAttribute('role', 'status');
+    go.parentElement.append(note);
+  }
+  note.textContent = n ? '' : !sel.size ? 'Wähle oben mindestens eine Lektion aus.'
+    : opt.hard ? 'In den gewählten Lektionen gibt es keine schwierigen Karten.'
+    : opt.all ? 'In den gewählten Lektionen gibt es keine Karten.'
+    : 'Heute ist nichts fällig. Schalte „Auch noch nicht fällige Karten üben“ ein, um trotzdem zu üben.';
 }
 
 // ---- Lernen ----------------------------------------------------------------
@@ -533,6 +544,7 @@ const checkPc = (typed, expected) => {
 
 function learn(q) {
   let shown = false, hint = false, typedAnswer = '', ok = 0, bad = 0;
+  const total = q.length, missed = new Map(), history = [];
   const preloadedImages = new Set();
   const preloadNextImages = () => {
     const next = q[1];
@@ -546,13 +558,52 @@ function learn(q) {
       image.src = url;
     }
   };
+  const resetCard = () => { shown = false; hint = false; typedAnswer = ''; };
   const answer = good => {
     stopAudio();
     const it = q.shift(), s = st(it.c.id), nb = good ? Math.min(5, s.b + 1) : 1;
+    const newlyMissed = !good && !missed.has(it.c.id);
+    history.push({ it, prev: P[it.c.id], good, newlyMissed });
     P[it.c.id] = { b: nb, d: Date.now() + (good ? DAYS[nb - 1] * 864e5 : 0), w: good ? Math.max(0, (s.w || 0) - 1) : (s.w || 0) + 1 };
     save();
-    if (good) ok++; else { bad++; q.push(it); } // falsche Karten kommen am Ende nochmal
-    shown = false; hint = false; typedAnswer = ''; draw();
+    if (good) ok++; else { bad++; missed.set(it.c.id, it.c); q.push(it); } // falsche Karten kommen am Ende nochmal
+    resetCard(); draw();
+  };
+  // Letzte Antwort zurücknehmen (Fortschritt, Zähler und Warteschlange werden wiederhergestellt)
+  const undo = () => {
+    const h = history.pop(); if (!h) return;
+    stopAudio();
+    if (h.good) ok--; else { q.pop(); bad--; if (h.newlyMissed) missed.delete(h.it.c.id); }
+    q.unshift(h.it);
+    if (h.prev) P[h.it.c.id] = h.prev; else delete P[h.it.c.id];
+    save(); resetCard(); draw();
+  };
+  const topHtml = c => {
+    const remaining = new Set(q.map(x => x.c.id)).size, pct = Math.round((total - remaining) / total * 100);
+    return `<div class="top"><span class="tl"><button id="end">← Beenden</button>${history.length ? '<button id="undo" title="Letzte Antwort rückgängig machen">↶ Zurück</button>' : ''}</span>
+      <span class="mut">noch ${q.length} · Kasten ${st(c.id).b}${isHard(c.id) ? ' · schwierig' : ''}</span></div>
+    <div class="progress" role="progressbar" aria-label="Fortschritt dieser Runde" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>`;
+  };
+  const buttonsHtml = flipLabel => `<div class="btns">${shown
+    ? '<button id="no" class="bad">✗ Falsch <span class="key">(←)</span></button><button id="yes" class="good">✓ Richtig <span class="key">(→)</span></button>'
+    : `<button id="flip" class="primary" style="flex:1">${flipLabel}</button>`}</div>${shown ? '<p class="hint swipe">Du kannst auch wischen: nach rechts = richtig, nach links = falsch.</p>' : ''}`;
+  // gemeinsame Bedienung beider Kartenarten: Knöpfe, Tippen zum Aufdecken, Wischen zum Bewerten
+  const bind = (onSpeak, rerender) => {
+    const $ = x => app.querySelector(x);
+    $('#end').onclick = home;
+    if ($('#undo')) $('#undo').onclick = undo;
+    app.querySelectorAll('.spk').forEach(button => { button.onclick = event => { event.stopPropagation(); onSpeak(); }; });
+    if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
+    else $('#flip').onclick = () => { shown = true; rerender(); };
+    const card = $('#card');
+    card.onclick = event => { if (!shown && !event.target.closest('button,input,label,a')) { shown = true; rerender(); } };
+    let startX = null;
+    card.ontouchstart = event => { startX = shown && event.touches.length === 1 ? event.touches[0].clientX : null; };
+    card.ontouchend = event => {
+      if (startX === null) return;
+      const dx = event.changedTouches[0].clientX - startX; startX = null;
+      if (Math.abs(dx) > 80) answer(dx > 0);
+    };
   };
   const draw = () => {
     if (!q.length) return done();
@@ -560,39 +611,31 @@ function learn(q) {
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
     const spk = hasSound(c) ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="" decoding="async" fetchpriority="high" onerror="this.remove()">`).join('')}</div>` : '';
-    app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}${isHard(c.id) ? ' · schwierig' : ''}</span></div>
+    app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
       ${opt.typing ? `<label class="answer-field">Deine Antwort (wird nicht automatisch geprüft)
         <input id="typed-answer" type="text" autocomplete="off" spellcheck="false" placeholder="Antwort hier eingeben" value="${esc(typedAnswer)}">
       </label>` : ''}
       ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>${c.example ? `<div class="example">${esc(c.example)}</div>` : ''}` : ''}</div>
-    <div class="btns">${shown
-      ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
-      : '<button id="flip" class="primary" style="flex:1">Antwort zeigen</button>'}</div>
+    ${buttonsHtml('Antwort zeigen')}
     ${cheat ? `<div class="cheat">${esc(back)}</div>` : ''}`;
-    const $ = s => app.querySelector(s);
     const currentImage = app.querySelector('.imgs img');
     if (currentImage && !currentImage.complete) {
       currentImage.addEventListener('load', preloadNextImages, { once: true });
       currentImage.addEventListener('error', preloadNextImages, { once: true });
     } else preloadNextImages();
-    $('#end').onclick = home;
-    app.querySelectorAll('.spk').forEach(button => {
-      button.onclick = event => { event.stopPropagation(); sound(c); };
-    });
-    const answerInput = $('#typed-answer');
+    bind(() => sound(c), draw);
+    const answerInput = app.querySelector('#typed-answer');
     if (answerInput) {
       answerInput.oninput = () => { typedAnswer = answerInput.value; };
       answerInput.focus();
     }
-    if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
-    else $('#flip').onclick = () => { shown = true; draw(); };
   };
   // Übung: französisches Verb zeigen, Deutsch auf Wunsch aufdecken, Passé composé eintippen, dann die Lösung zeigen
   const drawPc = () => {
     const { c } = q[0], hit = shown && checkPc(typedAnswer, c.pc);
     const spk = canSpeak ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
-    app.innerHTML = `<div class="top"><button id="end">← Beenden</button><span class="mut">noch ${q.length} · Kasten ${st(c.id).b}${isHard(c.id) ? ' · schwierig' : ''}</span></div>
+    app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>
       <div class="q">${esc(c.fr)}${spk}</div>
       <div class="hintde">${hint ? '🇩🇪 ' + esc(c.de) : '<button id="hint" type="button">🇩🇪 Deutsch aufdecken</button>'}</div>
@@ -601,25 +644,20 @@ function learn(q) {
       </label>
       ${shown ? `<hr><div class="a">${esc(c.pc)}</div>
         <div class="mut">${hit ? '✓ Deine Eingabe stimmt.' : typedAnswer.trim() ? '✗ Deine Eingabe weicht ab: ' + esc(typedAnswer) : 'Nichts eingegeben.'}${c.ref ? ' · ' + esc(c.ref) : ''}</div>` : ''}</div>
-    <div class="btns">${shown
-      ? '<button id="no" class="bad">✗ Falsch (←)</button><button id="yes" class="good">✓ Richtig (→)</button>'
-      : '<button id="flip" class="primary" style="flex:1">Lösung zeigen</button>'}</div>
+    ${buttonsHtml('Lösung zeigen')}
     ${cheat ? `<div class="cheat">${esc(c.pc)}</div>` : ''}`;
-    const $ = s => app.querySelector(s);
-    $('#end').onclick = home;
-    app.querySelectorAll('.spk').forEach(button => { button.onclick = event => { event.stopPropagation(); speak(c.fr); }; });
-    const input = $('#typed-answer');
+    bind(() => speak(c.fr), drawPc);
+    const input = app.querySelector('#typed-answer');
     input.oninput = () => { typedAnswer = input.value; };
     if (!shown) input.focus();
-    if ($('#hint')) $('#hint').onclick = () => { hint = true; drawPc(); };
-    if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
-    else $('#flip').onclick = () => { shown = true; drawPc(); };
+    if (app.querySelector('#hint')) app.querySelector('#hint').onclick = () => { hint = true; drawPc(); };
   };
   document.onkeydown = e => {
     if (!q.length) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
     if (key === 'p' && hasSound(c) && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); c.pc ? speak(c.fr) : sound(c); return; }
+    if (key === 'z' && (e.ctrlKey || e.metaKey) && history.length) { e.preventDefault(); undo(); return; }
     if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown')) {
       e.preventDefault();
       shown = true;
@@ -635,8 +673,15 @@ function learn(q) {
   const done = () => {
     stopAudio();
     document.onkeydown = null;
-    app.innerHTML = `<h1>Geschafft!</h1><p>${ok} richtig · ${bad} falsch</p><div class="btns"><button id="back" class="primary">Zurück zur Auswahl</button></div>`;
+    const wrong = [...missed.values()], first = total - wrong.length, more = buildQueue().length;
+    const list = wrong.length
+      ? `<h2 class="sp">Hier hattest du Fehler</h2><ul class="miss">${wrong.map(c => `<li><b>${esc(c.fr)}</b> – ${esc(c.pc || c.de)}</li>`).join('')}</ul>`
+      : '<p class="mut">Alle Karten gleich beim ersten Mal richtig. Stark!</p>';
+    app.innerHTML = `<h1>Geschafft! 🎉</h1><p class="big">${first} von ${total} beim ersten Mal richtig</p>${list}
+      <div class="btns">${more ? `<button id="again" class="primary">Nächste Runde (${cards(more)})</button>` : ''}<button id="back"${more ? '' : ' class="primary"'}>Zurück zur Auswahl</button></div>`;
     app.querySelector('#back').onclick = home;
+    if (more) app.querySelector('#again').onclick = () => learn(buildQueue());
+    window.scrollTo(0, 0);
   };
   draw();
 }
