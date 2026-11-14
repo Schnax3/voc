@@ -19,8 +19,6 @@ if (IS_DEV) {
   document.body.insertAdjacentHTML('afterbegin',
     '<div id="devbar">TESTVERSION (Branch dev) · Fortschritt wird getrennt von der echten Seite gespeichert</div>');
 }
-const storedTheme = LS.get('vk:theme', null);
-document.documentElement.dataset.theme = storedTheme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const enc = encodeURIComponent;
 const hash = s => { let h = 5381; for (const ch of s) h = ((h << 5) + h + ch.charCodeAt(0)) | 0; return (h >>> 0).toString(36); };
@@ -313,14 +311,19 @@ const streakDays = () => {
 };
 
 // Zurück-Taste (Android, Browser): beendet die Runde statt die Seite zu verlassen
-let learning = false;
-const leaveLearning = () => { if (window.history.state && window.history.state.learn) window.history.back(); else home(); };
+let subscreen = false; // Runde oder Einstellungen offen
+const enterScreen = () => { subscreen = true; if (!(window.history.state && window.history.state.sub)) window.history.pushState({ sub: true }, ''); };
+const leaveScreen = () => { if (window.history.state && window.history.state.sub) window.history.back(); else home(); };
 
 // ---- Offline (Service Worker + gezielter Audio-/Bilder-Speicher) -----------------
 // Die App selbst und die Vokabel-JSONs merkt sich der Service Worker automatisch (sw.js).
 // Audio und Bilder (viele MB) werden nur für Lektionen gespeichert, die man dafür auswählt.
 const SW_OK = onPages && 'serviceWorker' in navigator && 'caches' in window;
 const MEDIA_CACHE = 'vk-media-' + new URL('./', location.href).pathname.replace(/\W+/g, '_'); // muss zu sw.js passen
+const OFFLINE_SAVED_KEY = `vk:offline-saved:${R.owner}/${R.repo}`;
+const OFFLINE_KNOWN_KEY = `vk:offline-known:${R.owner}/${R.repo}`;
+const OFFLINE_DOWNLOAD_CONCURRENCY = 8;
+const offlineTableKey = table => `${table.dir}/${table.file}`;
 async function saveOffline(dirs, progress) {
   const cache = await caches.open(MEDIA_CACHE), urls = new Set();
   for (const d of dirs) for (const c of DB.get(d) || []) {
@@ -341,7 +344,7 @@ async function saveOffline(dirs, progress) {
       progress(++done, list.length);
     }
   };
-  await Promise.all([worker(), worker(), worker(), worker()]);
+  await Promise.all(Array.from({ length: Math.min(OFFLINE_DOWNLOAD_CONCURRENCY, list.length) }, worker));
   return { total: list.length, failed };
 }
 
@@ -349,7 +352,7 @@ const idsOf = d => DB.has(d) ? DB.get(d).map(c => c.id) : (LS.get('vk:meta', {})
 
 // ---- Startseite ------------------------------------------------------------
 function home() {
-  learning = false;
+  subscreen = false;
   stopAudio();
   document.onkeydown = e => {
     if (e.altKey && e.shiftKey && e.code === 'KeyC') {
@@ -358,130 +361,94 @@ function home() {
       LS.set('vk:cheat', cheat);
     }
   };
-  app.innerHTML = `<h1>Vokabelkasten</h1><p class="mut lead">Wähle die Lektionen, die du üben willst.</p>
+  app.innerHTML = `<div class="hdr"><img class="logo" alt="" width="40" height="40" src="${esc(logoSmall())}"><h1>Vokabelkasten</h1>
+    <button id="settings" class="gear" type="button" aria-label="Einstellungen" title="Einstellungen">⚙</button></div>
+  <p class="mut lead">Wähle die Lektionen, die du üben willst.</p>
+  <div class="btns small" id="offline-actions" hidden>
+    <button id="offline-setup" type="button">Möchtest du offline gehen?</button>
+    <button id="offline-update" type="button" hidden>Offline-Inhalte aktualisieren</button>
+  </div>
   <p class="today" id="today" role="status"></p>
   <details class="help"><summary>So funktioniert's</summary>
     <p>Jede Karte liegt in einem von 5 Kästen. Weißt du sie, rückt sie einen Kasten weiter und kommt erst nach ${DAYS.slice(1).join(', ')} Tagen wieder. Weißt du sie nicht, geht sie zurück in Kasten 1 und kommt in der Runde gleich nochmal.</p>
-    <p>Karten, die du mehrfach falsch hattest, gelten als „schwierig“ und lassen sich gezielt üben. Alles wird nur in diesem Browser gespeichert. Mit Export und Import ziehst du auf ein anderes Gerät um.</p>
+    <p>Karten, die du mehrfach falsch hattest, gelten als „schwierig“ und lassen sich gezielt üben. Alles wird nur in diesem Browser gespeichert. Mit Export und Import (unter ⚙ Einstellungen) ziehst du auf ein anderes Gerät um.</p>
   </details>
   <div id="list"></div>
-  <section class="panel" aria-label="Einstellungen">
+  <section class="panel" aria-label="Lernen">
     <h2>Lernen</h2>
     <div class="opts">
       <label>Richtung
         <select id="dir"><option value="fr">Französisch → Deutsch</option><option value="de">Deutsch → Französisch</option><option value="mix">Gemischt</option></select></label>
+      <label>Karten pro Runde
+        <select id="limit"><option value="0">Alle</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option></select></label>
       <label><input type="checkbox" id="all"> Auch noch nicht fällige Karten üben</label>
       <label><input type="checkbox" id="hard"> Nur schwierige Karten (mehrfach falsch)</label>
       <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
       <label><input type="checkbox" id="auto"> Aussprache automatisch abspielen</label>
     </div>
-    <h2>Darstellung</h2>
-    <div class="opts">
-      <label><input type="checkbox" id="img"> Bilder anzeigen</label>
-      <label><input type="checkbox" id="big"> Große Schrift</label>
-      <label><input type="checkbox" id="theme"> Dunkles Design</label>
-    </div>
   </section>
-  <div class="start"><button id="go" class="primary">Starten</button></div>
-  <details class="more">
-    <summary>Mehr: Fortschritt und Offline-Nutzung</summary>
-    <div class="btns small"><button id="reload">Tabellen neu laden</button><button id="reset">Fortschritt zurücksetzen</button>
-      <button id="export">Fortschritt exportieren</button><button id="import">Fortschritt importieren</button></div>
-    <div id="offline-box" hidden>
-      <p class="hint" id="offline-status" role="status"></p>
-      <div class="btns small"><button id="offline-save">Ausgewählte Lektionen offline speichern</button><button id="offline-clear">Offline-Speicher leeren</button></div>
-    </div>
-  </details>
-  <input type="file" id="import-file" accept="application/json,.json" hidden>`;
+  <div class="start"><button id="go" class="primary">Starten</button></div>`;
   const $ = s => app.querySelector(s);
-  $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#img').checked = opt.img;
-  $('#typing').checked = opt.typing || false; $('#hard').checked = opt.hard || false;
-  $('#auto').checked = opt.auto || false; $('#big').checked = opt.big || false;
+  $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#limit').value = String(opt.limit || 0);
+  $('#typing').checked = opt.typing || false; $('#hard').checked = opt.hard || false; $('#auto').checked = opt.auto || false;
   renderToday();
-  $('#theme').checked = document.documentElement.dataset.theme === 'dark';
-  const setOpt = () => { opt = { dir: $('#dir').value, all: $('#all').checked, img: $('#img').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, big: $('#big').checked }; LS.set('vk:opt', opt); document.documentElement.classList.toggle('big', opt.big); updateGo(); };
-  ['#dir', '#all', '#img', '#typing', '#hard', '#auto', '#big'].forEach(s => $(s).onchange = setOpt);
-  $('#theme').onchange = () => {
-    const theme = $('#theme').checked ? 'dark' : 'light';
-    document.documentElement.dataset.theme = theme;
-    LS.set('vk:theme', theme);
+  const setOpt = () => {
+    opt = { ...opt, dir: $('#dir').value, all: $('#all').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, limit: Number($('#limit').value) };
+    LS.set('vk:opt', opt); updateGo();
   };
+  ['#dir', '#limit', '#all', '#typing', '#hard', '#auto'].forEach(s => $(s).onchange = setOpt);
   $('#go').onclick = () => { const q = buildQueue(); if (q.length) learn(q); };
-  $('#reload').onclick = async () => {
-    const button = $('#reload'); button.disabled = true;
+  $('#settings').onclick = () => { enterScreen(); settings(); };
+  $('#offline-setup').onclick = () => {
+    enterScreen(); settings();
+    app.querySelector('#sec-offline').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const offlineActions = $('#offline-actions'), setup = $('#offline-setup'), update = $('#offline-update');
+  const refreshOfflineActions = async () => {
+    if (!SW_OK) return;
     try {
-      tables = await discover(true);
-      sel = new Set([...sel].filter(d => tables.some(t => t.dir === d)));
-      const failures = await loadAllTables(true);
-      LS.set(INITIAL_LOAD_KEY, failures.length === 0);
-    }
-    catch (e) { console.error(e); }
-    finally { button.disabled = false; }
-  };
-  $('#reset').onclick = () => {
-    if (!sel.size || !confirm('Fortschritt der ausgewählten Tabellen zurücksetzen?')) return;
-    for (const k of Object.keys(P)) if (sel.has(k.split('::')[0])) delete P[k];
-    save(); list(); updateGo();
-  };
-  // Fortschritt sichern bzw. auf einem anderen Gerät einspielen (Daten liegen sonst nur in diesem Browser)
-  $('#export').onclick = () => {
-    const data = { app: 'vokabelkasten', version: 1, exported: new Date().toISOString(), progress: P };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `vokabelkasten-fortschritt-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link); link.click(); link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
-  $('#import').onclick = () => $('#import-file').click();
-  $('#import-file').onchange = async event => {
-    const file = event.target.files[0]; event.target.value = '';
-    if (!file) return;
-    try {
-      const data = JSON.parse((await file.text()).replace(/^﻿/, ''));
-      const incoming = data && data.progress;
-      if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new Error('Keine gültige Fortschrittsdatei.');
-      const valid = Object.entries(incoming).filter(([id, s]) => typeof id === 'string' && id.includes('::') && s
-        && Number.isInteger(s.b) && s.b >= 1 && s.b <= 5 && Number.isFinite(s.d));
-      if (!valid.length) throw new Error('Die Datei enthält keinen verwertbaren Fortschritt.');
-      if (!confirm(`${valid.length} Karten aus der Datei übernehmen? Bei Überschneidungen gilt der höhere Kasten.`)) return;
-      for (const [id, s] of valid) {
-        const cur = P[id];
-        if (!cur || s.b > cur.b || (s.b === cur.b && s.d > cur.d)) {
-          P[id] = { b: s.b, d: s.d, w: Number.isInteger(s.w) && s.w > 0 ? Math.min(s.w, 99) : 0 };
-        }
+      const savedDirs = LS.get(OFFLINE_SAVED_KEY, []);
+      const cachedFiles = await (await caches.open(MEDIA_CACHE)).keys();
+      const hasOfflineContent = savedDirs.length > 0 || cachedFiles.length > 0;
+      let knownTables = LS.get(OFFLINE_KNOWN_KEY, null);
+      if (!Array.isArray(knownTables)) {
+        knownTables = tables.map(offlineTableKey);
+        LS.set(OFFLINE_KNOWN_KEY, knownTables);
       }
-      save(); list(); updateGo();
-    } catch (e) { alert(`Import fehlgeschlagen: ${e.message}`); }
+      const newTables = tables.filter(t => !knownTables.includes(offlineTableKey(t)));
+      setup.hidden = hasOfflineContent;
+      update.hidden = !hasOfflineContent || newTables.length === 0;
+      update.textContent = `Offline-Inhalte aktualisieren${newTables.length ? ` (${newTables.length})` : ''}`;
+      offlineActions.hidden = setup.hidden && update.hidden;
+    } catch (error) {
+      console.error('Offline-Status konnte nicht gelesen werden:', error);
+    }
   };
-  if (SW_OK) {
-    const status = $('#offline-status'), saveButton = $('#offline-save');
-    $('#offline-box').hidden = false;
-    const refresh = async () => {
-      try {
-        const n = (await (await caches.open(MEDIA_CACHE)).keys()).length;
-        status.textContent = n ? `Offline gespeichert: ${n} Audio-/Bilddateien.`
-          : 'Noch nichts offline gespeichert. Wähle Lektionen aus und speichere sie, dann funktionieren Audio und Bilder auch ohne Internet.';
-      } catch { status.textContent = ''; }
-    };
-    refresh();
-    saveButton.onclick = async () => {
-      if (!sel.size) { status.textContent = 'Wähle zuerst mindestens eine Lektion aus.'; return; }
-      saveButton.disabled = true;
-      try {
-        await Promise.all([...sel].map(d => load(tables.find(t => t.dir === d))));
-        try { await navigator.storage?.persist?.(); } catch { /* optional */ }
-        const r = await saveOffline([...sel], (i, n) => { status.textContent = `Speichere … ${i}/${n}`; });
-        await refresh();
-        if (r.failed) status.textContent += ` ${r.failed} Datei(en) fehlen oder konnten nicht geladen werden.`;
-      } catch (e) { status.textContent = `Speichern fehlgeschlagen: ${e.message}`; }
-      finally { saveButton.disabled = false; }
-    };
-    $('#offline-clear').onclick = async () => {
-      if (!confirm('Offline gespeicherte Audio- und Bilddateien löschen?')) return;
-      await caches.delete(MEDIA_CACHE); refresh();
-    };
-  }
+  update.onclick = async () => {
+    const knownTables = LS.get(OFFLINE_KNOWN_KEY, []);
+    const newTables = tables.filter(t => !knownTables.includes(offlineTableKey(t)));
+    if (!newTables.length) { await refreshOfflineActions(); return; }
+    update.disabled = true;
+    update.textContent = 'Aktualisiere Offline-Inhalte …';
+    try {
+      await Promise.all(newTables.map(t => load(t, true)));
+      const result = await saveOffline(newTables.map(t => t.dir), (i, n) => {
+        update.textContent = `Aktualisiere offline … ${i}/${n}`;
+      });
+      const savedDirs = new Set(LS.get(OFFLINE_SAVED_KEY, []));
+      newTables.forEach(t => savedDirs.add(t.dir));
+      LS.set(OFFLINE_SAVED_KEY, [...savedDirs]);
+      if (result.failed) throw new Error(`${result.failed} Datei(en) fehlen oder konnten nicht geladen werden.`);
+      LS.set(OFFLINE_KNOWN_KEY, tables.map(offlineTableKey));
+      await refreshOfflineActions();
+    } catch (error) {
+      console.error('Offline-Inhalte konnten nicht aktualisiert werden:', error);
+      update.textContent = 'Update fehlgeschlagen – erneut versuchen';
+    } finally {
+      update.disabled = false;
+    }
+  };
+  refreshOfflineActions();
   list(); updateGo();
 }
 
@@ -568,7 +535,8 @@ function buildQueue() {
   for (const d of sel) for (const c of DB.get(d) || [])
     if (opt.hard ? isHard(c.id) : (opt.all || st(c.id).d <= now)) q.push({ c, dir: c.pc ? 'fr' : opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
   q.sort(() => Math.random() - .5);                    // mischen
-  return q.sort((a, b) => st(a.c.id).b - st(b.c.id).b); // niedrige Kaesten zuerst
+  q.sort((a, b) => st(a.c.id).b - st(b.c.id).b); // niedrige Kaesten zuerst
+  return opt.limit > 0 ? q.slice(0, opt.limit) : q;   // optional: nur die ersten N Karten
 }
 
 // Eingabe prüfen: Groß-/Kleinschreibung, Apostroph-Form und Leerzeichen sind egal; "(e)" darf fehlen oder als "e" stehen.
@@ -579,8 +547,7 @@ const checkPc = (typed, expected) => {
 };
 
 function learn(q) {
-  learning = true;
-  if (!(window.history.state && window.history.state.learn)) window.history.pushState({ learn: true }, '');
+  enterScreen();
   let lastAuto = null;
   let shown = false, hint = false, typedAnswer = '', ok = 0, bad = 0;
   const total = q.length, missed = new Map(), history = [];
@@ -640,7 +607,7 @@ function learn(q) {
   // gemeinsame Bedienung beider Kartenarten: Knöpfe, Tippen zum Aufdecken, Wischen zum Bewerten
   const bind = (onSpeak, rerender) => {
     const $ = x => app.querySelector(x);
-    $('#end').onclick = leaveLearning;
+    $('#end').onclick = leaveScreen;
     if ($('#undo')) $('#undo').onclick = undo;
     app.querySelectorAll('.spk').forEach(button => { button.onclick = event => { event.stopPropagation(); onSpeak(); }; });
     if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
@@ -731,18 +698,19 @@ function learn(q) {
       : '<p class="mut">Alle Karten gleich beim ersten Mal richtig. Stark!</p>';
     app.innerHTML = `<h1>Geschafft! 🎉</h1><p class="big">${first} von ${total} beim ersten Mal richtig</p>${list}
       <div class="btns">${more ? `<button id="again" class="primary">Nächste Runde (${cards(more)})</button>` : ''}<button id="back"${more ? '' : ' class="primary"'}>Zurück zur Auswahl</button></div>`;
-    app.querySelector('#back').onclick = leaveLearning;
+    app.querySelector('#back').onclick = leaveScreen;
     if (more) app.querySelector('#again').onclick = () => learn(buildQueue());
     window.scrollTo(0, 0);
   };
   draw();
 }
 
-window.addEventListener('popstate', () => { if (learning) home(); });
+window.addEventListener('popstate', () => { if (subscreen) home(); });
 
 // ---- Start -----------------------------------------------------------------
 if (SW_OK) navigator.serviceWorker.register('sw.js').catch(e => console.warn('Offline-Modus nicht verfügbar:', e));
 (async () => {
+  if (document.readyState === 'loading') await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve)); // settings.js ist dann geladen
   app.innerHTML = '<p class="mut">Lade Tabellen …</p>';
   try { tables = await discover(); }
   catch (e) {

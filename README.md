@@ -5,7 +5,7 @@ Vokabeltrainer für Französisch (Découvertes, 8. Jahrgangsstufe).
 ## Projektstruktur
 
 ```
-index.html, style.css, app.js, consent.js   die App (statisch, kein Build nötig)
+index.html, style.css, app.js, settings.js, consent.js   die App (statisch, kein Build nötig)
 sw.js, manifest.webmanifest, icons/          Offline-Modus und Installation als App
 datenschutz.html                             Datenschutzerklärung
 lektionen/<name>/database*.json (+ Audio/Bilder)   Vokabellektionen
@@ -52,6 +52,13 @@ Die HTML-Quellen müssen direkte HTTPS-Links auf Vokabelseiten sein. Der Import 
 
 Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche, incopiable, de, mix1 und mix2 haben denselben Inhalt und werden nicht gebraucht. Die Adresse steht in `sources_uebungen.csv` (`folder,url`). Der Import läuft im Workflow „Import vocabulary pages“, von Hand mit `python scripts/import_exercises.py`, oder mit einer lokal gespeicherten Seite: `python scripts/import_exercises.py seite.html passe-compose`.
 
+## Einstellungen in der App (⚙ oben rechts)
+
+- **Farben:** Modus (automatisch, hell, dunkel), sieben Farbvorlagen (Standard, Ozean, Wald, Sonnenuntergang, Lavendel, Mitternacht, Hoher Kontrast) mit hellen und dunklen Varianten sowie sechs einzelne Farben (Akzent, Hintergrund, Karten, Text, Richtig, Falsch). Im automatischen Modus folgt auch die gewählte Vorlage dem Gerät. Die Schrift auf Knöpfen passt sich der Farbe an. Gespeichert wird in `vk:look`.
+- **Logo:** Standard, Symbol/Buchstaben mit eigenen Farben oder ein eigenes Bild. Es erscheint im Seitenkopf, als Tab-Symbol, als `apple-touch-icon` und in einem zur Laufzeit erzeugten Manifest. Eine bereits installierte App behält ihr altes Symbol. Gespeichert wird in `vk:logo`. Die Logik steht in `settings.js`.
+- **Anzeige, Installation, Offline, Fortschritt:** Bilder und große Schrift, Installationshilfe für iPhone, Android und Computer (mit Installationsknopf, wo der Browser ihn anbietet), Offline-Speicher für ausgewählte oder alle Lektionen, Export/Import/Zurücksetzen des Fortschritts.
+- Auf der Startseite bleiben die Lernoptionen (Richtung, Karten pro Runde, fällige/schwierige Karten, Eintippen, automatische Aussprache).
+
 ## Entwickeln und testen mit dem Branch `dev`
 
 - `main` ist die echte Seite, `dev` ist zum Ausprobieren. Änderungen kommen zuerst auf `dev`.
@@ -70,7 +77,7 @@ Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche
 
 ## Offline-Nutzung
 
-Die Seite lässt sich als App installieren (PWA). Die App selbst und die Vokabeln merkt sie sich automatisch. Audio und Bilder werden nur für Lektionen gespeichert, die du auswählst und mit „Ausgewählte Lektionen offline speichern“ sicherst. Das hält den Speicher klein. Der Service Worker steht in `sw.js`.
+Wenn noch keine Offline-Inhalte gespeichert sind, zeigt die Startseite den kleinen Knopf **„Möchtest du offline gehen?“**. Speichere dann einmal online alle Lektionen oder nur die ausgewählten; so werden auch Audio und Bilder verfügbar. Kommen später neue Lektionen hinzu, bietet die Startseite **„Offline-Inhalte aktualisieren“** an. Anschließend kannst du die Seite über „Als App installieren“ zum Startbildschirm oder Desktop hinzufügen. Der Service Worker steht in `sw.js`.
 
 ## Tests
 
