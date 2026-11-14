@@ -54,7 +54,7 @@ Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche
 
 ## Einstellungen in der App (⚙ oben rechts)
 
-- **Farben:** Modus (automatisch, hell, dunkel), sieben Farbvorlagen (Standard, Ozean, Wald, Sonnenuntergang, Lavendel, Mitternacht, Hoher Kontrast) und sechs einzelne Farben (Akzent, Hintergrund, Karten, Text, Richtig, Falsch). Die Schrift auf Knöpfen passt sich der Farbe an. Gespeichert wird in `vk:look`.
+- **Farben:** Modus (automatisch, hell, dunkel), sieben Farbvorlagen (Standard, Ozean, Wald, Sonnenuntergang, Lavendel, Mitternacht, Hoher Kontrast) mit hellen und dunklen Varianten sowie sechs einzelne Farben (Akzent, Hintergrund, Karten, Text, Richtig, Falsch). Im automatischen Modus folgt auch die gewählte Vorlage dem Gerät. Die Schrift auf Knöpfen passt sich der Farbe an. Gespeichert wird in `vk:look`.
 - **Logo:** Standard, Symbol/Buchstaben mit eigenen Farben oder ein eigenes Bild. Es erscheint im Seitenkopf, als Tab-Symbol, als `apple-touch-icon` und in einem zur Laufzeit erzeugten Manifest. Eine bereits installierte App behält ihr altes Symbol. Gespeichert wird in `vk:logo`. Die Logik steht in `settings.js`.
 - **Anzeige, Installation, Offline, Fortschritt:** Bilder und große Schrift, Installationshilfe für iPhone, Android und Computer (mit Installationsknopf, wo der Browser ihn anbietet), Offline-Speicher für ausgewählte oder alle Lektionen, Export/Import/Zurücksetzen des Fortschritts.
 - Auf der Startseite bleiben die Lernoptionen (Richtung, Karten pro Runde, fällige/schwierige Karten, Eintippen, automatische Aussprache).
@@ -77,7 +77,7 @@ Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche
 
 ## Offline-Nutzung
 
-Die Seite lässt sich als App installieren (PWA). Die App selbst und die Vokabeln merkt sie sich automatisch. Audio und Bilder werden nur für Lektionen gespeichert, die du auswählst und mit „Ausgewählte Lektionen offline speichern“ sicherst. Das hält den Speicher klein. Der Service Worker steht in `sw.js`.
+Über **Offline-Nutzung vorbereiten** auf der Startseite kommst du direkt zur Einrichtung. Lade die Seite einmal mit Internet und speichere dort alle Lektionen oder nur die ausgewählten; so werden auch Audio und Bilder offline verfügbar. Anschließend kannst du die Seite über „Als App installieren“ zum Startbildschirm oder Desktop hinzufügen. Die App merkt sich außerdem besuchte Inhalte automatisch. Offline-Speichern und Installation müssen vor dem ersten Gebrauch ohne Internet eingerichtet werden. Der Service Worker steht in `sw.js`.
 
 ## Tests
 

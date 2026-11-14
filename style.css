@@ -52,6 +52,7 @@ h2{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase
 .lnk{margin-left:auto;background:none;border:0;padding:4px 2px;color:var(--acc);font-size:.85rem;cursor:pointer}
 .row .mut{display:block}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:22px 0 0}
+.panel[id="sec-offline"]{scroll-margin-top:12px}
 .panel .opts{margin:10px 0 0;gap:8px}
 .panel .opts+h2{margin-top:16px}
 .panel .opts select{margin-left:auto;min-width:0}

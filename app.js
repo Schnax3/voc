@@ -360,6 +360,7 @@ function home() {
   app.innerHTML = `<div class="hdr"><img class="logo" alt="" width="40" height="40" src="${esc(logoSmall())}"><h1>Vokabelkasten</h1>
     <button id="settings" class="gear" type="button" aria-label="Einstellungen" title="Einstellungen">⚙</button></div>
   <p class="mut lead">Wähle die Lektionen, die du üben willst.</p>
+  <div class="btns small"><button id="offline-setup" type="button">Offline-Nutzung vorbereiten</button></div>
   <p class="today" id="today" role="status"></p>
   <details class="help"><summary>So funktioniert's</summary>
     <p>Jede Karte liegt in einem von 5 Kästen. Weißt du sie, rückt sie einen Kasten weiter und kommt erst nach ${DAYS.slice(1).join(', ')} Tagen wieder. Weißt du sie nicht, geht sie zurück in Kasten 1 und kommt in der Runde gleich nochmal.</p>
@@ -391,6 +392,10 @@ function home() {
   ['#dir', '#limit', '#all', '#typing', '#hard', '#auto'].forEach(s => $(s).onchange = setOpt);
   $('#go').onclick = () => { const q = buildQueue(); if (q.length) learn(q); };
   $('#settings').onclick = () => { enterScreen(); settings(); };
+  $('#offline-setup').onclick = () => {
+    enterScreen(); settings();
+    app.querySelector('#sec-offline').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   list(); updateGo();
 }
 

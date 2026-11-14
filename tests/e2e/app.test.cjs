@@ -226,7 +226,8 @@ test('Offline: gespeicherte Lektion läuft ohne Server, nicht gespeicherte nicht
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null, null, { timeout: 15000 });
   await page.click('#consent-no'); // sonst liegt die Hinweisleiste über den unteren Schaltflächen
   await page.click('.grp:has(h2:text-is("Dec3 · U1")) .row:has(b:text-is("Teil A"))'); // lektionen/dec3-u1a (mit Audio), nicht "letztes Jahr"
-  await page.click('#settings');
+  await page.click('#offline-setup');
+  await page.waitForSelector('#sec-offline');
   await page.click('#offline-save');
   await page.waitForFunction(() => /Offline gespeichert: \d+/.test(document.querySelector('#offline-status').textContent), null, { timeout: 30000 });
 
@@ -414,9 +415,21 @@ test('Einstellungen: Farbvorlagen, eigene Farben, Modus und Zurücksetzen', asyn
   await page.selectOption('#mode', 'light');
   await page.click('.chip[data-preset="forest"]');
   assert.equal(await css('--acc'), '#2e7d3a');
-  assert.equal(await page.isDisabled('#mode'), true, 'Vorlage bestimmt hell/dunkel');
+  assert.equal(await page.isDisabled('#mode'), false, 'Modus bleibt auch mit Vorlage wählbar');
+  await page.selectOption('#mode', 'dark');
+  assert.equal(await theme(), 'dark');
+  assert.notEqual(await css('--acc'), '#2e7d3a', 'Vorlage verwendet eine dunkle Farbvariante');
+  await page.selectOption('#mode', 'auto');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
+  assert.equal(await theme(), 'dark', 'automatische Vorlage folgt dem dunklen Gerätemodus');
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'light');
+  assert.equal(await theme(), 'light', 'automatische Vorlage folgt dem hellen Gerätemodus');
+  await page.selectOption('#mode', 'dark');
   await page.click('.chip[data-preset="night"]');
   assert.equal(await theme(), 'dark');
+  await page.selectOption('#mode', 'light');
   // einzelne Farbe ändern: Akzent hell -> Schrift auf Knöpfen wird dunkel
   await page.evaluate(() => { const i = document.querySelector('input[data-key="acc"]'); i.value = '#ffe066'; i.dispatchEvent(new Event('input', { bubbles: true })); });
   assert.equal(await css('--acc'), '#ffe066');
@@ -424,7 +437,7 @@ test('Einstellungen: Farbvorlagen, eigene Farben, Modus und Zurücksetzen', asyn
   // bleibt nach dem Neuladen
   await page.reload(); await page.waitForSelector('#go');
   assert.equal(await css('--acc'), '#ffe066');
-  assert.equal(await theme(), 'dark');
+  assert.equal(await theme(), 'light');
   await page.click('#settings'); await page.click('#colors-reset');
   assert.equal(await css('--acc'), '#2f6fed', 'Standard, Modus bleibt hell');
   await page.selectOption('#mode', 'dark');

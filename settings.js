@@ -6,15 +6,15 @@ const BASE_COLORS = {
   light: { bg: '#f6f5f1', card: '#ffffff', ink: '#1d1d1b', acc: '#2f6fed', ok: '#1f9d55', bad: '#d64545' },
   dark: { bg: '#161614', card: '#222220', ink: '#efeee8', acc: '#6b9bff', ok: '#1f9d55', bad: '#d64545' }
 };
-// Farbvorlagen: "standard" folgt dem Modus (automatisch/hell/dunkel), alle anderen bringen ihre eigenen Farben mit.
+// Jede Vorlage außer "standard" enthält Farben für beide Modi und folgt damit auch der Geräteeinstellung.
 const PRESETS = {
   standard: { name: 'Standard' },
-  ocean: { name: 'Ozean', scheme: 'light', bg: '#eaf3fb', card: '#ffffff', ink: '#10263a', acc: '#0b6fbd', ok: '#13875a', bad: '#c93a47' },
-  forest: { name: 'Wald', scheme: 'light', bg: '#eef4ea', card: '#fbfdf9', ink: '#1b2a1c', acc: '#2e7d3a', ok: '#1c7f46', bad: '#c0452e' },
-  sunset: { name: 'Sonnenuntergang', scheme: 'light', bg: '#fff1e5', card: '#fffdfb', ink: '#3a2216', acc: '#c9481a', ok: '#2a7f50', bad: '#b8322a' },
-  lavender: { name: 'Lavendel', scheme: 'light', bg: '#f3eefa', card: '#ffffff', ink: '#2a2038', acc: '#6f45c8', ok: '#26905d', bad: '#c93a55' },
-  night: { name: 'Mitternacht', scheme: 'dark', bg: '#0e1319', card: '#18202a', ink: '#e6edf3', acc: '#58a6ff', ok: '#3fb06a', bad: '#f0645f' },
-  contrast: { name: 'Hoher Kontrast', scheme: 'light', bg: '#ffffff', card: '#ffffff', ink: '#000000', acc: '#0000c8', ok: '#006400', bad: '#b00000', line: '#000000' }
+  ocean: { name: 'Ozean', light: { bg: '#eaf3fb', card: '#ffffff', ink: '#10263a', acc: '#0b6fbd', ok: '#13875a', bad: '#c93a47' }, dark: { bg: '#101d29', card: '#182a39', ink: '#e5f1fb', acc: '#63b8ff', ok: '#5ed49a', bad: '#ff7b83' } },
+  forest: { name: 'Wald', light: { bg: '#eef4ea', card: '#fbfdf9', ink: '#1b2a1c', acc: '#2e7d3a', ok: '#1c7f46', bad: '#c0452e' }, dark: { bg: '#121b14', card: '#1c2a1e', ink: '#e6f2e5', acc: '#78c879', ok: '#62d692', bad: '#ff8272' } },
+  sunset: { name: 'Sonnenuntergang', light: { bg: '#fff1e5', card: '#fffdfb', ink: '#3a2216', acc: '#c9481a', ok: '#2a7f50', bad: '#b8322a' }, dark: { bg: '#241711', card: '#342219', ink: '#fff0e4', acc: '#ff9866', ok: '#67d79c', bad: '#ff7770' } },
+  lavender: { name: 'Lavendel', light: { bg: '#f3eefa', card: '#ffffff', ink: '#2a2038', acc: '#6f45c8', ok: '#26905d', bad: '#c93a55' }, dark: { bg: '#1c1726', card: '#292136', ink: '#f1eafa', acc: '#bd9aff', ok: '#68d69b', bad: '#ff8196' } },
+  night: { name: 'Mitternacht', light: { bg: '#edf3fa', card: '#ffffff', ink: '#192535', acc: '#176bc1', ok: '#147a49', bad: '#c93d45' }, dark: { bg: '#0e1319', card: '#18202a', ink: '#e6edf3', acc: '#58a6ff', ok: '#3fb06a', bad: '#f0645f' } },
+  contrast: { name: 'Hoher Kontrast', light: { bg: '#ffffff', card: '#ffffff', ink: '#000000', acc: '#0000c8', ok: '#006400', bad: '#b00000', line: '#000000' }, dark: { bg: '#000000', card: '#111111', ink: '#ffffff', acc: '#8ab4ff', ok: '#63e68b', bad: '#ff8585', line: '#ffffff' } }
 };
 const COLOR_FIELDS = [
   ['acc', 'Akzent', 'Knöpfe, Balken, Links'],
@@ -42,12 +42,13 @@ const getLook = () => {
 };
 const effectiveColors = look => {
   const preset = PRESETS[look.preset] || PRESETS.standard;
-  const scheme = preset.scheme || (look.mode === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : look.mode);
-  const own = preset.scheme ? Object.fromEntries(COLOR_FIELDS.map(([k]) => [k, preset[k]])) : {};
+  const scheme = look.mode === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : look.mode;
+  const presetColors = preset[scheme] || {};
+  const own = Object.fromEntries(COLOR_FIELDS.map(([k]) => [k, presetColors[k]]).filter(([, value]) => value));
   return {
-    scheme, preset,
+    scheme, preset, presetColors,
     colors: { ...BASE_COLORS[scheme], ...own, ...look.custom },
-    styled: Boolean(preset.scheme) || Object.keys(look.custom).length > 0
+    styled: Boolean(preset[scheme]) || Object.keys(look.custom).length > 0
   };
 };
 function applyLook() {
@@ -57,7 +58,7 @@ function applyLook() {
   else {
     const vars = {
       '--bg': c.bg, '--card': c.card, '--ink': c.ink, '--acc': c.acc, '--ok': c.ok, '--bad': c.bad,
-      '--mut': mixHex(c.ink, c.bg, .4), '--line': look.custom.bg || !e.preset.line ? mixHex(c.bg, c.ink, .14) : e.preset.line,
+      '--mut': mixHex(c.ink, c.bg, .4), '--line': look.custom.bg || !e.presetColors.line ? mixHex(c.bg, c.ink, .14) : e.presetColors.line,
       '--on-acc': onColor(c.acc), '--on-ok': onColor(c.ok), '--on-bad': onColor(c.bad)
     };
     for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
@@ -166,8 +167,8 @@ function settings() {
     <p class="hint" id="mode-note"></p>
     <h2 class="sp2">Vorlagen</h2>
     <div class="chips" id="presets" role="group" aria-label="Farbvorlagen">${Object.entries(PRESETS).map(([id, p]) => {
-      const bg = p.scheme ? p.bg : 'linear-gradient(135deg,#f6f5f1 50%,#161614 50%)', acc = p.scheme ? p.acc : '#2f6fed';
-      return `<button type="button" class="chip" data-preset="${id}" aria-pressed="false"><span class="sw" style="background:${bg}"><i style="background:${acc}"></i></span>${esc(p.name)}</button>`;
+      const light = p.light || BASE_COLORS.light, dark = p.dark || BASE_COLORS.dark;
+      return `<button type="button" class="chip" data-preset="${id}" aria-pressed="false"><span class="sw" style="background:linear-gradient(135deg,${light.bg} 50%,${dark.bg} 50%)"><i style="background:linear-gradient(135deg,${light.acc} 50%,${dark.acc} 50%)"></i></span>${esc(p.name)}</button>`;
     }).join('')}</div>
     <h2 class="sp2">Einzelne Farben</h2>
     <div class="colors">${COLOR_FIELDS.map(([key, label, note]) => `<label class="color"><span>${esc(label)}${note ? `<small>${esc(note)}</small>` : ''}</span><input type="color" data-key="${key}" aria-label="${esc(label)}"></label>`).join('')}</div>
@@ -208,10 +209,11 @@ function settings() {
 
   <section class="panel" id="sec-offline" aria-label="Offline-Nutzung">
     <h2>Offline-Nutzung</h2>
+    <p class="hint">Einmal online vorbereiten: Speichere die App und Lektionen, solange du Internet hast. „Alle Lektionen offline speichern“ ist der einfachste Weg; danach kannst du die Seite auch ohne Verbindung öffnen.</p>
     <div id="offline-box" hidden>
       <p class="hint" id="offline-status" role="status"></p>
       <p class="hint" id="offline-storage"></p>
-      <div class="btns small"><button id="offline-save" type="button">Ausgewählte Lektionen offline speichern</button><button id="offline-save-all" type="button">Alle Lektionen offline speichern</button><button id="offline-clear" type="button">Offline-Speicher leeren</button></div>
+      <div class="btns small"><button id="offline-save" type="button">Ausgewählte Lektionen speichern</button><button id="offline-save-all" type="button" class="primary">Alle Lektionen offline speichern</button><button id="offline-clear" type="button">Offline-Speicher leeren</button></div>
     </div>
     <p class="hint" id="offline-unavailable" hidden>Offline-Nutzung braucht die Seite über https (zum Beispiel auf GitHub Pages) und einen Browser mit Service Worker.</p>
     <p class="hint">Die App selbst und die Vokabeln merkt sich der Browser automatisch. Audio und Bilder werden nur für Lektionen gespeichert, die du hier sicherst.</p>
@@ -229,8 +231,8 @@ function settings() {
   // Farben
   const syncColors = () => {
     const look = getLook(), e = effectiveColors(look);
-    $('#mode').value = look.mode; $('#mode').disabled = Boolean(e.preset.scheme);
-    $('#mode-note').textContent = e.preset.scheme ? `Die Vorlage „${e.preset.name}“ bringt ihre eigene Helligkeit mit. Wähle „Standard“, um den Modus zu ändern.` : '';
+    $('#mode').value = look.mode; $('#mode').disabled = false;
+    $('#mode-note').textContent = '';
     app.querySelectorAll('.chip').forEach(chip => { const on = chip.dataset.preset === look.preset; chip.classList.toggle('on', on); chip.setAttribute('aria-pressed', String(on)); });
     app.querySelectorAll('input[type="color"][data-key]').forEach(input => { input.value = e.colors[input.dataset.key]; });
   };
