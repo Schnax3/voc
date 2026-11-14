@@ -319,6 +319,13 @@ function settings() {
         await Promise.all(dirs.map(d => load(tables.find(t => t.dir === d))));
         try { await navigator.storage?.persist?.(); } catch { /* optional */ }
         const r = await saveOffline(dirs, (i, n) => { status.textContent = `Speichere … ${i}/${n}`; });
+        const savedDirs = new Set(LS.get(OFFLINE_SAVED_KEY, []));
+        dirs.forEach(d => savedDirs.add(d));
+        LS.set(OFFLINE_SAVED_KEY, [...savedDirs]);
+        const allDirs = tables.map(t => t.dir);
+        if (!Array.isArray(LS.get(OFFLINE_KNOWN_KEY, null)) || (dirs.length === allDirs.length && allDirs.every(d => dirs.includes(d)))) {
+          LS.set(OFFLINE_KNOWN_KEY, tables.map(offlineTableKey));
+        }
         await refresh();
         if (r.failed) status.textContent += ` ${r.failed} Datei(en) fehlen oder konnten nicht geladen werden.`;
       } catch (e) { status.textContent = `Speichern fehlgeschlagen: ${e.message}`; }
@@ -328,7 +335,10 @@ function settings() {
     $('#offline-save-all').onclick = () => saveDirs(tables.map(t => t.dir));
     $('#offline-clear').onclick = async () => {
       if (!confirm('Offline gespeicherte Audio- und Bilddateien löschen?')) return;
-      await caches.delete(MEDIA_CACHE); refresh();
+      await caches.delete(MEDIA_CACHE);
+      LS.set(OFFLINE_SAVED_KEY, []);
+      LS.set(OFFLINE_KNOWN_KEY, tables.map(offlineTableKey));
+      refresh();
     };
   } else $('#offline-unavailable').hidden = false;
 

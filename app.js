@@ -320,6 +320,9 @@ const leaveScreen = () => { if (window.history.state && window.history.state.sub
 // Audio und Bilder (viele MB) werden nur für Lektionen gespeichert, die man dafür auswählt.
 const SW_OK = onPages && 'serviceWorker' in navigator && 'caches' in window;
 const MEDIA_CACHE = 'vk-media-' + new URL('./', location.href).pathname.replace(/\W+/g, '_'); // muss zu sw.js passen
+const OFFLINE_SAVED_KEY = `vk:offline-saved:${R.owner}/${R.repo}`;
+const OFFLINE_KNOWN_KEY = `vk:offline-known:${R.owner}/${R.repo}`;
+const offlineTableKey = table => `${table.dir}/${table.file}`;
 async function saveOffline(dirs, progress) {
   const cache = await caches.open(MEDIA_CACHE), urls = new Set();
   for (const d of dirs) for (const c of DB.get(d) || []) {
@@ -360,7 +363,10 @@ function home() {
   app.innerHTML = `<div class="hdr"><img class="logo" alt="" width="40" height="40" src="${esc(logoSmall())}"><h1>Vokabelkasten</h1>
     <button id="settings" class="gear" type="button" aria-label="Einstellungen" title="Einstellungen">⚙</button></div>
   <p class="mut lead">Wähle die Lektionen, die du üben willst.</p>
-  <div class="btns small"><button id="offline-setup" type="button">Offline-Nutzung vorbereiten</button></div>
+  <div class="btns small" id="offline-actions" hidden>
+    <button id="offline-setup" type="button">Möchtest du offline gehen?</button>
+    <button id="offline-update" type="button" hidden>Offline-Inhalte aktualisieren</button>
+  </div>
   <p class="today" id="today" role="status"></p>
   <details class="help"><summary>So funktioniert's</summary>
     <p>Jede Karte liegt in einem von 5 Kästen. Weißt du sie, rückt sie einen Kasten weiter und kommt erst nach ${DAYS.slice(1).join(', ')} Tagen wieder. Weißt du sie nicht, geht sie zurück in Kasten 1 und kommt in der Runde gleich nochmal.</p>
@@ -396,6 +402,52 @@ function home() {
     enterScreen(); settings();
     app.querySelector('#sec-offline').scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  const offlineActions = $('#offline-actions'), setup = $('#offline-setup'), update = $('#offline-update');
+  const refreshOfflineActions = async () => {
+    if (!SW_OK) return;
+    try {
+      const savedDirs = LS.get(OFFLINE_SAVED_KEY, []);
+      const cachedFiles = await (await caches.open(MEDIA_CACHE)).keys();
+      const hasOfflineContent = savedDirs.length > 0 || cachedFiles.length > 0;
+      let knownTables = LS.get(OFFLINE_KNOWN_KEY, null);
+      if (!Array.isArray(knownTables)) {
+        knownTables = tables.map(offlineTableKey);
+        LS.set(OFFLINE_KNOWN_KEY, knownTables);
+      }
+      const newTables = tables.filter(t => !knownTables.includes(offlineTableKey(t)));
+      setup.hidden = hasOfflineContent;
+      update.hidden = !hasOfflineContent || newTables.length === 0;
+      update.textContent = `Offline-Inhalte aktualisieren${newTables.length ? ` (${newTables.length})` : ''}`;
+      offlineActions.hidden = setup.hidden && update.hidden;
+    } catch (error) {
+      console.error('Offline-Status konnte nicht gelesen werden:', error);
+    }
+  };
+  update.onclick = async () => {
+    const knownTables = LS.get(OFFLINE_KNOWN_KEY, []);
+    const newTables = tables.filter(t => !knownTables.includes(offlineTableKey(t)));
+    if (!newTables.length) { await refreshOfflineActions(); return; }
+    update.disabled = true;
+    update.textContent = 'Aktualisiere Offline-Inhalte …';
+    try {
+      await Promise.all(newTables.map(t => load(t, true)));
+      const result = await saveOffline(newTables.map(t => t.dir), (i, n) => {
+        update.textContent = `Aktualisiere offline … ${i}/${n}`;
+      });
+      const savedDirs = new Set(LS.get(OFFLINE_SAVED_KEY, []));
+      newTables.forEach(t => savedDirs.add(t.dir));
+      LS.set(OFFLINE_SAVED_KEY, [...savedDirs]);
+      if (result.failed) throw new Error(`${result.failed} Datei(en) fehlen oder konnten nicht geladen werden.`);
+      LS.set(OFFLINE_KNOWN_KEY, tables.map(offlineTableKey));
+      await refreshOfflineActions();
+    } catch (error) {
+      console.error('Offline-Inhalte konnten nicht aktualisiert werden:', error);
+      update.textContent = 'Update fehlgeschlagen – erneut versuchen';
+    } finally {
+      update.disabled = false;
+    }
+  };
+  refreshOfflineActions();
   list(); updateGo();
 }
 

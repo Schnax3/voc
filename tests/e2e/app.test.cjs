@@ -251,6 +251,30 @@ test('Offline: gespeicherte Lektion läuft ohne Server, nicht gespeicherte nicht
   await context.close();
 });
 
+test('Startseite: Offline-Einrichtung nur ohne Download, Update für neue Lektionen', async ({ browser, base }) => {
+  const fresh = await openApp(browser, base);
+  await fresh.page.waitForFunction(() => !document.querySelector('#offline-actions').hidden);
+  assert.ok(await fresh.page.locator('#offline-setup').isVisible());
+  assert.equal(await fresh.page.locator('#offline-update').isVisible(), false);
+  await fresh.context.close();
+
+  const index = readJson('index.json');
+  const knownTables = index.tables.slice(0, -1).map(t => `${t.dir}/${t.file}`);
+  const prepared = await openApp(browser, base, {
+    seed: {
+      'vk:offline-saved:Schnax3/voc': ['lektionen/dec3-u1a'],
+      'vk:offline-known:Schnax3/voc': knownTables,
+    }
+  });
+  await prepared.page.waitForFunction(() => !document.querySelector('#offline-update').hidden);
+  assert.equal(await prepared.page.locator('#offline-setup').isVisible(), false);
+  assert.match(await prepared.page.textContent('#offline-update'), /1/);
+  await prepared.page.click('#offline-update');
+  await prepared.page.waitForFunction(() => document.querySelector('#offline-update').hidden);
+  assert.ok((await storage(prepared.page, 'vk:offline-saved:Schnax3/voc')).includes('uebungen/passe-compose'));
+  await prepared.context.close();
+});
+
 test('Startseite: Gruppen lassen sich komplett an- und abwählen', async ({ browser, base }) => {
   const { context, page } = await openApp(browser, base);
   const group = page.locator('.grp:has(h2:text-is("Dec3 · U2"))');

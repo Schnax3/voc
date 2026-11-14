@@ -77,7 +77,7 @@ Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche
 
 ## Offline-Nutzung
 
-Über **Offline-Nutzung vorbereiten** auf der Startseite kommst du direkt zur Einrichtung. Lade die Seite einmal mit Internet und speichere dort alle Lektionen oder nur die ausgewählten; so werden auch Audio und Bilder offline verfügbar. Anschließend kannst du die Seite über „Als App installieren“ zum Startbildschirm oder Desktop hinzufügen. Die App merkt sich außerdem besuchte Inhalte automatisch. Offline-Speichern und Installation müssen vor dem ersten Gebrauch ohne Internet eingerichtet werden. Der Service Worker steht in `sw.js`.
+Wenn noch keine Offline-Inhalte gespeichert sind, zeigt die Startseite den kleinen Knopf **„Möchtest du offline gehen?“**. Speichere dann einmal online alle Lektionen oder nur die ausgewählten; so werden auch Audio und Bilder verfügbar. Kommen später neue Lektionen hinzu, bietet die Startseite **„Offline-Inhalte aktualisieren“** an. Anschließend kannst du die Seite über „Als App installieren“ zum Startbildschirm oder Desktop hinzufügen. Der Service Worker steht in `sw.js`.
 
 ## Tests
 
