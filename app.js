@@ -322,6 +322,7 @@ const SW_OK = onPages && 'serviceWorker' in navigator && 'caches' in window;
 const MEDIA_CACHE = 'vk-media-' + new URL('./', location.href).pathname.replace(/\W+/g, '_'); // muss zu sw.js passen
 const OFFLINE_SAVED_KEY = `vk:offline-saved:${R.owner}/${R.repo}`;
 const OFFLINE_KNOWN_KEY = `vk:offline-known:${R.owner}/${R.repo}`;
+const OFFLINE_DOWNLOAD_CONCURRENCY = 8;
 const offlineTableKey = table => `${table.dir}/${table.file}`;
 async function saveOffline(dirs, progress) {
   const cache = await caches.open(MEDIA_CACHE), urls = new Set();
@@ -343,7 +344,7 @@ async function saveOffline(dirs, progress) {
       progress(++done, list.length);
     }
   };
-  await Promise.all([worker(), worker(), worker(), worker()]);
+  await Promise.all(Array.from({ length: Math.min(OFFLINE_DOWNLOAD_CONCURRENCY, list.length) }, worker));
   return { total: list.length, failed };
 }
 
