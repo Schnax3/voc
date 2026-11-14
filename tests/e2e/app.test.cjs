@@ -180,7 +180,7 @@ test('Export und Import behalten den Fehlerzähler', async ({ browser, base }) =
   const db = readJson('lektionen/dec3-u2-a/database.json');
   const key = cardId('lektionen/dec3-u2-a', db[0]);
   const a = await openApp(browser, base, { seed: { 'vk:progress': { [key]: { b: 3, d: 1234, w: 2 } } } });
-  const [download] = await Promise.all([a.page.waitForEvent('download'), a.page.click('details.more summary').then(() => a.page.click('#export'))]);
+  const [download] = await Promise.all([a.page.waitForEvent('download'), a.page.click('#settings').then(() => a.page.click('#export'))]);
   // Playwright löscht Downloads beim Schließen des Kontexts: Kopie für den zweiten Browser anlegen
   const file = path.join(os.tmpdir(), `vk-export-${process.pid}.json`);
   fs.copyFileSync(await download.path(), file);
@@ -190,6 +190,7 @@ test('Export und Import behalten den Fehlerzähler', async ({ browser, base }) =
 
   const b = await openApp(browser, base);
   b.page.on('dialog', d => d.accept());
+  await b.page.click('#settings');
   await b.page.setInputFiles('#import-file', file);
   await b.page.waitForFunction(k => (JSON.parse(localStorage.getItem('vk:progress')) || {})[k], key);
   assert.deepEqual((await storage(b.page, 'vk:progress'))[key], { b: 3, d: 1234, w: 2 });
@@ -225,7 +226,7 @@ test('Offline: gespeicherte Lektion läuft ohne Server, nicht gespeicherte nicht
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null, null, { timeout: 15000 });
   await page.click('#consent-no'); // sonst liegt die Hinweisleiste über den unteren Schaltflächen
   await page.click('.grp:has(h2:text-is("Dec3 · U1")) .row:has(b:text-is("Teil A"))'); // lektionen/dec3-u1a (mit Audio), nicht "letztes Jahr"
-  await page.click('details.more summary');
+  await page.click('#settings');
   await page.click('#offline-save');
   await page.waitForFunction(() => /Offline gespeichert: \d+/.test(document.querySelector('#offline-status').textContent), null, { timeout: 30000 });
 
@@ -398,6 +399,91 @@ test('Leertaste deckt die Antwort auf', async ({ browser, base }) => {
   await page.waitForSelector('#yes');
   await page.keyboard.press('ArrowRight');
   await page.waitForSelector('#flip');
+  await context.close();
+});
+
+test('Einstellungen: Farbvorlagen, eigene Farben, Modus und Zurücksetzen', async ({ browser, base }) => {
+  const { context, page, stats } = await openApp(browser, base);
+  const css = name => page.evaluate(n => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), name);
+  const theme = () => page.evaluate(() => document.documentElement.dataset.theme);
+  assert.equal(await css('--acc'), '#2f6fed');
+  await page.click('#settings');
+  await page.waitForSelector('#presets');
+  await page.selectOption('#mode', 'dark');
+  assert.equal(await theme(), 'dark');
+  await page.selectOption('#mode', 'light');
+  await page.click('.chip[data-preset="forest"]');
+  assert.equal(await css('--acc'), '#2e7d3a');
+  assert.equal(await page.isDisabled('#mode'), true, 'Vorlage bestimmt hell/dunkel');
+  await page.click('.chip[data-preset="night"]');
+  assert.equal(await theme(), 'dark');
+  // einzelne Farbe ändern: Akzent hell -> Schrift auf Knöpfen wird dunkel
+  await page.evaluate(() => { const i = document.querySelector('input[data-key="acc"]'); i.value = '#ffe066'; i.dispatchEvent(new Event('input', { bubbles: true })); });
+  assert.equal(await css('--acc'), '#ffe066');
+  assert.equal(await css('--on-acc'), '#111111');
+  // bleibt nach dem Neuladen
+  await page.reload(); await page.waitForSelector('#go');
+  assert.equal(await css('--acc'), '#ffe066');
+  assert.equal(await theme(), 'dark');
+  await page.click('#settings'); await page.click('#colors-reset');
+  assert.equal(await css('--acc'), '#2f6fed', 'Standard, Modus bleibt hell');
+  await page.selectOption('#mode', 'dark');
+  assert.equal(await css('--acc'), '#6b9bff');
+  await page.selectOption('#mode', 'auto');
+  assert.deepEqual((await storage(page, 'vk:look')), { mode: 'auto', preset: 'standard', custom: {} });
+  assert.equal(stats.errors.length, 0, stats.errors.join('; '));
+  await context.close();
+  // alte Einstellung "Dunkles Design" wird übernommen
+  const old = await openApp(browser, base, { seed: { 'vk:theme': 'dark' } });
+  assert.equal(await old.page.evaluate(() => document.documentElement.dataset.theme), 'dark');
+  await old.context.close();
+});
+
+test('Einstellungen: Logo (Symbol, Standard) wirkt auf Kopf, Tab-Symbol und Manifest', async ({ browser, base }) => {
+  const { context, page, stats } = await openApp(browser, base);
+  const href = sel => page.getAttribute(sel, 'href');
+  assert.equal(await href('link[rel="apple-touch-icon"]'), 'icons/icon-180.png');
+  await page.click('#settings'); await page.waitForSelector('#sec-logo');
+  await page.check('input[name="logo-type"][value="text"]');
+  await page.fill('#logo-text', '🇫🇷');
+  assert.match(await href('link[rel="apple-touch-icon"]'), /^data:image\/png;base64,/);
+  assert.match(await href('link[rel="icon"]'), /^data:image\/png/);
+  assert.match(await href('link[rel="manifest"]'), /^blob:/);
+  const manifest = await page.evaluate(async () => (await fetch(document.querySelector('link[rel="manifest"]').href)).json());
+  assert.equal(manifest.icons.length, 2); assert.equal(manifest.display, 'standalone');
+  assert.equal(manifest.start_url, new URL('./', await page.url()).href);
+  await page.click('#back-home'); await page.waitForSelector('#go');
+  assert.match(await page.getAttribute('.hdr img.logo', 'src'), /^data:image\/png/);
+  // bleibt nach dem Neuladen; zurück auf Standard
+  await page.reload(); await page.waitForSelector('#go');
+  assert.match(await page.getAttribute('.hdr img.logo', 'src'), /^data:image\/png/);
+  await page.click('#settings'); await page.check('input[name="logo-type"][value="default"]');
+  assert.equal(await href('link[rel="manifest"]'), 'manifest.webmanifest');
+  assert.equal(await page.getAttribute('.hdr img.logo, img.big-logo', 'src'), 'icons/icon-192.png');
+  assert.equal(stats.errors.length, 0, stats.errors.join('; '));
+  await context.close();
+});
+
+test('Einstellungen: Installationshilfe je Gerät, Anzeige-Optionen und Zurück-Taste', async ({ browser, base }) => {
+  const ua = { ios: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1', android: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36' };
+  for (const [name, agent, expected] of [['ios', ua.ios, /Zum Home-Bildschirm/], ['android', ua.android, /App installieren/]]) {
+    const context = await browser.newContext({ userAgent: agent });
+    const page = await context.newPage();
+    await page.goto(base + '/'); await page.waitForSelector('#settings');
+    await page.click('#settings');
+    assert.match(await page.innerText('#install-box'), expected, name);
+    await context.close();
+  }
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'] } });
+  await page.click('#settings'); await page.waitForSelector('#sec-display');
+  await page.uncheck('#img'); await page.check('#big');
+  assert.deepEqual(await page.evaluate(() => [JSON.parse(localStorage.getItem('vk:opt')).img, JSON.parse(localStorage.getItem('vk:opt')).big, document.documentElement.classList.contains('big')]), [false, true, true]);
+  await page.goBack(); // Zurück-Taste des Browsers verlässt die Einstellungen
+  await page.waitForSelector('#go');
+  assert.equal(await page.$('#sec-display'), null);
+  // Rundenlänge
+  await page.selectOption('#limit', '10'); await page.check('#all');
+  assert.equal(await page.textContent('#go'), 'Starten (10 Karten)');
   await context.close();
 });
 
