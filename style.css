@@ -134,3 +134,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
   main{padding-right:10px;padding-left:10px}
   .top{flex-direction:column}
 }
+
+#feedback{width:min(92vw,520px);border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:16px}
+#feedback::backdrop{background:rgba(0,0,0,.45)}
+#feedback form{display:grid;gap:12px}
+#feedback label{display:grid;gap:6px;font-size:.95rem}
+#feedback textarea,#feedback select{width:100%;font:inherit}
+.dlg-title{margin:0;font-size:1.15rem;font-weight:700}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.end-note{margin:14px 0 0;text-align:center}
+.lnk-btn{background:none;border:0;color:var(--acc);padding:6px;cursor:pointer;font-size:.9rem}
+#foot{flex-wrap:wrap}

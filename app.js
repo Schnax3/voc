@@ -551,6 +551,7 @@ function learn(q) {
   let lastAuto = null;
   let shown = false, hint = false, typedAnswer = '', ok = 0, bad = 0;
   const total = q.length, missed = new Map(), history = [];
+  const lessons = [...new Set(q.map(x => titleOf(x.c.table)))];
   const preloadedImages = new Set();
   const preloadNextImages = () => {
     const next = q[1];
@@ -697,8 +698,10 @@ function learn(q) {
       ? `<h2 class="sp">Hier hattest du Fehler</h2><ul class="miss">${wrong.map(c => `<li><b>${esc(c.fr)}</b> – ${esc(c.pc || c.de)}</li>`).join('')}</ul>`
       : '<p class="mut">Alle Karten gleich beim ersten Mal richtig. Stark!</p>';
     app.innerHTML = `<h1>Geschafft! 🎉</h1><p class="big">${first} von ${total} beim ersten Mal richtig</p>${list}
-      <div class="btns">${more ? `<button id="again" class="primary">Nächste Runde (${cards(more)})</button>` : ''}<button id="back"${more ? '' : ' class="primary"'}>Zurück zur Auswahl</button></div>`;
+      <div class="btns">${more ? `<button id="again" class="primary">Nächste Runde (${cards(more)})</button>` : ''}<button id="back"${more ? '' : ' class="primary"'}>Zurück zur Auswahl</button></div>
+      <p class="end-note"><button id="suggest" type="button" class="lnk-btn">💡 Verbesserung vorschlagen</button></p>`;
     app.querySelector('#back').onclick = leaveScreen;
+    app.querySelector('#suggest').onclick = () => openFeedback({ where: 'Rundenende', lessons });
     if (more) app.querySelector('#again').onclick = () => learn(buildQueue());
     window.scrollTo(0, 0);
   };

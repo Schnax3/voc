@@ -5,7 +5,7 @@ Vokabeltrainer für Französisch (Découvertes, 8. Jahrgangsstufe).
 ## Projektstruktur
 
 ```
-index.html, style.css, app.js, settings.js, consent.js   die App (statisch, kein Build nötig)
+index.html, style.css, app.js, settings.js, feedback.js, consent.js   die App (statisch, kein Build nötig)
 sw.js, manifest.webmanifest, icons/          Offline-Modus und Installation als App
 datenschutz.html                             Datenschutzerklärung
 lektionen/<name>/database*.json (+ Audio/Bilder)   Vokabellektionen
@@ -74,6 +74,17 @@ Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche
 - Anzeigenamen stehen in `titles.json` (`{"ordnername": "Anzeigename"}`). Fehlt ein Eintrag, zeigt die App den Ordnernamen.
 - Ordnernamen: klein, ohne Leerzeichen und Sonderzeichen, z. B. `lektionen/dec3-u1a`. Der Lernfortschritt hängt am Ordnernamen. Wird ein Ordner umbenannt, muss der alte Name in `DIR_RENAMES` in `app.js` eingetragen werden, sonst geht der Fortschritt verloren.
 - Audio und Bilder stehen als reine Dateinamen in der JSON (`"audio": "voleur.mp3"`) und liegen im Ordner der Lektion.
+
+## Verbesserungsvorschläge ohne GitHub-Konto
+
+Die App hat „Verbesserung vorschlagen“ (Startseite unten und am Rundenende). Ohne Einrichtung öffnet das Formular ein vorausgefülltes GitHub-Issue; dafür braucht man ein GitHub-Konto. GitHub allein kann keine Issues ohne Konto anlegen, deshalb braucht es für anonymes Senden einen kleinen Zwischendienst. Vorlage: `backend/apps-script.gs` (Google Apps Script, kostenlos).
+
+1. GitHub: *Settings → Developer settings → Fine-grained tokens* → Token nur für dieses Repository, nur „Issues: Read and write“. Labels `vorschlag`, `enhancement`, `bug`, `vokabeln` im Repository anlegen.
+2. script.google.com: neues Projekt, Inhalt von `backend/apps-script.gs` einfügen. *Projekteinstellungen → Script-Eigenschaften*: `GITHUB_TOKEN` (der Token) und `GITHUB_REPO` (`owner/repo`).
+3. *Bereitstellen → Neue Bereitstellung → Web-App*, Ausführen als „Ich“, Zugriff „Jeder“. Die Web-App-Adresse kopieren.
+4. In `feedback-config.json` eintragen: `{ "endpoint": "https://script.google.com/macros/s/…/exec" }`.
+
+Der Token steht nur im Zwischendienst, nie im Code der Seite. Der Dienst begrenzt auf 20 Vorschläge pro Stunde; die App hat zusätzlich eine Pause und eine Spam-Falle.
 
 ## Offline-Nutzung
 

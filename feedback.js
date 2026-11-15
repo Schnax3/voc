@@ -1,0 +1,102 @@
+// ---- Verbesserungsvorschläge --------------------------------------------------------------------
+// Ohne Einrichtung öffnet "Absenden" ein vorausgefülltes GitHub-Issue (dafür braucht man ein GitHub-Konto).
+// Trägt man in feedback-config.json eine "endpoint"-Adresse ein (siehe README, z. B. Google Apps Script),
+// wird der Vorschlag direkt gesendet und als Issue angelegt, ganz ohne GitHub-Konto.
+// Kontext von außen: openFeedback({ where: 'Rundenende', lessons: ['Dec3 · U1 A'] })
+
+const FEEDBACK_TYPES = [
+  ['wunsch', 'Wunsch oder Idee', 'Wunsch', 'enhancement'],
+  ['fehler', 'Fehler in der App', 'Fehler', 'bug'],
+  ['vokabel', 'Falsche oder fehlende Vokabel', 'Vokabel', 'vokabeln'],
+  ['sonst', 'Etwas anderes', 'Vorschlag', 'vorschlag']
+];
+const FEEDBACK_MIN = 5, FEEDBACK_MAX = 1500, FEEDBACK_PAUSE_MS = 30000;
+
+async function feedbackConfig() {
+  try {
+    const response = await fetch('feedback-config.json', { cache: 'no-store' });
+    if (response.ok) return await response.json();
+  } catch { /* ohne Konfiguration: GitHub-Link */ }
+  return {};
+}
+// "owner/repo" aus der Adresse (GitHub Pages: owner.github.io/repo/), sonst aus der Konfiguration
+const feedbackRepo = cfg => {
+  if (cfg.repo) return cfg.repo;
+  const host = location.hostname.match(/^([^.]+)\.github\.io$/), segment = location.pathname.split('/')[1];
+  return host && segment ? `${host[1]}/${segment}` : '';
+};
+function feedbackPayload(ctx, type, text) {
+  const kind = FEEDBACK_TYPES.find(t => t[0] === type) || FEEDBACK_TYPES[3];
+  const lessons = (ctx.lessons || []).join(', ');
+  const body = `${text.trim()}\n\n---\nArt: ${kind[1]}\nOrt in der App: ${ctx.where || 'Startseite'}${lessons ? `\nLektionen: ${lessons}` : ''}\nSeite: ${IS_DEV ? 'dev (Testseite)' : 'main'}\nGesendet über die App`;
+  const firstLine = text.trim().split('\n')[0].slice(0, 70);
+  return { type: kind[0], title: `[${kind[2]}] ${firstLine}`, body, labels: ['vorschlag', kind[3]] };
+}
+
+function feedbackDialog() {
+  let dialog = document.getElementById('feedback');
+  if (dialog) return dialog;
+  dialog = document.createElement('dialog');
+  dialog.id = 'feedback';
+  dialog.setAttribute('aria-labelledby', 'fb-title');
+  dialog.innerHTML = `<form id="fb-form" novalidate>
+    <p class="dlg-title" id="fb-title">💡 Verbesserung vorschlagen</p>
+    <label>Worum geht es?
+      <select id="fb-type">${FEEDBACK_TYPES.map(t => `<option value="${t[0]}">${t[1]}</option>`).join('')}</select></label>
+    <label>Dein Vorschlag
+      <textarea id="fb-text" rows="6" maxlength="${FEEDBACK_MAX}" placeholder="Was soll besser werden? Bei Vokabeln bitte Lektion und Wort nennen."></textarea></label>
+    <div class="hp" aria-hidden="true"><label>Bitte leer lassen <input id="fb-hp" tabindex="-1" autocomplete="off"></label></div>
+    <p class="hint" id="fb-info"></p>
+    <p class="hint" id="fb-status" role="status"></p>
+    <div class="btns"><button id="fb-send" class="primary" type="submit">Absenden</button><button id="fb-cancel" type="button">Schließen</button></div>
+  </form>`;
+  document.body.appendChild(dialog);
+  return dialog;
+}
+
+async function openFeedback(ctx = {}) {
+  const dialog = feedbackDialog(), $ = s => dialog.querySelector(s);
+  const cfg = await feedbackConfig(), repo = feedbackRepo(cfg), direct = Boolean(cfg.endpoint);
+  $('#fb-text').value = ''; $('#fb-hp').value = ''; $('#fb-status').textContent = ''; $('#fb-send').disabled = false; $('#fb-send').hidden = false;
+  $('#fb-send').textContent = direct ? 'Absenden' : 'Weiter zu GitHub';
+  $('#fb-info').textContent = direct
+    ? 'Dein Vorschlag wird ohne Anmeldung an das Projekt übermittelt und dort öffentlich sichtbar. Bitte keine persönlichen Angaben machen.'
+    : 'Zum Absenden öffnet sich GitHub mit einem vorausgefüllten Formular. Dafür brauchst du ein kostenloses GitHub-Konto. Der Text wird dort öffentlich sichtbar. Bitte keine persönlichen Angaben machen.';
+  $('#fb-cancel').onclick = () => dialog.close();
+  $('#fb-form').onsubmit = async event => {
+    event.preventDefault();
+    const status = $('#fb-status'), text = $('#fb-text').value;
+    if ($('#fb-hp').value) { status.textContent = 'Danke!'; return; } // Spam-Falle: Menschen sehen das Feld nicht
+    if (text.trim().length < FEEDBACK_MIN) { status.textContent = `Bitte schreibe mindestens ${FEEDBACK_MIN} Zeichen.`; return; }
+    const payload = feedbackPayload(ctx, $('#fb-type').value, text);
+    if (!direct) {
+      if (!repo) { status.textContent = 'Das Senden ist hier noch nicht eingerichtet.'; return; }
+      const url = `https://github.com/${repo}/issues/new?title=${encodeURIComponent(payload.title)}&body=${encodeURIComponent(payload.body.slice(0, 1800))}&labels=${encodeURIComponent(payload.labels.join(','))}`;
+      window.open(url, '_blank', 'noopener');
+      status.textContent = 'GitHub wurde geöffnet. Dort noch auf „Submit new issue“ tippen.';
+      return;
+    }
+    const last = Number(LS.get('vk:feedback-at', 0));
+    if (Date.now() - last < FEEDBACK_PAUSE_MS) { status.textContent = 'Bitte warte einen Moment, bevor du noch einen Vorschlag sendest.'; return; }
+    if (!navigator.onLine) { status.textContent = 'Du bist offline. Sende den Vorschlag, sobald du wieder Internet hast.'; return; }
+    $('#fb-send').disabled = true; status.textContent = 'Sende …';
+    try {
+      // text/plain vermeidet eine CORS-Vorabfrage (wichtig für Google Apps Script)
+      const response = await fetch(cfg.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), redirect: 'follow' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok === false) throw new Error(data.error || `Fehler ${response.status}`);
+      LS.set('vk:feedback-at', Date.now());
+      status.textContent = 'Danke! Dein Vorschlag ist angekommen.';
+      $('#fb-text').value = ''; $('#fb-send').hidden = true; $('#fb-cancel').textContent = 'Schließen';
+    } catch (e) {
+      $('#fb-send').disabled = false;
+      status.textContent = `Das Senden hat nicht geklappt (${e.message}). Du kannst es später nochmal versuchen.`;
+    }
+  };
+  if (typeof dialog.showModal === 'function') { if (!dialog.open) dialog.showModal(); } else dialog.setAttribute('open', '');
+  $('#fb-text').focus();
+}
+document.getElementById('feedback-link')?.addEventListener('click', () => {
+  const lessons = [...sel].map(titleOf);
+  openFeedback({ where: subscreen ? 'Einstellungen oder Runde' : 'Startseite', lessons });
+});
