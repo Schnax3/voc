@@ -524,6 +524,59 @@ test('Einstellungen: Installationshilfe je Gerät, Anzeige-Optionen und Zurück-
   await context.close();
 });
 
+test('Vorschlag ohne Endpunkt öffnet ein vorausgefülltes GitHub-Issue', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await context.route('**/feedback-config.json', route => route.fulfill({ json: { repo: 'o/r' } }));
+  await page.click('#feedback-link');
+  await page.waitForSelector('dialog#feedback[open]');
+  assert.equal(await page.textContent('#fb-send'), 'Weiter zu GitHub');
+  await page.fill('#fb-text', 'ab'); await page.click('#fb-send');
+  assert.match(await page.textContent('#fb-status'), /mindestens/);
+  await page.fill('#fb-text', 'Bitte mehr Übungen\nzu Verben');
+  const [popup] = await Promise.all([context.waitForEvent('page'), page.click('#fb-send')]);
+  const url = popup.url();
+  assert.ok(url.startsWith('https://github.com/o/r/issues/new?'), url);
+  assert.ok(decodeURIComponent(url).includes('[Wunsch] Bitte mehr Übungen'));
+  await context.close();
+});
+
+test('Vorschlag mit Endpunkt wird direkt gesendet, Spam-Falle und Pause greifen', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  const posts = [];
+  await context.route('**/feedback-config.json', route => route.fulfill({ json: { endpoint: 'https://hook.test/x' } }));
+  await context.route('https://hook.test/**', route => { posts.push(JSON.parse(route.request().postData())); return route.fulfill({ json: { ok: true }, headers: { 'access-control-allow-origin': '*' } }); });
+  await page.click('#feedback-link');
+  await page.waitForSelector('dialog#feedback[open]');
+  await page.selectOption('#fb-type', 'fehler');
+  await page.evaluate(() => { document.getElementById('fb-hp').value = 'bot'; });
+  await page.fill('#fb-text', 'Ein Fehler beim Start'); await page.click('#fb-send');
+  assert.equal(posts.length, 0);
+  await page.evaluate(() => { document.getElementById('fb-hp').value = ''; });
+  await page.click('#fb-send');
+  await page.waitForFunction(() => /Danke/.test(document.getElementById('fb-status').textContent));
+  assert.equal(posts.length, 1);
+  assert.equal(posts[0].title, '[Fehler] Ein Fehler beim Start');
+  assert.deepEqual(posts[0].labels, ['vorschlag', 'bug']);
+  await page.click('#fb-cancel'); await page.click('#feedback-link');
+  await page.fill('#fb-text', 'Noch ein Vorschlag'); await page.click('#fb-send');
+  assert.match(await page.textContent('#fb-status'), /warte/);
+  assert.equal(posts.length, 1);
+  await context.close();
+});
+
+test('Am Rundenende gibt es den Vorschlag-Knopf', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await page.click('.row >> nth=0'); await page.check('#all'); await page.selectOption('#limit', '10');
+  await page.click('#go');
+  for (let i = 0; i < 60 && !(await page.$('#suggest')); i++) {
+    if (await page.$('#flip')) await page.click('#flip');
+    if (await page.$('#yes')) await page.click('#yes');
+  }
+  await page.click('#suggest');
+  await page.waitForSelector('dialog#feedback[open]');
+  await context.close();
+});
+
 (async () => {
   const server = await startServer();
   const browser = await chromium.launch();
