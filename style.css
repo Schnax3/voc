@@ -145,3 +145,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .end-note{margin:14px 0 0;text-align:center}
 .lnk-btn{background:none;border:0;color:var(--acc);padding:6px;cursor:pointer;font-size:.9rem}
 #foot{flex-wrap:wrap}
+
+.tense{margin:12px 0;text-align:left}
+.tense h3{margin:0 0 6px;font-size:.95rem;color:var(--mut)}
+.crow{display:grid;grid-template-columns:3.2em 1fr;gap:6px 8px;align-items:center;margin:4px 0}
+.crow .pro{text-align:right;color:var(--mut)}
+.crow input{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.crow.ok input{border-color:var(--ok)}.crow.bad input{border-color:var(--bad)}
+.crow .sol{grid-column:2;color:var(--ok);font-weight:600}

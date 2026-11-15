@@ -6,6 +6,7 @@ on:
       - sources.csv
       - sources_uebungen.csv
       - scripts/import_exercises.py
+      - scripts/import_conjugation.py
       - scripts/import_vocabulary.py
       - scripts/build_index.py
       - tests/**
@@ -43,6 +44,10 @@ jobs:
       - name: Import exercise pages
         continue-on-error: true
         run: python scripts/import_exercises.py
+
+      # Konjugationsübung aus den Verben der Übungen und Lektionen (rein lokal, kein Download)
+      - name: Build conjugation exercise
+        run: python scripts/import_conjugation.py
 
       - name: Build lesson index
         run: python scripts/build_index.py

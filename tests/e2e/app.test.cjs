@@ -577,6 +577,47 @@ test('Am Rundenende gibt es den Vorschlag-Knopf', async ({ browser, base }) => {
   await context.close();
 });
 
+test('Verben konjugieren: Zeilen je Person, Schalter für die Zeiten, nur Grundform wenn beide aus', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await page.click('.row:has-text("Verben konjugieren")');
+  await page.check('#all'); await page.selectOption('#limit', '10');
+  await page.click('#go');
+  await page.waitForSelector('.crow');
+  assert.equal(await page.locator('h3').count(), 2);
+  const verb = (await page.textContent('.q')).replace('🔊', '').trim();
+  assert.ok(verb.length > 1);
+  // Enter springt zur nächsten Zeile, nach der letzten wird aufgedeckt
+  const count = await page.locator('.crow input').count();
+  assert.ok(count >= 2);
+  await page.locator('.crow input').first().fill('xxx');
+  for (let i = 0; i < count; i++) await page.keyboard.press('Enter');
+  await page.waitForSelector('.crow.bad');
+  assert.ok(await page.$('.crow .sol'));
+  assert.match(await page.textContent('.card'), /Formen richtig/);
+  await context.close();
+});
+
+test('Verben konjugieren: richtige Eingabe mit (e) und (s) wird erkannt, Schalter wirken', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:opt': { dir: 'fr', all: true, img: true, conjPres: false, conjPc: true, limit: 0 } } });
+  await page.click('.row:has-text("Verben konjugieren")');
+  await page.click('#go');
+  await page.waitForSelector('.crow');
+  assert.equal(await page.locator('h3:has-text("Présent")').count(), 0);
+  assert.equal(await page.locator('h3:has-text("Passé composé")').count(), 1);
+  const solved = await page.evaluate(() => {
+    const check = (typed, expected) => checkPc(typed, expected);
+    return [check('venus', 'venu(e)s'), check('VENUES', 'venu(e)s'), check('venu', 'venu(e)(s)'), check('venues', 'venu(e)(s)'), check('venue', 'venu(e)s')];
+  });
+  assert.deepEqual(solved, [true, true, true, true, false]);
+  await page.click('#end');
+  await page.waitForSelector('#conj-pc');
+  await page.uncheck('#conj-pc');
+  await page.click('#go');
+  await page.waitForSelector('#card');
+  assert.equal(await page.locator('.crow').count(), 0); // nur Grundform
+  await context.close();
+});
+
 (async () => {
   const server = await startServer();
   const browser = await chromium.launch();

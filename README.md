@@ -52,6 +52,10 @@ Die HTML-Quellen müssen direkte HTTPS-Links auf Vokabelseiten sein. Der Import 
 
 Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche, incopiable, de, mix1 und mix2 haben denselben Inhalt und werden nicht gebraucht. Die Adresse steht in `sources_uebungen.csv` (`folder,url`). Der Import läuft im Workflow „Import vocabulary pages“, von Hand mit `python scripts/import_exercises.py`, oder mit einer lokal gespeicherten Seite: `python scripts/import_exercises.py seite.html passe-compose`.
 
+## Verben konjugieren (`uebungen/konjugation/`)
+
+`scripts/import_conjugation.py` erzeugt aus den Verben der Übungen (`uebungen/*/uebung.json`) und aus regelmäßigen -er-Verben der Lektionen (Satz mit „Inf.: …“ und gleiche Vokabel) die Übung „Verben konjugieren“. Pro Verb gibt es eine Karte mit Zeilen für je, tu, il, nous, vous, ils, getrennt für Présent und Passé composé. In der Lernauswahl lassen sich beide Zeiten ein- und ausschalten; sind beide aus, kommt nur die Grundform. Unregelmäßige Verben stehen in der Tabelle `IRREGULAR` im Skript; unbekannte Verben werden beim Lauf gemeldet und übersprungen. Der Import-Workflow führt das Skript automatisch aus.
+
 ## Einstellungen in der App (⚙ oben rechts)
 
 - **Farben:** Modus (automatisch, hell, dunkel), sieben Farbvorlagen (Standard, Ozean, Wald, Sonnenuntergang, Lavendel, Mitternacht, Hoher Kontrast) mit hellen und dunklen Varianten sowie sechs einzelne Farben (Akzent, Hintergrund, Karten, Text, Richtig, Falsch). Im automatischen Modus folgt auch die gewählte Vorlage dem Gerät. Die Schrift auf Knöpfen passt sich der Farbe an. Gespeichert wird in `vk:look`.

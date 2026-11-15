@@ -57,6 +57,11 @@
       "title": "Dec3 · U2 Tu te rappelles"
     },
     {
+      "dir": "uebungen/konjugation",
+      "file": "uebung.json",
+      "title": "Übung · Verben konjugieren"
+    },
+    {
       "dir": "uebungen/passe-compose",
       "file": "uebung.json",
       "title": "Übung · Les formes du passé composé"

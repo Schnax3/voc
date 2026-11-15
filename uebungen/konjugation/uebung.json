@@ -1,0 +1,1283 @@
+[
+  {
+    "french": "venir",
+    "german": "kommen",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je viens",
+      "tu viens",
+      "il vient",
+      "nous venons",
+      "vous venez",
+      "ils viennent"
+    ],
+    "passe_compose": [
+      "je suis venu(e)",
+      "tu es venu(e)",
+      "il est venu",
+      "nous sommes venu(e)s",
+      "vous êtes venu(e)(s)",
+      "ils sont venus"
+    ]
+  },
+  {
+    "french": "dormir",
+    "german": "schlafen",
+    "ref": "Déc-Kl-7.3",
+    "praesens": [
+      "je dors",
+      "tu dors",
+      "il dort",
+      "nous dormons",
+      "vous dormez",
+      "ils dorment"
+    ],
+    "passe_compose": [
+      "j'ai dormi",
+      "tu as dormi",
+      "il a dormi",
+      "nous avons dormi",
+      "vous avez dormi",
+      "ils ont dormi"
+    ]
+  },
+  {
+    "french": "vivre",
+    "german": "leben",
+    "ref": "Déc-Kl-7.4",
+    "praesens": [
+      "je vis",
+      "tu vis",
+      "il vit",
+      "nous vivons",
+      "vous vivez",
+      "ils vivent"
+    ],
+    "passe_compose": [
+      "j'ai vécu",
+      "tu as vécu",
+      "il a vécu",
+      "nous avons vécu",
+      "vous avez vécu",
+      "ils ont vécu"
+    ]
+  },
+  {
+    "french": "se lever",
+    "german": "aufstehen",
+    "ref": "Déc-Kl-7.3",
+    "praesens": [
+      "je me lève",
+      "tu te lèves",
+      "il se lève",
+      "nous nous levons",
+      "vous vous levez",
+      "ils se lèvent"
+    ],
+    "passe_compose": [
+      "je me suis levé(e)",
+      "tu t'es levé(e)",
+      "il s'est levé",
+      "nous nous sommes levé(e)s",
+      "vous vous êtes levé(e)(s)",
+      "ils se sont levés"
+    ]
+  },
+  {
+    "french": "avancer",
+    "german": "vorankommen; vorgehen",
+    "ref": "Déc-Kl-7.5",
+    "praesens": [
+      "j'avance",
+      "tu avances",
+      "il avance",
+      "nous avançons",
+      "vous avancez",
+      "ils avancent"
+    ],
+    "passe_compose": [
+      "j'ai avancé",
+      "tu as avancé",
+      "il a avancé",
+      "nous avons avancé",
+      "vous avez avancé",
+      "ils ont avancé"
+    ]
+  },
+  {
+    "french": "marcher",
+    "german": "zu Fuß gehen",
+    "ref": "Déc-Kl-7.5",
+    "praesens": [
+      "je marche",
+      "tu marches",
+      "il marche",
+      "nous marchons",
+      "vous marchez",
+      "ils marchent"
+    ],
+    "passe_compose": [
+      "j'ai marché",
+      "tu as marché",
+      "il a marché",
+      "nous avons marché",
+      "vous avez marché",
+      "ils ont marché"
+    ]
+  },
+  {
+    "french": "partir",
+    "german": "weggehen; abreisen",
+    "ref": "Déc-Kl-7.3",
+    "praesens": [
+      "je pars",
+      "tu pars",
+      "il part",
+      "nous partons",
+      "vous partez",
+      "ils partent"
+    ],
+    "passe_compose": [
+      "je suis parti(e)",
+      "tu es parti(e)",
+      "il est parti",
+      "nous sommes parti(e)s",
+      "vous êtes parti(e)(s)",
+      "ils sont partis"
+    ]
+  },
+  {
+    "french": "réfléchir",
+    "german": "nachdenken; überlegen",
+    "ref": "Déc-Kl-7.5",
+    "praesens": [
+      "je réfléchis",
+      "tu réfléchis",
+      "il réfléchit",
+      "nous réfléchissons",
+      "vous réfléchissez",
+      "ils réfléchissent"
+    ],
+    "passe_compose": [
+      "j'ai réfléchi",
+      "tu as réfléchi",
+      "il a réfléchi",
+      "nous avons réfléchi",
+      "vous avez réfléchi",
+      "ils ont réfléchi"
+    ]
+  },
+  {
+    "french": "croire",
+    "german": "glauben",
+    "ref": "Déc-Kl-8.1",
+    "praesens": [
+      "je crois",
+      "tu crois",
+      "il croit",
+      "nous croyons",
+      "vous croyez",
+      "ils croient"
+    ],
+    "passe_compose": [
+      "j'ai cru",
+      "tu as cru",
+      "il a cru",
+      "nous avons cru",
+      "vous avez cru",
+      "ils ont cru"
+    ]
+  },
+  {
+    "french": "rire",
+    "german": "lachen",
+    "ref": "Déc-Kl-8.2",
+    "praesens": [
+      "je ris",
+      "tu ris",
+      "il rit",
+      "nous rions",
+      "vous riez",
+      "ils rient"
+    ],
+    "passe_compose": [
+      "j'ai ri",
+      "tu as ri",
+      "il a ri",
+      "nous avons ri",
+      "vous avez ri",
+      "ils ont ri"
+    ]
+  },
+  {
+    "french": "falloir",
+    "german": "notwendig sein; müssen",
+    "ref": "Déc-Kl-7.6",
+    "praesens": [
+      null,
+      null,
+      "il faut",
+      null,
+      null,
+      null
+    ],
+    "passe_compose": [
+      null,
+      null,
+      "il a fallu",
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "french": "mettre",
+    "german": "setzen; stellen; legen",
+    "ref": "Déc-Kl-7.1",
+    "praesens": [
+      "je mets",
+      "tu mets",
+      "il met",
+      "nous mettons",
+      "vous mettez",
+      "ils mettent"
+    ],
+    "passe_compose": [
+      "j'ai mis",
+      "tu as mis",
+      "il a mis",
+      "nous avons mis",
+      "vous avez mis",
+      "ils ont mis"
+    ]
+  },
+  {
+    "french": "savoir",
+    "german": "wissen; können (Fähigkeit)",
+    "ref": "Déc-Kl-7.1",
+    "praesens": [
+      "je sais",
+      "tu sais",
+      "il sait",
+      "nous savons",
+      "vous savez",
+      "ils savent"
+    ],
+    "passe_compose": [
+      "j'ai su",
+      "tu as su",
+      "il a su",
+      "nous avons su",
+      "vous avez su",
+      "ils ont su"
+    ]
+  },
+  {
+    "french": "apprendre",
+    "german": "lernen; erfahren",
+    "ref": "Déc-Kl-7.4",
+    "praesens": [
+      "j'apprends",
+      "tu apprends",
+      "il apprend",
+      "nous apprenons",
+      "vous apprenez",
+      "ils apprennent"
+    ],
+    "passe_compose": [
+      "j'ai appris",
+      "tu as appris",
+      "il a appris",
+      "nous avons appris",
+      "vous avez appris",
+      "ils ont appris"
+    ]
+  },
+  {
+    "french": "mentir",
+    "german": "lügen",
+    "ref": "Déc-Kl-8.1",
+    "praesens": [
+      "je mens",
+      "tu mens",
+      "il ment",
+      "nous mentons",
+      "vous mentez",
+      "ils mentent"
+    ],
+    "passe_compose": [
+      "j'ai menti",
+      "tu as menti",
+      "il a menti",
+      "nous avons menti",
+      "vous avez menti",
+      "ils ont menti"
+    ]
+  },
+  {
+    "french": "réussir",
+    "german": "gelingen; Erfolg haben",
+    "ref": "Déc-Kl-7.5",
+    "praesens": [
+      "je réussis",
+      "tu réussis",
+      "il réussit",
+      "nous réussissons",
+      "vous réussissez",
+      "ils réussissent"
+    ],
+    "passe_compose": [
+      "j'ai réussi",
+      "tu as réussi",
+      "il a réussi",
+      "nous avons réussi",
+      "vous avez réussi",
+      "ils ont réussi"
+    ]
+  },
+  {
+    "french": "choisir",
+    "german": "wählen; aussuchen",
+    "ref": "Déc-Kl-7.5",
+    "praesens": [
+      "je choisis",
+      "tu choisis",
+      "il choisit",
+      "nous choisissons",
+      "vous choisissez",
+      "ils choisissent"
+    ],
+    "passe_compose": [
+      "j'ai choisi",
+      "tu as choisi",
+      "il a choisi",
+      "nous avons choisi",
+      "vous avez choisi",
+      "ils ont choisi"
+    ]
+  },
+  {
+    "french": "voir",
+    "german": "sehen",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je vois",
+      "tu vois",
+      "il voit",
+      "nous voyons",
+      "vous voyez",
+      "ils voient"
+    ],
+    "passe_compose": [
+      "j'ai vu",
+      "tu as vu",
+      "il a vu",
+      "nous avons vu",
+      "vous avez vu",
+      "ils ont vu"
+    ]
+  },
+  {
+    "french": "attendre",
+    "german": "warten",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "j'attends",
+      "tu attends",
+      "il attend",
+      "nous attendons",
+      "vous attendez",
+      "ils attendent"
+    ],
+    "passe_compose": [
+      "j'ai attendu",
+      "tu as attendu",
+      "il a attendu",
+      "nous avons attendu",
+      "vous avez attendu",
+      "ils ont attendu"
+    ]
+  },
+  {
+    "french": "sortir",
+    "german": "hinausgehen; ausgehen",
+    "ref": "Déc-Kl-7.3",
+    "praesens": [
+      "je sors",
+      "tu sors",
+      "il sort",
+      "nous sortons",
+      "vous sortez",
+      "ils sortent"
+    ],
+    "passe_compose": [
+      "je suis sorti(e)",
+      "tu es sorti(e)",
+      "il est sorti",
+      "nous sommes sorti(e)s",
+      "vous êtes sorti(e)(s)",
+      "ils sont sortis"
+    ]
+  },
+  {
+    "french": "offrir",
+    "german": "schenken; anbieten",
+    "ref": "Déc-Kl-8.1",
+    "praesens": [
+      "j'offre",
+      "tu offres",
+      "il offre",
+      "nous offrons",
+      "vous offrez",
+      "ils offrent"
+    ],
+    "passe_compose": [
+      "j'ai offert",
+      "tu as offert",
+      "il a offert",
+      "nous avons offert",
+      "vous avez offert",
+      "ils ont offert"
+    ]
+  },
+  {
+    "french": "écrire",
+    "german": "schreiben",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "j'écris",
+      "tu écris",
+      "il écrit",
+      "nous écrivons",
+      "vous écrivez",
+      "ils écrivent"
+    ],
+    "passe_compose": [
+      "j'ai écrit",
+      "tu as écrit",
+      "il a écrit",
+      "nous avons écrit",
+      "vous avez écrit",
+      "ils ont écrit"
+    ]
+  },
+  {
+    "french": "monter",
+    "german": "hochgehen; hinaufsteigen",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je monte",
+      "tu montes",
+      "il monte",
+      "nous montons",
+      "vous montez",
+      "ils montent"
+    ],
+    "passe_compose": [
+      "je suis monté(e)",
+      "tu es monté(e)",
+      "il est monté",
+      "nous sommes monté(e)s",
+      "vous êtes monté(e)(s)",
+      "ils sont montés"
+    ]
+  },
+  {
+    "french": "pleuvoir",
+    "german": "regnen",
+    "ref": "Déc-Kl-7.4",
+    "praesens": [
+      null,
+      null,
+      "il pleut",
+      null,
+      null,
+      null
+    ],
+    "passe_compose": [
+      null,
+      null,
+      "il a plu",
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "french": "perdre",
+    "german": "verlieren",
+    "ref": "Déc-Kl-6.2",
+    "praesens": [
+      "je perds",
+      "tu perds",
+      "il perd",
+      "nous perdons",
+      "vous perdez",
+      "ils perdent"
+    ],
+    "passe_compose": [
+      "j'ai perdu",
+      "tu as perdu",
+      "il a perdu",
+      "nous avons perdu",
+      "vous avez perdu",
+      "ils ont perdu"
+    ]
+  },
+  {
+    "french": "prendre",
+    "german": "nehmen",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je prends",
+      "tu prends",
+      "il prend",
+      "nous prenons",
+      "vous prenez",
+      "ils prennent"
+    ],
+    "passe_compose": [
+      "j'ai pris",
+      "tu as pris",
+      "il a pris",
+      "nous avons pris",
+      "vous avez pris",
+      "ils ont pris"
+    ]
+  },
+  {
+    "french": "naître",
+    "german": "geboren werden",
+    "ref": "Déc-Kl-7.1",
+    "praesens": [
+      "je nais",
+      "tu nais",
+      "il naît",
+      "nous naissons",
+      "vous naissez",
+      "ils naissent"
+    ],
+    "passe_compose": [
+      "je suis né(e)",
+      "tu es né(e)",
+      "il est né",
+      "nous sommes né(e)s",
+      "vous êtes né(e)(s)",
+      "ils sont nés"
+    ]
+  },
+  {
+    "french": "comprendre",
+    "german": "verstehen",
+    "ref": "Déc-Kl-7.1",
+    "praesens": [
+      "je comprends",
+      "tu comprends",
+      "il comprend",
+      "nous comprenons",
+      "vous comprenez",
+      "ils comprennent"
+    ],
+    "passe_compose": [
+      "j'ai compris",
+      "tu as compris",
+      "il a compris",
+      "nous avons compris",
+      "vous avez compris",
+      "ils ont compris"
+    ]
+  },
+  {
+    "french": "descendre",
+    "german": "hinuntergehen; aussteigen",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je descends",
+      "tu descends",
+      "il descend",
+      "nous descendons",
+      "vous descendez",
+      "ils descendent"
+    ],
+    "passe_compose": [
+      "je suis descendu(e)",
+      "tu es descendu(e)",
+      "il est descendu",
+      "nous sommes descendu(e)s",
+      "vous êtes descendu(e)(s)",
+      "ils sont descendus"
+    ]
+  },
+  {
+    "french": "boire",
+    "german": "trinken",
+    "ref": "Déc-Kl-7.6",
+    "praesens": [
+      "je bois",
+      "tu bois",
+      "il boit",
+      "nous buvons",
+      "vous buvez",
+      "ils boivent"
+    ],
+    "passe_compose": [
+      "j'ai bu",
+      "tu as bu",
+      "il a bu",
+      "nous avons bu",
+      "vous avez bu",
+      "ils ont bu"
+    ]
+  },
+  {
+    "french": "dire",
+    "german": "sagen",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je dis",
+      "tu dis",
+      "il dit",
+      "nous disons",
+      "vous dites",
+      "ils disent"
+    ],
+    "passe_compose": [
+      "j'ai dit",
+      "tu as dit",
+      "il a dit",
+      "nous avons dit",
+      "vous avez dit",
+      "ils ont dit"
+    ]
+  },
+  {
+    "french": "connaître",
+    "german": "kennen",
+    "ref": "Déc-Kl-7.1",
+    "praesens": [
+      "je connais",
+      "tu connais",
+      "il connaît",
+      "nous connaissons",
+      "vous connaissez",
+      "ils connaissent"
+    ],
+    "passe_compose": [
+      "j'ai connu",
+      "tu as connu",
+      "il a connu",
+      "nous avons connu",
+      "vous avez connu",
+      "ils ont connu"
+    ]
+  },
+  {
+    "french": "devenir",
+    "german": "werden",
+    "ref": "Déc-Kl-8.2",
+    "praesens": [
+      "je deviens",
+      "tu deviens",
+      "il devient",
+      "nous devenons",
+      "vous devenez",
+      "ils deviennent"
+    ],
+    "passe_compose": [
+      "je suis devenu(e)",
+      "tu es devenu(e)",
+      "il est devenu",
+      "nous sommes devenu(e)s",
+      "vous êtes devenu(e)(s)",
+      "ils sont devenus"
+    ]
+  },
+  {
+    "french": "servir",
+    "german": "dienen; servieren",
+    "ref": "Déc-Kl-8.1",
+    "praesens": [
+      "je sers",
+      "tu sers",
+      "il sert",
+      "nous servons",
+      "vous servez",
+      "ils servent"
+    ],
+    "passe_compose": [
+      "j'ai servi",
+      "tu as servi",
+      "il a servi",
+      "nous avons servi",
+      "vous avez servi",
+      "ils ont servi"
+    ]
+  },
+  {
+    "french": "avoir",
+    "german": "haben",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "j'ai",
+      "tu as",
+      "il a",
+      "nous avons",
+      "vous avez",
+      "ils ont"
+    ],
+    "passe_compose": [
+      "j'ai eu",
+      "tu as eu",
+      "il a eu",
+      "nous avons eu",
+      "vous avez eu",
+      "ils ont eu"
+    ]
+  },
+  {
+    "french": "arriver",
+    "german": "ankommen",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "j'arrive",
+      "tu arrives",
+      "il arrive",
+      "nous arrivons",
+      "vous arrivez",
+      "ils arrivent"
+    ],
+    "passe_compose": [
+      "je suis arrivé(e)",
+      "tu es arrivé(e)",
+      "il est arrivé",
+      "nous sommes arrivé(e)s",
+      "vous êtes arrivé(e)(s)",
+      "ils sont arrivés"
+    ]
+  },
+  {
+    "french": "disparaître",
+    "german": "verschwinden",
+    "ref": "Déc-Kl-8.2",
+    "praesens": [
+      "je disparais",
+      "tu disparais",
+      "il disparaît",
+      "nous disparaissons",
+      "vous disparaissez",
+      "ils disparaissent"
+    ],
+    "passe_compose": [
+      "j'ai disparu",
+      "tu as disparu",
+      "il a disparu",
+      "nous avons disparu",
+      "vous avez disparu",
+      "ils ont disparu"
+    ]
+  },
+  {
+    "french": "finir",
+    "german": "beenden; enden",
+    "ref": "Déc-Kl-7.5",
+    "praesens": [
+      "je finis",
+      "tu finis",
+      "il finit",
+      "nous finissons",
+      "vous finissez",
+      "ils finissent"
+    ],
+    "passe_compose": [
+      "j'ai fini",
+      "tu as fini",
+      "il a fini",
+      "nous avons fini",
+      "vous avez fini",
+      "ils ont fini"
+    ]
+  },
+  {
+    "french": "devoir",
+    "german": "müssen; schulden",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je dois",
+      "tu dois",
+      "il doit",
+      "nous devons",
+      "vous devez",
+      "ils doivent"
+    ],
+    "passe_compose": [
+      "j'ai dû",
+      "tu as dû",
+      "il a dû",
+      "nous avons dû",
+      "vous avez dû",
+      "ils ont dû"
+    ]
+  },
+  {
+    "french": "vouloir",
+    "german": "wollen",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je veux",
+      "tu veux",
+      "il veut",
+      "nous voulons",
+      "vous voulez",
+      "ils veulent"
+    ],
+    "passe_compose": [
+      "j'ai voulu",
+      "tu as voulu",
+      "il a voulu",
+      "nous avons voulu",
+      "vous avez voulu",
+      "ils ont voulu"
+    ]
+  },
+  {
+    "french": "plaire",
+    "german": "gefallen",
+    "ref": "Déc-Kl-7.3",
+    "praesens": [
+      "je plais",
+      "tu plais",
+      "il plaît",
+      "nous plaisons",
+      "vous plaisez",
+      "ils plaisent"
+    ],
+    "passe_compose": [
+      "j'ai plu",
+      "tu as plu",
+      "il a plu",
+      "nous avons plu",
+      "vous avez plu",
+      "ils ont plu"
+    ]
+  },
+  {
+    "french": "répondre",
+    "german": "antworten",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je réponds",
+      "tu réponds",
+      "il répond",
+      "nous répondons",
+      "vous répondez",
+      "ils répondent"
+    ],
+    "passe_compose": [
+      "j'ai répondu",
+      "tu as répondu",
+      "il a répondu",
+      "nous avons répondu",
+      "vous avez répondu",
+      "ils ont répondu"
+    ]
+  },
+  {
+    "french": "rester",
+    "german": "bleiben",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je reste",
+      "tu restes",
+      "il reste",
+      "nous restons",
+      "vous restez",
+      "ils restent"
+    ],
+    "passe_compose": [
+      "je suis resté(e)",
+      "tu es resté(e)",
+      "il est resté",
+      "nous sommes resté(e)s",
+      "vous êtes resté(e)(s)",
+      "ils sont restés"
+    ]
+  },
+  {
+    "french": "courir",
+    "german": "laufen; rennen",
+    "ref": "Déc-Kl-8.2",
+    "praesens": [
+      "je cours",
+      "tu cours",
+      "il court",
+      "nous courons",
+      "vous courez",
+      "ils courent"
+    ],
+    "passe_compose": [
+      "j'ai couru",
+      "tu as couru",
+      "il a couru",
+      "nous avons couru",
+      "vous avez couru",
+      "ils ont couru"
+    ]
+  },
+  {
+    "french": "rendre",
+    "german": "zurückgeben; etw. zu etwas machen",
+    "ref": "Déc-Kl-8.2",
+    "praesens": [
+      "je rends",
+      "tu rends",
+      "il rend",
+      "nous rendons",
+      "vous rendez",
+      "ils rendent"
+    ],
+    "passe_compose": [
+      "j'ai rendu",
+      "tu as rendu",
+      "il a rendu",
+      "nous avons rendu",
+      "vous avez rendu",
+      "ils ont rendu"
+    ]
+  },
+  {
+    "french": "entrer",
+    "german": "hineingehen; eintreten",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "j'entre",
+      "tu entres",
+      "il entre",
+      "nous entrons",
+      "vous entrez",
+      "ils entrent"
+    ],
+    "passe_compose": [
+      "je suis entré(e)",
+      "tu es entré(e)",
+      "il est entré",
+      "nous sommes entré(e)s",
+      "vous êtes entré(e)(s)",
+      "ils sont entrés"
+    ]
+  },
+  {
+    "french": "aller",
+    "german": "gehen; fahren",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je vais",
+      "tu vas",
+      "il va",
+      "nous allons",
+      "vous allez",
+      "ils vont"
+    ],
+    "passe_compose": [
+      "je suis allé(e)",
+      "tu es allé(e)",
+      "il est allé",
+      "nous sommes allé(e)s",
+      "vous êtes allé(e)(s)",
+      "ils sont allés"
+    ]
+  },
+  {
+    "french": "pouvoir",
+    "german": "können",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je peux",
+      "tu peux",
+      "il peut",
+      "nous pouvons",
+      "vous pouvez",
+      "ils peuvent"
+    ],
+    "passe_compose": [
+      "j'ai pu",
+      "tu as pu",
+      "il a pu",
+      "nous avons pu",
+      "vous avez pu",
+      "ils ont pu"
+    ]
+  },
+  {
+    "french": "faire",
+    "german": "machen; tun",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je fais",
+      "tu fais",
+      "il fait",
+      "nous faisons",
+      "vous faites",
+      "ils font"
+    ],
+    "passe_compose": [
+      "j'ai fait",
+      "tu as fait",
+      "il a fait",
+      "nous avons fait",
+      "vous avez fait",
+      "ils ont fait"
+    ]
+  },
+  {
+    "french": "être",
+    "german": "sein",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je suis",
+      "tu es",
+      "il est",
+      "nous sommes",
+      "vous êtes",
+      "ils sont"
+    ],
+    "passe_compose": [
+      "j'ai été",
+      "tu as été",
+      "il a été",
+      "nous avons été",
+      "vous avez été",
+      "ils ont été"
+    ]
+  },
+  {
+    "french": "découvrir",
+    "german": "entdecken",
+    "ref": "Déc-Kl-7.7",
+    "praesens": [
+      "je découvre",
+      "tu découvres",
+      "il découvre",
+      "nous découvrons",
+      "vous découvrez",
+      "ils découvrent"
+    ],
+    "passe_compose": [
+      "j'ai découvert",
+      "tu as découvert",
+      "il a découvert",
+      "nous avons découvert",
+      "vous avez découvert",
+      "ils ont découvert"
+    ]
+  },
+  {
+    "french": "tomber",
+    "german": "fallen; stürzen",
+    "ref": "Déc-Kl-6",
+    "praesens": [
+      "je tombe",
+      "tu tombes",
+      "il tombe",
+      "nous tombons",
+      "vous tombez",
+      "ils tombent"
+    ],
+    "passe_compose": [
+      "je suis tombé(e)",
+      "tu es tombé(e)",
+      "il est tombé",
+      "nous sommes tombé(e)s",
+      "vous êtes tombé(e)(s)",
+      "ils sont tombés"
+    ]
+  },
+  {
+    "french": "ouvrir",
+    "german": "öffnen",
+    "ref": "Déc-Kl-7.2",
+    "praesens": [
+      "j'ouvre",
+      "tu ouvres",
+      "il ouvre",
+      "nous ouvrons",
+      "vous ouvrez",
+      "ils ouvrent"
+    ],
+    "passe_compose": [
+      "j'ai ouvert",
+      "tu as ouvert",
+      "il a ouvert",
+      "nous avons ouvert",
+      "vous avez ouvert",
+      "ils ont ouvert"
+    ]
+  },
+  {
+    "french": "rouler",
+    "german": "das Auto fährt",
+    "ref": "",
+    "praesens": [
+      "je roule",
+      "tu roules",
+      "il roule",
+      "nous roulons",
+      "vous roulez",
+      "ils roulent"
+    ],
+    "passe_compose": [
+      "j'ai roulé",
+      "tu as roulé",
+      "il a roulé",
+      "nous avons roulé",
+      "vous avez roulé",
+      "ils ont roulé"
+    ]
+  },
+  {
+    "french": "penser",
+    "german": "denken, dass",
+    "ref": "",
+    "praesens": [
+      "je pense",
+      "tu penses",
+      "il pense",
+      "nous pensons",
+      "vous pensez",
+      "ils pensent"
+    ],
+    "passe_compose": [
+      "j'ai pensé",
+      "tu as pensé",
+      "il a pensé",
+      "nous avons pensé",
+      "vous avez pensé",
+      "ils ont pensé"
+    ]
+  },
+  {
+    "french": "proposer",
+    "german": "jdm. vorschlagen, etw. zu tun",
+    "ref": "",
+    "praesens": [
+      "je propose",
+      "tu proposes",
+      "il propose",
+      "nous proposons",
+      "vous proposez",
+      "ils proposent"
+    ],
+    "passe_compose": [
+      "j'ai proposé",
+      "tu as proposé",
+      "il a proposé",
+      "nous avons proposé",
+      "vous avez proposé",
+      "ils ont proposé"
+    ]
+  },
+  {
+    "french": "rêver",
+    "german": "träumen",
+    "ref": "",
+    "praesens": [
+      "je rêve",
+      "tu rêves",
+      "il rêve",
+      "nous rêvons",
+      "vous rêvez",
+      "ils rêvent"
+    ],
+    "passe_compose": [
+      "j'ai rêvé",
+      "tu as rêvé",
+      "il a rêvé",
+      "nous avons rêvé",
+      "vous avez rêvé",
+      "ils ont rêvé"
+    ]
+  },
+  {
+    "french": "aider",
+    "german": "helfen",
+    "ref": "",
+    "praesens": [
+      "j'aide",
+      "tu aides",
+      "il aide",
+      "nous aidons",
+      "vous aidez",
+      "ils aident"
+    ],
+    "passe_compose": [
+      "j'ai aidé",
+      "tu as aidé",
+      "il a aidé",
+      "nous avons aidé",
+      "vous avez aidé",
+      "ils ont aidé"
+    ]
+  },
+  {
+    "french": "créer",
+    "german": "etwas (erschaffen), gründen",
+    "ref": "",
+    "praesens": [
+      "je crée",
+      "tu crées",
+      "il crée",
+      "nous créons",
+      "vous créez",
+      "ils créent"
+    ],
+    "passe_compose": [
+      "j'ai créé",
+      "tu as créé",
+      "il a créé",
+      "nous avons créé",
+      "vous avez créé",
+      "ils ont créé"
+    ]
+  },
+  {
+    "french": "risquer",
+    "german": "Gefahr laufen, etw. zu tun; riskieren, etw. zu tun",
+    "ref": "",
+    "praesens": [
+      "je risque",
+      "tu risques",
+      "il risque",
+      "nous risquons",
+      "vous risquez",
+      "ils risquent"
+    ],
+    "passe_compose": [
+      "j'ai risqué",
+      "tu as risqué",
+      "il a risqué",
+      "nous avons risqué",
+      "vous avez risqué",
+      "ils ont risqué"
+    ]
+  },
+  {
+    "french": "enfermer",
+    "german": "jdn./etw. einschließen",
+    "ref": "",
+    "praesens": [
+      "j'enferme",
+      "tu enfermes",
+      "il enferme",
+      "nous enfermons",
+      "vous enfermez",
+      "ils enferment"
+    ],
+    "passe_compose": [
+      "j'ai enfermé",
+      "tu as enfermé",
+      "il a enfermé",
+      "nous avons enfermé",
+      "vous avez enfermé",
+      "ils ont enfermé"
+    ]
+  }
+]

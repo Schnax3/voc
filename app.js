@@ -180,6 +180,8 @@ async function load(t, force = false) {
   const cards = raw.filter(e => e && e.french && e.german).map(e => {
     const fr = e.vocabulary || e.french;
     // Übung (Verb -> Passé composé): french = Verb, german = Übersetzung, answer = richtige Form
+    if (e.praesens || e.passe_compose) return { id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir, fr: e.french, de: e.german,
+      conj: { praesens: e.praesens || [], passe_compose: e.passe_compose || [] }, ref: e.ref || '', example: '', img: [], au: null };
     if (e.answer) return { id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir, fr: e.french, de: e.german,
       pc: String(e.answer), ref: e.ref || '', example: '', img: [], au: null };
     return {
@@ -385,18 +387,22 @@ function home() {
       <label><input type="checkbox" id="hard"> Nur schwierige Karten (mehrfach falsch)</label>
       <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
       <label><input type="checkbox" id="auto"> Aussprache automatisch abspielen</label>
+      <label><input type="checkbox" id="conj-pres"> Verben konjugieren: Présent</label>
+      <label><input type="checkbox" id="conj-pc"> Verben konjugieren: Passé composé</label>
+      <p class="hint">Gilt für die Übung „Verben konjugieren“. Sind beide aus, kommt nur die Grundform.</p>
     </div>
   </section>
   <div class="start"><button id="go" class="primary">Starten</button></div>`;
   const $ = s => app.querySelector(s);
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#limit').value = String(opt.limit || 0);
   $('#typing').checked = opt.typing || false; $('#hard').checked = opt.hard || false; $('#auto').checked = opt.auto || false;
+  $('#conj-pres').checked = opt.conjPres !== false; $('#conj-pc').checked = opt.conjPc !== false;
   renderToday();
   const setOpt = () => {
-    opt = { ...opt, dir: $('#dir').value, all: $('#all').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, limit: Number($('#limit').value) };
+    opt = { ...opt, dir: $('#dir').value, all: $('#all').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, limit: Number($('#limit').value) };
     LS.set('vk:opt', opt); updateGo();
   };
-  ['#dir', '#limit', '#all', '#typing', '#hard', '#auto'].forEach(s => $(s).onchange = setOpt);
+  ['#dir', '#limit', '#all', '#typing', '#hard', '#auto', '#conj-pres', '#conj-pc'].forEach(s => $(s).onchange = setOpt);
   $('#go').onclick = () => { const q = buildQueue(); if (q.length) learn(q); };
   $('#settings').onclick = () => { enterScreen(); settings(); };
   $('#offline-setup').onclick = () => {
@@ -533,7 +539,7 @@ function updateGo() {
 function buildQueue() {
   const now = Date.now(), q = [];
   for (const d of sel) for (const c of DB.get(d) || [])
-    if (opt.hard ? isHard(c.id) : (opt.all || st(c.id).d <= now)) q.push({ c, dir: c.pc ? 'fr' : opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
+    if (opt.hard ? isHard(c.id) : (opt.all || st(c.id).d <= now)) q.push({ c, dir: c.pc || c.conj ? 'fr' : opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
   q.sort(() => Math.random() - .5);                    // mischen
   q.sort((a, b) => st(a.c.id).b - st(b.c.id).b); // niedrige Kaesten zuerst
   return opt.limit > 0 ? q.slice(0, opt.limit) : q;   // optional: nur die ersten N Karten
@@ -541,15 +547,24 @@ function buildQueue() {
 
 // Eingabe prüfen: Groß-/Kleinschreibung, Apostroph-Form und Leerzeichen sind egal; "(e)" darf fehlen oder als "e" stehen.
 const normPc = s => s.toLowerCase().replace(/[’‘`´]/g, "'").replace(/\s+/g, ' ').trim();
+// "(e)" und "(s)" in der Lösung sind optional und dürfen auch ausgeschrieben werden (venu(e)s -> venus, venues).
+const expandOptional = text => {
+  let variants = [normPc(text)];
+  for (const [mark, letter] of [['(e)', 'e'], ['(s)', 's']])
+    variants = variants.flatMap(v => v.includes(mark) ? [v.split(mark).join(''), v.split(mark).join(letter)] : [v]);
+  return variants;
+};
 const checkPc = (typed, expected) => {
   const t = normPc(typed);
-  return t !== '' && [normPc(expected).replace(/\(e\)/g, ''), normPc(expected).replace(/\(e\)/g, 'e')].includes(t);
+  return t !== '' && expandOptional(expected).includes(t);
 };
+// Eine Zeile der Konjugation: Pronomen ("je", "j'", "il") als Beschriftung, der Rest wird eingetippt.
+const splitPerson = form => { const m = form.match(/^(j'|\S+ )(.*)$/); return m ? [m[1].trim(), m[2]] : ['', form]; };
 
 function learn(q) {
   enterScreen();
   let lastAuto = null;
-  let shown = false, hint = false, typedAnswer = '', ok = 0, bad = 0;
+  let shown = false, hint = false, typedAnswer = '', typedForms = {}, ok = 0, bad = 0;
   const total = q.length, missed = new Map(), history = [];
   const lessons = [...new Set(q.map(x => titleOf(x.c.table)))];
   const preloadedImages = new Set();
@@ -574,7 +589,7 @@ function learn(q) {
     stopAudio(); // läuft noch die vorige Ausgabe, würde ein zweiter Aufruf sie nur stoppen
     fn();
   };
-  const resetCard = () => { shown = false; hint = false; typedAnswer = ''; };
+  const resetCard = () => { shown = false; hint = false; typedAnswer = ''; typedForms = {}; };
   const answer = good => {
     stopAudio();
     const it = q.shift(), s = st(it.c.id), nb = good ? Math.min(5, s.b + 1) : 1;
@@ -625,6 +640,7 @@ function learn(q) {
   };
   const draw = () => {
     if (!q.length) return done();
+    if (q[0].c.conj && (opt.conjPres !== false || opt.conjPc !== false)) return drawConj();
     if (q[0].c.pc) return drawPc();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
     const spk = hasSound(c) ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
@@ -671,6 +687,42 @@ function learn(q) {
     input.oninput = () => { typedAnswer = input.value; };
     if (!shown) input.focus();
     if (app.querySelector('#hint')) app.querySelector('#hint').onclick = () => { hint = true; drawPc(); };
+  };
+  // Verb konjugieren: pro gewählter Zeit eine Zeile je Person (je ... / tu ... / il ...), danach die Lösung
+  const drawConj = () => {
+    const { c } = q[0];
+    const tenses = [['praesens', 'Présent', opt.conjPres !== false], ['passe_compose', 'Passé composé', opt.conjPc !== false]]
+      .filter(t => t[2] && c.conj[t[0]].some(Boolean));
+    let right = 0, rows = 0;
+    const section = ([key, label]) => `<div class="tense"><h3>${label}</h3>${c.conj[key].map((form, i) => {
+      if (!form) return '';
+      const [pro, rest] = splitPerson(form), id = `${key}-${i}`, typed = typedForms[id] || '', hit = checkPc(typed, rest);
+      rows++; if (shown && hit) right++;
+      return `<div class="crow${shown ? (hit ? ' ok' : ' bad') : ''}"><span class="pro">${esc(pro)}</span>
+        <input data-id="${id}" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" value="${esc(typed)}" ${shown ? 'readonly' : ''} aria-label="${esc(label + ' ' + pro)}">
+        ${shown && !hit ? `<span class="sol">${esc(rest)}</span>` : ''}</div>`;
+    }).join('')}</div>`;
+    const html = tenses.map(section).join('');
+    const spk = canSpeak ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
+    app.innerHTML = `${topHtml(c)}
+    <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>
+      <div class="q">${esc(c.fr)}${spk}</div>
+      <div class="hintde">${hint ? '🇩🇪 ' + esc(c.de) : '<button id="hint" type="button">🇩🇪 Deutsch aufdecken</button>'}</div>
+      ${html}
+      ${shown ? `<div class="mut">${right} von ${rows} Formen richtig${c.ref ? ' · ' + esc(c.ref) : ''}</div>` : ''}</div>
+    ${buttonsHtml('Lösung zeigen')}`;
+    bind(() => speak(c.fr), drawConj);
+    const inputs = [...app.querySelectorAll('.crow input')];
+    inputs.forEach((input, index) => {
+      input.oninput = () => { typedForms[input.dataset.id] = input.value; };
+      input.onkeydown = event => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault(); event.stopPropagation();
+        if (inputs[index + 1]) inputs[index + 1].focus(); else { shown = true; drawConj(); }
+      };
+    });
+    if (!shown && inputs[0]) inputs[0].focus();
+    if (app.querySelector('#hint')) app.querySelector('#hint').onclick = () => { hint = true; drawConj(); };
   };
   document.onkeydown = e => {
     if (!q.length) return;
