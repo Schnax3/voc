@@ -1,6 +1,6 @@
 // ---- Einstellungen ---------------------------------------------------------
 // owner/repo leer lassen = automatisch aus der GitHub-Pages-Adresse ermitteln.
-const CFG = { owner: null, repo: null, ignore: ['node_modules', 'assets', 'docs'], prefer: /^database/i };
+const CFG = { owner: null, repo: null, ignore: ['node_modules', 'assets', 'docs', 'scripts', 'tests'], prefer: /^database/i };
 const DAYS = [0, 1, 3, 7, 21]; // Wartezeit in Tagen, bis eine Karte im Kasten 1..5 wieder faellig ist
 
 // ---- Helfer ---------------------------------------------------------------
@@ -330,13 +330,17 @@ const OFFLINE_SAVED_KEY = `vk:offline-saved:${R.owner}/${R.repo}`;
 const OFFLINE_KNOWN_KEY = `vk:offline-known:${R.owner}/${R.repo}`;
 const OFFLINE_DOWNLOAD_CONCURRENCY = 8;
 const offlineTableKey = table => `${table.dir}/${table.file}`;
-async function saveOffline(dirs, progress) {
-  const cache = await caches.open(MEDIA_CACHE), urls = new Set();
+// Alle Audio- und Bild-Adressen der (bereits geladenen) Lektionen
+function offlineUrlList(dirs) {
+  const urls = new Set();
   for (const d of dirs) for (const c of DB.get(d) || []) {
     if (c.au) urls.add(new URL(audioUrl(c.table, c.au), location.href).href);
     for (const s of c.img) urls.add(new URL(imageUrl(c.table, s), location.href).href);
   }
-  const list = [...urls].filter(u => new URL(u).origin === location.origin);
+  return [...urls].filter(u => new URL(u).origin === location.origin);
+}
+async function saveOffline(dirs, progress) {
+  const cache = await caches.open(MEDIA_CACHE), list = offlineUrlList(dirs);
   let done = 0, failed = 0, next = 0;
   const worker = async () => {
     while (next < list.length) {
@@ -379,6 +383,7 @@ function home() {
     <p>Jede Karte liegt in einem von 5 Kästen. Weißt du sie, rückt sie einen Kasten weiter und kommt erst nach ${DAYS.slice(1).join(', ')} Tagen wieder. Weißt du sie nicht, geht sie zurück in Kasten 1 und kommt in der Runde gleich nochmal.</p>
     <p>Karten, die du mehrfach falsch hattest, gelten als „schwierig“ und lassen sich gezielt üben. Alles wird nur in diesem Browser gespeichert. Mit Export und Import (unter ⚙ Einstellungen) ziehst du auf ein anderes Gerät um.</p>
   </details>
+  <button id="sa-open" class="topic entry" type="button"><span class="sym" aria-hidden="true">🎓</span><span class="tt"><b>Schulaufgabe vorbereiten</b><small>Übungen zu Verben, Verneinung, Vergangenheit und Textproduktion</small></span></button>
   <div id="list"></div>
   <section class="panel" aria-label="Lernen">
     <h2>Lernen</h2>
@@ -408,6 +413,7 @@ function home() {
   };
   ['#dir', '#limit', '#all', '#typing', '#hard', '#auto', '#conj-pres', '#conj-pc'].forEach(s => $(s).onchange = setOpt);
   $('#go').onclick = () => { const q = buildQueue(); if (q.length) learn(q); };
+  $('#sa-open').onclick = openSchulaufgabe;
   $('#settings').onclick = () => { enterScreen(); settings(); };
   $('#offline-setup').onclick = () => {
     enterScreen(); settings();

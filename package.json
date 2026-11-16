@@ -8,6 +8,7 @@
     "test:e2e": "node tests/e2e/app.test.cjs",
     "index": "python scripts/build_index.py",
     "verben": "python scripts/import_conjugation.py",
+    "schulaufgabe": "python scripts/build_schulaufgabe.py",
     "import": "python scripts/import_vocabulary.py && python scripts/import_exercises.py && python scripts/build_index.py",
     "serve": "python -m http.server 8000",
     "setup": "npm install && npx playwright install chromium"

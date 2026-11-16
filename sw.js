@@ -7,12 +7,12 @@
  * - Der Cache-Name enthält den Pfad, damit die Hauptseite (/voc/) und die Testseite (/voc/dev/) getrennt bleiben.
  *   Die Formel muss zu MEDIA_CACHE in app.js passen.
  */
-const VERSION = 'v5';
+const VERSION = 'v6';
 const SCOPE_ID = new URL('./', self.registration.scope).pathname.replace(/\W+/g, '_');
 const SHELL = `vk-shell-${VERSION}-${SCOPE_ID}`;
 const MEDIA = `vk-media-${SCOPE_ID}`;
 const SHELL_FILES = [
-  './', 'index.html', 'style.css', 'app.js', 'settings.js', 'feedback.js', 'consent.js', 'datenschutz.html', 'manifest.webmanifest', 'index.json', 'verben.json',
+  './', 'index.html', 'style.css', 'app.js', 'settings.js', 'schulaufgabe.js', 'updates.js', 'feedback.js', 'consent.js', 'datenschutz.html', 'manifest.webmanifest', 'index.json', 'verben.json', 'schulaufgabe.json',
   'icons/icon-192.png', 'icons/icon-512.png',
 ];
 const MEDIA_FILE = /\.(mp3|ogg|m4a|wav|jpe?g|png|webp|gif|svg)$/i;

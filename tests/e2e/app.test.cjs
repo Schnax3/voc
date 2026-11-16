@@ -628,6 +628,181 @@ test('Verben konjugieren: Schalter für die Zeiten, (e) und (s) werden erkannt',
   await context.close();
 });
 
+// Schulaufgabe: eine Runde lösen. Die richtigen Antworten kommen aus den geladenen Daten (SA), mit `wrongEvery` jede n-te Aufgabe absichtlich falsch.
+async function solveSchulaufgabe(page, topicId, { wrongEvery = 0 } = {}) {
+  await page.click('#sa-open');
+  await page.click(`.topic[data-id="${topicId}"]`);
+  await page.selectOption('#sa-count', '0');
+  await page.click('#sa-go');
+  let n = 0;
+  while (await page.$('#sa-check')) {
+    const topic = await page.evaluate(id => SA.themen.find(t => t.id === id), topicId);
+    const header = (await page.textContent('.sa-card')).trim();
+    const inputs = page.locator('.blank'), count = await inputs.count();
+    const wrong = wrongEvery && ++n % wrongEvery === 0;
+    let item;
+    if (topic.typ === 'konjugieren') {
+      const verb = (await page.textContent('.sa-card .q')).trim();
+      const tense = (await page.textContent('.sa-card .mut + .mut b, .sa-card b')).trim();
+      item = topic.items.find(i => i.verb === verb && i.zeitname === tense);
+      const forms = item.formen.filter(Boolean);
+      for (let i = 0; i < count; i++) await inputs.nth(i).fill(wrong ? 'xx' : forms[i].replace(/^(j'|\S+ )/, '').replace(/\(e\)|\(s\)/g, ''));
+    } else if (topic.typ === 'verneinung') {
+      const q = (await page.textContent('.sa-card .q')).trim();
+      item = topic.items.find(i => i.q === q);
+      await inputs.nth(0).fill(wrong ? 'xx' : item.antworten[0].toLowerCase().replace(/\.$/, ''));
+    } else {
+      const shown = await page.evaluate(() => [...document.querySelector('.gap').childNodes].map(n => (n.nodeType === 3 ? n.textContent : '___')).join(''));
+      item = topic.items.find(i => i.q === shown);
+      assert.ok(item, `Aufgabe nicht gefunden: ${shown}`);
+      for (let i = 0; i < count; i++) await inputs.nth(i).fill(wrong ? 'xx' : item.blanks[i][0].replace('–', '-'));
+    }
+    await page.keyboard.press('Enter'); // Enter in einer Zeile springt weiter, in der letzten wird geprüft
+    for (let i = 1; i < count; i++) if (!(await page.$('#sa-feedback .okmsg, #sa-feedback .badmsg'))) await page.keyboard.press('Enter');
+    await page.waitForSelector('#sa-feedback .okmsg, #sa-feedback .badmsg');
+    await page.keyboard.press('Enter');
+  }
+}
+
+test('Schulaufgabe: Menü, Themen und Zurück', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await page.click('#sa-open');
+  await page.waitForSelector('.topic[data-id="verneinung"]');
+  assert.equal(await page.locator('.topics .topic').count(), 6);
+  await page.click('.topic[data-id="verneinung"]');
+  assert.ok(await page.$('details.rules[open]'));
+  await page.click('#sa-back');
+  assert.equal(await page.locator('.topics .topic').count(), 6);
+  await page.click('#sa-back');
+  await page.waitForSelector('.row');
+  await context.close();
+});
+
+for (const id of ['verneinung', 're', 'infinitiv', 'vergangenheit', 'verben']) {
+  test(`Schulaufgabe: Thema ${id} komplett richtig lösen`, async ({ browser, base }) => {
+    const { context, page, stats } = await openApp(browser, base);
+    await solveSchulaufgabe(page, id);
+    const result = await page.textContent('.big');
+    const [, ok, total] = result.match(/(\d+) von (\d+)/);
+    assert.equal(ok, total, result);
+    assert.deepEqual(stats.errors, []);
+    await context.close();
+  });
+}
+
+test('Schulaufgabe: Fehler zeigen die Lösung, werden gemerkt und lassen sich nochmal üben', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await solveSchulaufgabe(page, 'verneinung', { wrongEvery: 4 });
+  const [, ok, total] = (await page.textContent('.big')).match(/(\d+) von (\d+)/);
+  assert.equal(Number(total) - Number(ok), 4);
+  assert.equal(await page.locator('.miss li').count(), 4);
+  const saved = await storage(page, 'vk:sa');
+  assert.equal(saved.verneinung.last.total, Number(total));
+  assert.equal(Object.values(saved.verneinung.items).filter(x => x.bad === 1).length, 4);
+  await page.click('#sa-again-wrong');
+  assert.match(await page.textContent('.top'), /1 von 4/);
+  await context.close();
+});
+
+test('Schulaufgabe: „–“ bei Lücken ohne Präposition wird als -, – oder rien erkannt', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  const result = await page.evaluate(() => ['-', '–', ' rien ', 'à'].map(t => saMatches(t, ['–'])));
+  assert.deepEqual(result, [true, true, true, false]);
+  assert.equal(await page.evaluate(() => saMatches("Il n’a rien dit !", ["Il n'a rien dit."])), true);
+  assert.equal(await page.evaluate(() => saMatches('Il ne a rien dit.', ["Il n'a rien dit."])), false);
+  await context.close();
+});
+
+test('Schulaufgabe: Textproduktion mit Bausteinen, gespeichertem Text und Checkliste', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await page.click('#sa-open'); await page.click('.topic[data-id="schreiben"]');
+  await page.click('[data-task="ecole"]');
+  await page.click('.block >> nth=2');
+  assert.match(await page.inputValue('#sa-text'), /^Cette année, je veux/);
+  await page.fill('#sa-text', 'Bonjour tout le monde'); await page.check('.checks input >> nth=0');
+  assert.equal(await page.textContent('#sa-count'), '4 Wörter');
+  await page.reload(); await page.waitForSelector('.row');
+  await page.click('#sa-open'); await page.click('.topic[data-id="schreiben"]'); await page.click('[data-task="ecole"]');
+  assert.equal(await page.inputValue('#sa-text'), 'Bonjour tout le monde');
+  assert.equal(await page.isChecked('.checks input >> nth=0'), true);
+  await context.close();
+});
+
+test('Update: neue Version wird erkannt, „Später“ blendet aus, „Jetzt aktualisieren“ lädt neu und merkt die Version', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  let version = 'aaa1111';
+  await context.route('**/version.json', route => route.fulfill({ json: { version, built: '2026-11-16T10:00:00Z' }, headers: { 'cache-control': 'no-store' } }));
+  await page.reload(); await page.waitForSelector('.row');
+  await page.evaluate(() => checkForUpdate());
+  assert.equal(await page.locator('#update-banner').count(), 0);
+  assert.equal(await storage(page, 'vk:app-version'), 'aaa1111');
+  version = 'bbb2222';
+  assert.equal(await page.evaluate(() => checkForUpdate()), 'available');
+  await page.waitForSelector('#update-banner');
+  assert.match(await page.textContent('#update-banner'), /neue Version/);
+  await page.click('#update-later');
+  assert.equal(await page.locator('#update-banner').count(), 0);
+  await page.evaluate(() => { updateDismissed = false; return checkForUpdate(); });
+  await Promise.all([page.waitForNavigation(), page.click('#update-now')]);
+  await page.waitForSelector('.row');
+  assert.equal(await storage(page, 'vk:app-version'), 'bbb2222');
+  await page.evaluate(() => checkForUpdate());
+  assert.equal(await page.locator('#update-banner').count(), 0);
+  await context.close();
+});
+
+test('Update: Einstellungen zeigen die Version und suchen nach Updates', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await context.route('**/version.json', route => route.fulfill({ json: { version: 'ccc3333abc', built: '2026-11-16T10:00:00Z' } }));
+  await page.click('#settings');
+  await page.waitForSelector('#sec-update');
+  await page.click('#update-check');
+  await page.waitForFunction(() => /Du hast die neueste Version/.test(document.getElementById('update-status').textContent));
+  assert.match(await page.textContent('#update-status'), /Version ccc3333/);
+  assert.equal(await page.isHidden('#update-apply'), true);
+  await context.close();
+});
+
+test('Update: geänderte, neue und gelöschte Audio-/Bilddateien werden im Offline-Speicher aufgefrischt', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  const files = { '/__m/changed.mp3': { etag: '"new"', body: 'NEU' }, '/__m/same.mp3': { etag: '"s"', body: 'SAME' }, '/__m/added.mp3': { etag: '"a"', body: 'ADDED' } };
+  await context.route('**/__m/**', route => {
+    const request = route.request(), path = new URL(request.url()).pathname;
+    if (path === '/__m/gone.mp3') return route.fulfill({ status: 404, body: '' });
+    const file = files[path];
+    if (request.method() === 'HEAD') return route.fulfill({ status: 200, headers: { etag: file.etag } });
+    return route.fulfill({ status: 200, headers: { etag: file.etag, 'content-type': 'audio/mpeg' }, body: file.body });
+  });
+  const result = await page.evaluate(async origin => {
+    const cache = await caches.open(MEDIA_CACHE);
+    const put = (name, etag, body) => cache.put(`${origin}/__m/${name}`, new Response(body, { headers: { etag } }));
+    await put('changed.mp3', '"old"', 'ALT'); await put('same.mp3', '"s"', 'SAME'); await put('gone.mp3', '"g"', 'WEG');
+    const urls = ['changed', 'same', 'added', 'gone'].map(n => `${origin}/__m/${n}.mp3`);
+    const r = await refreshMedia(urls);
+    const text = async n => { const hit = await cache.match(`${origin}/__m/${n}.mp3`); return hit ? hit.text() : null; };
+    return { r, changed: await text('changed'), same: await text('same'), added: await text('added'), gone: await text('gone') };
+  }, base);
+  assert.deepEqual(result.r, { total: 4, changed: 3, failed: 0 });
+  assert.equal(result.changed, 'NEU'); assert.equal(result.same, 'SAME'); assert.equal(result.added, 'ADDED'); assert.equal(result.gone, null);
+  await context.close();
+});
+
+test('Schulaufgabe: Anleitung, Erklärungen zum Thema, Merkkasten in der Runde und Erklärung nach der Antwort', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await page.click('#sa-open');
+  assert.match(await page.textContent('details.rules[open]'), /So funktioniert es/);
+  await page.click('.topic[data-id="verneinung"]');
+  assert.ok(await page.$('.about'));
+  assert.ok(await page.locator('details.rules summary:has-text("Beispiele")').count());
+  assert.ok(await page.locator('details.rules summary:has-text("So gibst du die Antwort ein")').count());
+  await page.selectOption('#sa-count', '5'); await page.click('#sa-go');
+  assert.ok(await page.locator('summary:has-text("Merkkasten ansehen")').count());
+  await page.fill('.blank', 'xx'); await page.keyboard.press('Enter');
+  await page.waitForSelector('#sa-feedback .tip');
+  assert.match(await page.textContent('#sa-feedback .tip'), /💡/);
+  await context.close();
+});
+
 (async () => {
   const server = await startServer();
   const browser = await chromium.launch();

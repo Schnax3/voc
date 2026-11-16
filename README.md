@@ -5,7 +5,7 @@ Vokabeltrainer für Französisch (Découvertes, 8. Jahrgangsstufe).
 ## Projektstruktur
 
 ```
-index.html, style.css, app.js, settings.js, feedback.js, consent.js   die App (statisch, kein Build nötig)
+index.html, style.css, app.js, settings.js, schulaufgabe.js, updates.js, feedback.js, consent.js   die App (statisch, kein Build nötig)
 sw.js, manifest.webmanifest, icons/          Offline-Modus und Installation als App
 datenschutz.html                             Datenschutzerklärung
 lektionen/<name>/database*.json (+ Audio/Bilder)   Vokabellektionen
@@ -58,6 +58,12 @@ Jede Verb-Karte in den Lektionen lässt sich konjugieren: Unter dem Verb stehen 
 
 `scripts/import_conjugation.py` erzeugt `verben.json` aus den Vokabeln aller Lektionen. Als Verb gilt eine Vokabel, deren erstes Wort auf -er/-ir/-re/-oir endet (Zusätze wie „de + Inf.“, „qn“, „à“ werden ignoriert, feste Wendungen wie „jouer au foot“ nicht). Regelmäßige Verben bildet das Skript nach Regeln, unregelmäßige stehen in der Tabelle `IRREGULAR` im Skript. Das Passé composé der Verben aus den Übungen (`uebungen/*/uebung.json`) wird aus der dort angegebenen Form abgeleitet. Unbekannte Verben rät das Skript nicht; es meldet sie im Lauf, dann den Eintrag in `IRREGULAR` ergänzen. Der Import-Workflow führt das Skript automatisch aus und committet `verben.json`.
 
+## Bereich „Schulaufgabe“ (`schulaufgabe.json`)
+
+Auf der Startseite führt „Schulaufgabe vorbereiten“ zu Themen mit Merkkasten und Übungen: Verben konjugieren (Présent, Passé composé, Imparfait), Vorsilbe re-, Verben mit Infinitivanschluss, Verneinung, Passé composé und Imparfait sowie Textproduktion mit Satzbausteinen und Checkliste. Aufgaben, die man falsch hatte, kommen in der nächsten Runde zuerst.
+
+Die Themen pflegst du in `scripts/schulaufgabe_themen.json` (Typen `luecke`, `verneinung`, `konjugieren`, `schreiben`). Danach `npm run schulaufgabe` ausführen: Das Skript prüft die Datei, berechnet die Verbformen und schreibt `schulaufgabe.json`. Ein Test stellt sicher, dass beide Dateien zusammenpassen. Neue Themen müssen den Stoff des Zettels abdecken; die Inhalte zu „Kasten S. 165“ und „on dit S. 17“ stammen nicht aus dem Buch und sollten mit diesem verglichen werden.
+
 ## Einstellungen in der App (⚙ oben rechts)
 
 - **Farben:** Modus (automatisch, hell, dunkel), sieben Farbvorlagen (Standard, Ozean, Wald, Sonnenuntergang, Lavendel, Mitternacht, Hoher Kontrast) mit hellen und dunklen Varianten sowie sechs einzelne Farben (Akzent, Hintergrund, Karten, Text, Richtig, Falsch). Im automatischen Modus folgt auch die gewählte Vorlage dem Gerät. Die Schrift auf Knöpfen passt sich der Farbe an. Gespeichert wird in `vk:look`.
@@ -91,6 +97,15 @@ Die App hat „Verbesserung vorschlagen“ (Startseite unten und am Rundenende).
 4. In `feedback-config.json` eintragen: `{ "endpoint": "https://script.google.com/macros/s/…/exec" }`.
 
 Der Token steht nur im Zwischendienst, nie im Code der Seite. Der Dienst begrenzt auf 20 Vorschläge pro Stunde; die App hat zusätzlich eine Pause und eine Spam-Falle.
+
+## Updates für offline gespeicherte Apps
+
+Audio und Bilder werden offline aus dem Speicher geliefert. Damit geänderte Dateien nicht alt bleiben, legt die Veröffentlichung (`deploy-site.yml`) pro Seite eine `version.json` mit dem Commit ab und setzt denselben Commit als Cache-Version in `sw.js`. Die App (`updates.js`) vergleicht beim Öffnen, beim Zurückkehren zur App und bei wieder vorhandenem Internet:
+
+- läuft eine ältere Version als die veröffentlichte (App lange offen), erscheint oben eine Leiste „Es gibt eine neue Version“;
+- sind offline gespeicherte Lektionen nicht mehr aktuell, erscheint „Es gibt neue Inhalte“.
+
+„Jetzt aktualisieren“ lädt die Lektionen neu, prüft jede gespeicherte Audio-/Bilddatei per ETag/Last-Modified, lädt nur geänderte und neue Dateien nach, entfernt gelöschte und lädt die App neu. In den Einstellungen gibt es „Version und Updates“ mit „Nach Updates suchen“. Lokal (ohne `version.json`) bleibt das ohne Wirkung.
 
 ## Offline-Nutzung
 
