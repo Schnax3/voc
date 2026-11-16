@@ -30,12 +30,22 @@ class ConjugationTest(unittest.TestCase):
     def test_unknown_verb_is_not_guessed(self):
         self.assertIsNone(ic.present_forms("résoudre"))
 
+    def test_vocabulary_to_infinitive(self):
+        self.assertEqual(ic.candidate_infinitive("rêver de + Inf."), "rêver")
+        self.assertEqual(ic.candidate_infinitive("s'ennuyer"), "s'ennuyer")
+        self.assertEqual(ic.candidate_infinitive("proposer à qn de + inf."), "proposer")
+        self.assertIsNone(ic.candidate_infinitive("jouer au foot"))
+        self.assertIsNone(ic.candidate_infinitive("jouer de la guitare"))
+        self.assertIsNone(ic.candidate_infinitive("cher"))
+        self.assertIsNone(ic.candidate_infinitive("un livre"))
+
     def test_generated_file_is_consistent(self):
-        records = ic.build()
-        self.assertGreater(len(records), 50)
-        for record in records:
-            self.assertEqual(len(record["praesens"]), 6, record["french"])
-            self.assertEqual(len(record["passe_compose"]), 6, record["french"])
+        verbs, _ = ic.build()
+        self.assertGreater(len(verbs), 30)
+        for key, record in verbs.items():
+            self.assertEqual(len(record["praesens"]), 6, key)
+            self.assertEqual(len(record["passe_compose"]), 6, key)
+        self.assertEqual(verbs["rêver de + inf."]["praesens"][0], "je rêve")
 
 
 if __name__ == "__main__":

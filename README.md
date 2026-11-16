@@ -52,9 +52,11 @@ Die HTML-Quellen müssen direkte HTTPS-Links auf Vokabelseiten sein. Der Import 
 
 Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche, incopiable, de, mix1 und mix2 haben denselben Inhalt und werden nicht gebraucht. Die Adresse steht in `sources_uebungen.csv` (`folder,url`). Der Import läuft im Workflow „Import vocabulary pages“, von Hand mit `python scripts/import_exercises.py`, oder mit einer lokal gespeicherten Seite: `python scripts/import_exercises.py seite.html passe-compose`.
 
-## Verben konjugieren (`uebungen/konjugation/`)
+## Verben konjugieren (`verben.json`)
 
-`scripts/import_conjugation.py` erzeugt aus den Verben der Übungen (`uebungen/*/uebung.json`) und aus regelmäßigen -er-Verben der Lektionen (Satz mit „Inf.: …“ und gleiche Vokabel) die Übung „Verben konjugieren“. Pro Verb gibt es eine Karte mit Zeilen für je, tu, il, nous, vous, ils, getrennt für Présent und Passé composé. In der Lernauswahl lassen sich beide Zeiten ein- und ausschalten; sind beide aus, kommt nur die Grundform. Unregelmäßige Verben stehen in der Tabelle `IRREGULAR` im Skript; unbekannte Verben werden beim Lauf gemeldet und übersprungen. Der Import-Workflow führt das Skript automatisch aus.
+Jede Verb-Karte in den Lektionen lässt sich konjugieren: Unter dem Verb stehen Zeilen für je, tu, il, nous, vous, ils, getrennt für Présent und Passé composé; man tippt die Formen, Enter springt zur nächsten Zeile, danach kommt die Lösung. In der Lernauswahl gibt es zwei Schalter („Verben konjugieren: Présent“ und „Passé composé“). Sind beide aus, kommt nur die Grundform.
+
+`scripts/import_conjugation.py` erzeugt `verben.json` aus den Vokabeln aller Lektionen. Als Verb gilt eine Vokabel, deren erstes Wort auf -er/-ir/-re/-oir endet (Zusätze wie „de + Inf.“, „qn“, „à“ werden ignoriert, feste Wendungen wie „jouer au foot“ nicht). Regelmäßige Verben bildet das Skript nach Regeln, unregelmäßige stehen in der Tabelle `IRREGULAR` im Skript. Das Passé composé der Verben aus den Übungen (`uebungen/*/uebung.json`) wird aus der dort angegebenen Form abgeleitet. Unbekannte Verben rät das Skript nicht; es meldet sie im Lauf, dann den Eintrag in `IRREGULAR` ergänzen. Der Import-Workflow führt das Skript automatisch aus und committet `verben.json`.
 
 ## Einstellungen in der App (⚙ oben rechts)
 

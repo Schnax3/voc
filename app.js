@@ -126,6 +126,10 @@ const speak = text => {
 const hasSound = c => Boolean(c.au) || canSpeak;
 const sound = c => c.au ? play(c.table, c.au, () => speak(c.fr)) : speak(c.fr);
 
+// ---- Verben: Konjugationen aus verben.json (Schlüssel = Vokabel in Kleinbuchstaben) --
+let VERBS = {}, verbsLoaded = null;
+const loadVerbs = () => verbsLoaded || (verbsLoaded = fetch(fileUrl('verben.json')).then(r => r.ok ? r.json() : {}).then(v => { VERBS = v || {}; }).catch(() => {}));
+
 // ---- Tabellen automatisch finden (jeder Ordner mit einer .json = eine Tabelle) --
 let tables = [];
 const sortTables = list => list
@@ -177,17 +181,17 @@ async function load(t, force = false) {
   const r = await fetch(dataUrl(t), force ? { cache: 'no-store' } : undefined);
   if (!r.ok) throw new Error(`${t.dir}/${t.file}: ${r.status}`);
   const raw = JSON.parse((await r.text()).replace(/^\uFEFF/, ''));
+  await loadVerbs();
   const cards = raw.filter(e => e && e.french && e.german).map(e => {
     const fr = e.vocabulary || e.french;
     // Übung (Verb -> Passé composé): french = Verb, german = Übersetzung, answer = richtige Form
-    if (e.praesens || e.passe_compose) return { id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir, fr: e.french, de: e.german,
-      conj: { praesens: e.praesens || [], passe_compose: e.passe_compose || [] }, ref: e.ref || '', example: '', img: [], au: null };
     if (e.answer) return { id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir, fr: e.french, de: e.german,
       pc: String(e.answer), ref: e.ref || '', example: '', img: [], au: null };
+    const verb = VERBS[String(e.vocabulary || '').trim().toLowerCase()];
     return {
       id: t.dir + '::' + hash(e.french + '|' + e.german), table: t.dir,
       fr, de: e.german, example: e.french, img: [].concat(e.image || []).filter(Boolean),
-      au: e.audio || null
+      au: e.audio || null, conj: verb || null
     };
   });
   migrateLegacyIds(cards);
@@ -389,7 +393,7 @@ function home() {
       <label><input type="checkbox" id="auto"> Aussprache automatisch abspielen</label>
       <label><input type="checkbox" id="conj-pres"> Verben konjugieren: Présent</label>
       <label><input type="checkbox" id="conj-pc"> Verben konjugieren: Passé composé</label>
-      <p class="hint">Gilt für die Übung „Verben konjugieren“. Sind beide aus, kommt nur die Grundform.</p>
+      <p class="hint">Gilt für alle Verben in den Lektionen. Sind beide aus, kommt nur die Grundform.</p>
     </div>
   </section>
   <div class="start"><button id="go" class="primary">Starten</button></div>`;
@@ -512,6 +516,7 @@ function list() {
   });
 }
 
+const conjActive = c => Boolean(c.conj) && (opt.conjPres !== false || opt.conjPc !== false);
 const cards = n => `${n} ${n === 1 ? 'Karte' : 'Karten'}`;
 function renderToday() {
   const el = app.querySelector('#today'); if (!el) return;
@@ -539,7 +544,7 @@ function updateGo() {
 function buildQueue() {
   const now = Date.now(), q = [];
   for (const d of sel) for (const c of DB.get(d) || [])
-    if (opt.hard ? isHard(c.id) : (opt.all || st(c.id).d <= now)) q.push({ c, dir: c.pc || c.conj ? 'fr' : opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
+    if (opt.hard ? isHard(c.id) : (opt.all || st(c.id).d <= now)) q.push({ c, dir: c.pc || conjActive(c) ? 'fr' : opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
   q.sort(() => Math.random() - .5);                    // mischen
   q.sort((a, b) => st(a.c.id).b - st(b.c.id).b); // niedrige Kaesten zuerst
   return opt.limit > 0 ? q.slice(0, opt.limit) : q;   // optional: nur die ersten N Karten
@@ -640,7 +645,7 @@ function learn(q) {
   };
   const draw = () => {
     if (!q.length) return done();
-    if (q[0].c.conj && (opt.conjPres !== false || opt.conjPc !== false)) return drawConj();
+    if (conjActive(q[0].c)) return drawConj();
     if (q[0].c.pc) return drawPc();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
     const spk = hasSound(c) ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
@@ -703,15 +708,15 @@ function learn(q) {
         ${shown && !hit ? `<span class="sol">${esc(rest)}</span>` : ''}</div>`;
     }).join('')}</div>`;
     const html = tenses.map(section).join('');
-    const spk = canSpeak ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
+    const spk = hasSound(c) || canSpeak ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
     app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>
       <div class="q">${esc(c.fr)}${spk}</div>
-      <div class="hintde">${hint ? '🇩🇪 ' + esc(c.de) : '<button id="hint" type="button">🇩🇪 Deutsch aufdecken</button>'}</div>
+      <div class="hintde">${hint || shown ? '🇩🇪 ' + esc(c.de) : '<button id="hint" type="button">🇩🇪 Deutsch aufdecken</button>'}</div>
       ${html}
-      ${shown ? `<div class="mut">${right} von ${rows} Formen richtig${c.ref ? ' · ' + esc(c.ref) : ''}</div>` : ''}</div>
+      ${shown ? `${c.example ? `<div class="example">${esc(c.example)}</div>` : ''}<div class="mut">${right} von ${rows} Formen richtig${c.ref ? ' · ' + esc(c.ref) : ''}</div>` : ''}</div>
     ${buttonsHtml('Lösung zeigen')}`;
-    bind(() => speak(c.fr), drawConj);
+    bind(() => hasSound(c) ? sound(c) : speak(c.fr), drawConj);
     const inputs = [...app.querySelectorAll('.crow input')];
     inputs.forEach((input, index) => {
       input.oninput = () => { typedForms[input.dataset.id] = input.value; };

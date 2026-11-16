@@ -1,0 +1,1104 @@
+{
+ "adorer + inf.": {
+  "inf": "adorer",
+  "praesens": [
+   "j'adore",
+   "tu adores",
+   "il adore",
+   "nous adorons",
+   "vous adorez",
+   "ils adorent"
+  ],
+  "passe_compose": [
+   "j'ai adoré",
+   "tu as adoré",
+   "il a adoré",
+   "nous avons adoré",
+   "vous avez adoré",
+   "ils ont adoré"
+  ]
+ },
+ "aider": {
+  "inf": "aider",
+  "praesens": [
+   "j'aide",
+   "tu aides",
+   "il aide",
+   "nous aidons",
+   "vous aidez",
+   "ils aident"
+  ],
+  "passe_compose": [
+   "j'ai aidé",
+   "tu as aidé",
+   "il a aidé",
+   "nous avons aidé",
+   "vous avez aidé",
+   "ils ont aidé"
+  ]
+ },
+ "aider qn à + inf.": {
+  "inf": "aider",
+  "praesens": [
+   "j'aide",
+   "tu aides",
+   "il aide",
+   "nous aidons",
+   "vous aidez",
+   "ils aident"
+  ],
+  "passe_compose": [
+   "j'ai aidé",
+   "tu as aidé",
+   "il a aidé",
+   "nous avons aidé",
+   "vous avez aidé",
+   "ils ont aidé"
+  ]
+ },
+ "aimer + inf.": {
+  "inf": "aimer",
+  "praesens": [
+   "j'aime",
+   "tu aimes",
+   "il aime",
+   "nous aimons",
+   "vous aimez",
+   "ils aiment"
+  ],
+  "passe_compose": [
+   "j'ai aimé",
+   "tu as aimé",
+   "il a aimé",
+   "nous avons aimé",
+   "vous avez aimé",
+   "ils ont aimé"
+  ]
+ },
+ "aller + inf. (futur proche)": {
+  "inf": "aller",
+  "praesens": [
+   "je vais",
+   "tu vas",
+   "il va",
+   "nous allons",
+   "vous allez",
+   "ils vont"
+  ],
+  "passe_compose": [
+   "je suis allé(e)",
+   "tu es allé(e)",
+   "il est allé",
+   "nous sommes allé(e)s",
+   "vous êtes allé(e)(s)",
+   "ils sont allés"
+  ]
+ },
+ "apprendre à + inf.": {
+  "inf": "apprendre",
+  "praesens": [
+   "j'apprends",
+   "tu apprends",
+   "il apprend",
+   "nous apprenons",
+   "vous apprenez",
+   "ils apprennent"
+  ],
+  "passe_compose": [
+   "j'ai appris",
+   "tu as appris",
+   "il a appris",
+   "nous avons appris",
+   "vous avez appris",
+   "ils ont appris"
+  ]
+ },
+ "arrêter": {
+  "inf": "arrêter",
+  "praesens": [
+   "j'arrête",
+   "tu arrêtes",
+   "il arrête",
+   "nous arrêtons",
+   "vous arrêtez",
+   "ils arrêtent"
+  ],
+  "passe_compose": [
+   "j'ai arrêté",
+   "tu as arrêté",
+   "il a arrêté",
+   "nous avons arrêté",
+   "vous avez arrêté",
+   "ils ont arrêté"
+  ]
+ },
+ "arrêter de + inf.": {
+  "inf": "arrêter",
+  "praesens": [
+   "j'arrête",
+   "tu arrêtes",
+   "il arrête",
+   "nous arrêtons",
+   "vous arrêtez",
+   "ils arrêtent"
+  ],
+  "passe_compose": [
+   "j'ai arrêté",
+   "tu as arrêté",
+   "il a arrêté",
+   "nous avons arrêté",
+   "vous avez arrêté",
+   "ils ont arrêté"
+  ]
+ },
+ "changer de qc.": {
+  "inf": "changer",
+  "praesens": [
+   "je change",
+   "tu changes",
+   "il change",
+   "nous changeons",
+   "vous changez",
+   "ils changent"
+  ],
+  "passe_compose": [
+   "j'ai changé",
+   "tu as changé",
+   "il a changé",
+   "nous avons changé",
+   "vous avez changé",
+   "ils ont changé"
+  ]
+ },
+ "changer qc": {
+  "inf": "changer",
+  "praesens": [
+   "je change",
+   "tu changes",
+   "il change",
+   "nous changeons",
+   "vous changez",
+   "ils changent"
+  ],
+  "passe_compose": [
+   "j'ai changé",
+   "tu as changé",
+   "il a changé",
+   "nous avons changé",
+   "vous avez changé",
+   "ils ont changé"
+  ]
+ },
+ "commencer à + inf.": {
+  "inf": "commencer",
+  "praesens": [
+   "je commence",
+   "tu commences",
+   "il commence",
+   "nous commençons",
+   "vous commencez",
+   "ils commencent"
+  ],
+  "passe_compose": [
+   "j'ai commencé",
+   "tu as commencé",
+   "il a commencé",
+   "nous avons commencé",
+   "vous avez commencé",
+   "ils ont commencé"
+  ]
+ },
+ "continuer de": {
+  "inf": "continuer",
+  "praesens": [
+   "je continue",
+   "tu continues",
+   "il continue",
+   "nous continuons",
+   "vous continuez",
+   "ils continuent"
+  ],
+  "passe_compose": [
+   "j'ai continué",
+   "tu as continué",
+   "il a continué",
+   "nous avons continué",
+   "vous avez continué",
+   "ils ont continué"
+  ]
+ },
+ "continuer à (ou: de) + inf.": {
+  "inf": "continuer",
+  "praesens": [
+   "je continue",
+   "tu continues",
+   "il continue",
+   "nous continuons",
+   "vous continuez",
+   "ils continuent"
+  ],
+  "passe_compose": [
+   "j'ai continué",
+   "tu as continué",
+   "il a continué",
+   "nous avons continué",
+   "vous avez continué",
+   "ils ont continué"
+  ]
+ },
+ "croire": {
+  "inf": "croire",
+  "praesens": [
+   "je crois",
+   "tu crois",
+   "il croit",
+   "nous croyons",
+   "vous croyez",
+   "ils croient"
+  ],
+  "passe_compose": [
+   "j'ai cru",
+   "tu as cru",
+   "il a cru",
+   "nous avons cru",
+   "vous avez cru",
+   "ils ont cru"
+  ]
+ },
+ "créer": {
+  "inf": "créer",
+  "praesens": [
+   "je crée",
+   "tu crées",
+   "il crée",
+   "nous créons",
+   "vous créez",
+   "ils créent"
+  ],
+  "passe_compose": [
+   "j'ai créé",
+   "tu as créé",
+   "il a créé",
+   "nous avons créé",
+   "vous avez créé",
+   "ils ont créé"
+  ]
+ },
+ "dessiner": {
+  "inf": "dessiner",
+  "praesens": [
+   "je dessine",
+   "tu dessines",
+   "il dessine",
+   "nous dessinons",
+   "vous dessinez",
+   "ils dessinent"
+  ],
+  "passe_compose": [
+   "j'ai dessiné",
+   "tu as dessiné",
+   "il a dessiné",
+   "nous avons dessiné",
+   "vous avez dessiné",
+   "ils ont dessiné"
+  ]
+ },
+ "devoir + inf.": {
+  "inf": "devoir",
+  "praesens": [
+   "je dois",
+   "tu dois",
+   "il doit",
+   "nous devons",
+   "vous devez",
+   "ils doivent"
+  ],
+  "passe_compose": [
+   "j'ai dû",
+   "tu as dû",
+   "il a dû",
+   "nous avons dû",
+   "vous avez dû",
+   "ils ont dû"
+  ]
+ },
+ "déménager": {
+  "inf": "déménager",
+  "praesens": [
+   "je déménage",
+   "tu déménages",
+   "il déménage",
+   "nous déménageons",
+   "vous déménagez",
+   "ils déménagent"
+  ],
+  "passe_compose": [
+   "j'ai déménagé",
+   "tu as déménagé",
+   "il a déménagé",
+   "nous avons déménagé",
+   "vous avez déménagé",
+   "ils ont déménagé"
+  ]
+ },
+ "dépendre de": {
+  "inf": "dépendre",
+  "praesens": [
+   "je dépends",
+   "tu dépends",
+   "il dépend",
+   "nous dépendons",
+   "vous dépendez",
+   "ils dépendent"
+  ],
+  "passe_compose": [
+   "j'ai dépendu",
+   "tu as dépendu",
+   "il a dépendu",
+   "nous avons dépendu",
+   "vous avez dépendu",
+   "ils ont dépendu"
+  ]
+ },
+ "détester + inf.": {
+  "inf": "détester",
+  "praesens": [
+   "je déteste",
+   "tu détestes",
+   "il déteste",
+   "nous détestons",
+   "vous détestez",
+   "ils détestent"
+  ],
+  "passe_compose": [
+   "j'ai détesté",
+   "tu as détesté",
+   "il a détesté",
+   "nous avons détesté",
+   "vous avez détesté",
+   "ils ont détesté"
+  ]
+ },
+ "enfermer": {
+  "inf": "enfermer",
+  "praesens": [
+   "j'enferme",
+   "tu enfermes",
+   "il enferme",
+   "nous enfermons",
+   "vous enfermez",
+   "ils enferment"
+  ],
+  "passe_compose": [
+   "j'ai enfermé",
+   "tu as enfermé",
+   "il a enfermé",
+   "nous avons enfermé",
+   "vous avez enfermé",
+   "ils ont enfermé"
+  ]
+ },
+ "essayer de + inf.": {
+  "inf": "essayer",
+  "praesens": [
+   "j'essaie",
+   "tu essaies",
+   "il essaie",
+   "nous essayons",
+   "vous essayez",
+   "ils essaient"
+  ],
+  "passe_compose": [
+   "j'ai essayé",
+   "tu as essayé",
+   "il a essayé",
+   "nous avons essayé",
+   "vous avez essayé",
+   "ils ont essayé"
+  ]
+ },
+ "finir de + inf.": {
+  "inf": "finir",
+  "praesens": [
+   "je finis",
+   "tu finis",
+   "il finit",
+   "nous finissons",
+   "vous finissez",
+   "ils finissent"
+  ],
+  "passe_compose": [
+   "j'ai fini",
+   "tu as fini",
+   "il a fini",
+   "nous avons fini",
+   "vous avez fini",
+   "ils ont fini"
+  ]
+ },
+ "imaginer qc": {
+  "inf": "imaginer",
+  "praesens": [
+   "j'imagine",
+   "tu imagines",
+   "il imagine",
+   "nous imaginons",
+   "vous imaginez",
+   "ils imaginent"
+  ],
+  "passe_compose": [
+   "j'ai imaginé",
+   "tu as imaginé",
+   "il a imaginé",
+   "nous avons imaginé",
+   "vous avez imaginé",
+   "ils ont imaginé"
+  ]
+ },
+ "inscrire": {
+  "inf": "inscrire",
+  "praesens": [
+   "j'inscris",
+   "tu inscris",
+   "il inscrit",
+   "nous inscrivons",
+   "vous inscrivez",
+   "ils inscrivent"
+  ],
+  "passe_compose": [
+   "j'ai inscrit",
+   "tu as inscrit",
+   "il a inscrit",
+   "nous avons inscrit",
+   "vous avez inscrit",
+   "ils ont inscrit"
+  ]
+ },
+ "inscrire à j'inscris ‿inscrivons ‿inscrivent jai inscrit": {
+  "inf": "inscrire",
+  "praesens": [
+   "j'inscris",
+   "tu inscris",
+   "il inscrit",
+   "nous inscrivons",
+   "vous inscrivez",
+   "ils inscrivent"
+  ],
+  "passe_compose": [
+   "j'ai inscrit",
+   "tu as inscrit",
+   "il a inscrit",
+   "nous avons inscrit",
+   "vous avez inscrit",
+   "ils ont inscrit"
+  ]
+ },
+ "manquer": {
+  "inf": "manquer",
+  "praesens": [
+   "je manque",
+   "tu manques",
+   "il manque",
+   "nous manquons",
+   "vous manquez",
+   "ils manquent"
+  ],
+  "passe_compose": [
+   "j'ai manqué",
+   "tu as manqué",
+   "il a manqué",
+   "nous avons manqué",
+   "vous avez manqué",
+   "ils ont manqué"
+  ]
+ },
+ "mentir": {
+  "inf": "mentir",
+  "praesens": [
+   "je mens",
+   "tu mens",
+   "il ment",
+   "nous mentons",
+   "vous mentez",
+   "ils mentent"
+  ],
+  "passe_compose": [
+   "j'ai menti",
+   "tu as menti",
+   "il a menti",
+   "nous avons menti",
+   "vous avez menti",
+   "ils ont menti"
+  ]
+ },
+ "motiver qn": {
+  "inf": "motiver",
+  "praesens": [
+   "je motive",
+   "tu motives",
+   "il motive",
+   "nous motivons",
+   "vous motivez",
+   "ils motivent"
+  ],
+  "passe_compose": [
+   "j'ai motivé",
+   "tu as motivé",
+   "il a motivé",
+   "nous avons motivé",
+   "vous avez motivé",
+   "ils ont motivé"
+  ]
+ },
+ "offrir": {
+  "inf": "offrir",
+  "praesens": [
+   "j'offre",
+   "tu offres",
+   "il offre",
+   "nous offrons",
+   "vous offrez",
+   "ils offrent"
+  ],
+  "passe_compose": [
+   "j'ai offert",
+   "tu as offert",
+   "il a offert",
+   "nous avons offert",
+   "vous avez offert",
+   "ils ont offert"
+  ]
+ },
+ "oublier de + inf.": {
+  "inf": "oublier",
+  "praesens": [
+   "j'oublie",
+   "tu oublies",
+   "il oublie",
+   "nous oublions",
+   "vous oubliez",
+   "ils oublient"
+  ],
+  "passe_compose": [
+   "j'ai oublié",
+   "tu as oublié",
+   "il a oublié",
+   "nous avons oublié",
+   "vous avez oublié",
+   "ils ont oublié"
+  ]
+ },
+ "partager qc": {
+  "inf": "partager",
+  "praesens": [
+   "je partage",
+   "tu partages",
+   "il partage",
+   "nous partageons",
+   "vous partagez",
+   "ils partagent"
+  ],
+  "passe_compose": [
+   "j'ai partagé",
+   "tu as partagé",
+   "il a partagé",
+   "nous avons partagé",
+   "vous avez partagé",
+   "ils ont partagé"
+  ]
+ },
+ "penser": {
+  "inf": "penser",
+  "praesens": [
+   "je pense",
+   "tu penses",
+   "il pense",
+   "nous pensons",
+   "vous pensez",
+   "ils pensent"
+  ],
+  "passe_compose": [
+   "j'ai pensé",
+   "tu as pensé",
+   "il a pensé",
+   "nous avons pensé",
+   "vous avez pensé",
+   "ils ont pensé"
+  ]
+ },
+ "pouvoir + inf.": {
+  "inf": "pouvoir",
+  "praesens": [
+   "je peux",
+   "tu peux",
+   "il peut",
+   "nous pouvons",
+   "vous pouvez",
+   "ils peuvent"
+  ],
+  "passe_compose": [
+   "j'ai pu",
+   "tu as pu",
+   "il a pu",
+   "nous avons pu",
+   "vous avez pu",
+   "ils ont pu"
+  ]
+ },
+ "proposer": {
+  "inf": "proposer",
+  "praesens": [
+   "je propose",
+   "tu proposes",
+   "il propose",
+   "nous proposons",
+   "vous proposez",
+   "ils proposent"
+  ],
+  "passe_compose": [
+   "j'ai proposé",
+   "tu as proposé",
+   "il a proposé",
+   "nous avons proposé",
+   "vous avez proposé",
+   "ils ont proposé"
+  ]
+ },
+ "proposer à qn de + inf.": {
+  "inf": "proposer",
+  "praesens": [
+   "je propose",
+   "tu proposes",
+   "il propose",
+   "nous proposons",
+   "vous proposez",
+   "ils proposent"
+  ],
+  "passe_compose": [
+   "j'ai proposé",
+   "tu as proposé",
+   "il a proposé",
+   "nous avons proposé",
+   "vous avez proposé",
+   "ils ont proposé"
+  ]
+ },
+ "préférer + inf.": {
+  "inf": "préférer",
+  "praesens": [
+   "je préfère",
+   "tu préfères",
+   "il préfère",
+   "nous préférons",
+   "vous préférez",
+   "ils préfèrent"
+  ],
+  "passe_compose": [
+   "j'ai préféré",
+   "tu as préféré",
+   "il a préféré",
+   "nous avons préféré",
+   "vous avez préféré",
+   "ils ont préféré"
+  ]
+ },
+ "rappeler qc. à qn.": {
+  "inf": "rappeler",
+  "praesens": [
+   "je rappelle",
+   "tu rappelles",
+   "il rappelle",
+   "nous rappelons",
+   "vous rappelez",
+   "ils rappellent"
+  ],
+  "passe_compose": [
+   "j'ai rappelé",
+   "tu as rappelé",
+   "il a rappelé",
+   "nous avons rappelé",
+   "vous avez rappelé",
+   "ils ont rappelé"
+  ]
+ },
+ "reprendre": {
+  "inf": "reprendre",
+  "praesens": [
+   "je reprends",
+   "tu reprends",
+   "il reprend",
+   "nous reprenons",
+   "vous reprenez",
+   "ils reprennent"
+  ],
+  "passe_compose": [
+   "j'ai repris",
+   "tu as repris",
+   "il a repris",
+   "nous avons repris",
+   "vous avez repris",
+   "ils ont repris"
+  ]
+ },
+ "revenir": {
+  "inf": "revenir",
+  "praesens": [
+   "je reviens",
+   "tu reviens",
+   "il revient",
+   "nous revenons",
+   "vous revenez",
+   "ils reviennent"
+  ],
+  "passe_compose": [
+   "je suis revenu(e)",
+   "tu es revenu(e)",
+   "il est revenu",
+   "nous sommes revenu(e)s",
+   "vous êtes revenu(e)(s)",
+   "ils sont revenus"
+  ]
+ },
+ "rire": {
+  "inf": "rire",
+  "praesens": [
+   "je ris",
+   "tu ris",
+   "il rit",
+   "nous rions",
+   "vous riez",
+   "ils rient"
+  ],
+  "passe_compose": [
+   "j'ai ri",
+   "tu as ri",
+   "il a ri",
+   "nous avons ri",
+   "vous avez ri",
+   "ils ont ri"
+  ]
+ },
+ "risquer": {
+  "inf": "risquer",
+  "praesens": [
+   "je risque",
+   "tu risques",
+   "il risque",
+   "nous risquons",
+   "vous risquez",
+   "ils risquent"
+  ],
+  "passe_compose": [
+   "j'ai risqué",
+   "tu as risqué",
+   "il a risqué",
+   "nous avons risqué",
+   "vous avez risqué",
+   "ils ont risqué"
+  ]
+ },
+ "risquer de + inf.": {
+  "inf": "risquer",
+  "praesens": [
+   "je risque",
+   "tu risques",
+   "il risque",
+   "nous risquons",
+   "vous risquez",
+   "ils risquent"
+  ],
+  "passe_compose": [
+   "j'ai risqué",
+   "tu as risqué",
+   "il a risqué",
+   "nous avons risqué",
+   "vous avez risqué",
+   "ils ont risqué"
+  ]
+ },
+ "rouler": {
+  "inf": "rouler",
+  "praesens": [
+   "je roule",
+   "tu roules",
+   "il roule",
+   "nous roulons",
+   "vous roulez",
+   "ils roulent"
+  ],
+  "passe_compose": [
+   "j'ai roulé",
+   "tu as roulé",
+   "il a roulé",
+   "nous avons roulé",
+   "vous avez roulé",
+   "ils ont roulé"
+  ]
+ },
+ "réaliser": {
+  "inf": "réaliser",
+  "praesens": [
+   "je réalise",
+   "tu réalises",
+   "il réalise",
+   "nous réalisons",
+   "vous réalisez",
+   "ils réalisent"
+  ],
+  "passe_compose": [
+   "j'ai réalisé",
+   "tu as réalisé",
+   "il a réalisé",
+   "nous avons réalisé",
+   "vous avez réalisé",
+   "ils ont réalisé"
+  ]
+ },
+ "réussir qc": {
+  "inf": "réussir",
+  "praesens": [
+   "je réussis",
+   "tu réussis",
+   "il réussit",
+   "nous réussissons",
+   "vous réussissez",
+   "ils réussissent"
+  ],
+  "passe_compose": [
+   "j'ai réussi",
+   "tu as réussi",
+   "il a réussi",
+   "nous avons réussi",
+   "vous avez réussi",
+   "ils ont réussi"
+  ]
+ },
+ "réussir à + inf.": {
+  "inf": "réussir",
+  "praesens": [
+   "je réussis",
+   "tu réussis",
+   "il réussit",
+   "nous réussissons",
+   "vous réussissez",
+   "ils réussissent"
+  ],
+  "passe_compose": [
+   "j'ai réussi",
+   "tu as réussi",
+   "il a réussi",
+   "nous avons réussi",
+   "vous avez réussi",
+   "ils ont réussi"
+  ]
+ },
+ "rêver": {
+  "inf": "rêver",
+  "praesens": [
+   "je rêve",
+   "tu rêves",
+   "il rêve",
+   "nous rêvons",
+   "vous rêvez",
+   "ils rêvent"
+  ],
+  "passe_compose": [
+   "j'ai rêvé",
+   "tu as rêvé",
+   "il a rêvé",
+   "nous avons rêvé",
+   "vous avez rêvé",
+   "ils ont rêvé"
+  ]
+ },
+ "rêver de + inf.": {
+  "inf": "rêver",
+  "praesens": [
+   "je rêve",
+   "tu rêves",
+   "il rêve",
+   "nous rêvons",
+   "vous rêvez",
+   "ils rêvent"
+  ],
+  "passe_compose": [
+   "j'ai rêvé",
+   "tu as rêvé",
+   "il a rêvé",
+   "nous avons rêvé",
+   "vous avez rêvé",
+   "ils ont rêvé"
+  ]
+ },
+ "s'amuser à + inf.": {
+  "inf": "s'amuser",
+  "praesens": [
+   "je m'amuse",
+   "tu t'amuses",
+   "il s'amuse",
+   "nous nous amusons",
+   "vous vous amusez",
+   "ils s'amusent"
+  ],
+  "passe_compose": [
+   "je me suis amusé(e)",
+   "tu t'es amusé(e)",
+   "il s'est amusé",
+   "nous nous sommes amusé(e)s",
+   "vous vous êtes amusé(e)(s)",
+   "ils se sont amusés"
+  ]
+ },
+ "s'ennuyer": {
+  "inf": "s'ennuyer",
+  "praesens": [
+   "je m'ennuie",
+   "tu t'ennuies",
+   "il s'ennuie",
+   "nous nous ennuyons",
+   "vous vous ennuyez",
+   "ils s'ennuient"
+  ],
+  "passe_compose": [
+   "je me suis ennuyé(e)",
+   "tu t'es ennuyé(e)",
+   "il s'est ennuyé",
+   "nous nous sommes ennuyé(e)s",
+   "vous vous êtes ennuyé(e)(s)",
+   "ils se sont ennuyés"
+  ]
+ },
+ "s'imaginer": {
+  "inf": "s'imaginer",
+  "praesens": [
+   "je m'imagine",
+   "tu t'imagines",
+   "il s'imagine",
+   "nous nous imaginons",
+   "vous vous imaginez",
+   "ils s'imaginent"
+  ],
+  "passe_compose": [
+   "je me suis imaginé(e)",
+   "tu t'es imaginé(e)",
+   "il s'est imaginé",
+   "nous nous sommes imaginé(e)s",
+   "vous vous êtes imaginé(e)(s)",
+   "ils se sont imaginés"
+  ]
+ },
+ "s'occuper de": {
+  "inf": "s'occuper",
+  "praesens": [
+   "je m'occupe",
+   "tu t'occupes",
+   "il s'occupe",
+   "nous nous occupons",
+   "vous vous occupez",
+   "ils s'occupent"
+  ],
+  "passe_compose": [
+   "je me suis occupé(e)",
+   "tu t'es occupé(e)",
+   "il s'est occupé",
+   "nous nous sommes occupé(e)s",
+   "vous vous êtes occupé(e)(s)",
+   "ils se sont occupés"
+  ]
+ },
+ "s'orienter": {
+  "inf": "s'orienter",
+  "praesens": [
+   "je m'oriente",
+   "tu t'orientes",
+   "il s'oriente",
+   "nous nous orientons",
+   "vous vous orientez",
+   "ils s'orientent"
+  ],
+  "passe_compose": [
+   "je me suis orienté(e)",
+   "tu t'es orienté(e)",
+   "il s'est orienté",
+   "nous nous sommes orienté(e)s",
+   "vous vous êtes orienté(e)(s)",
+   "ils se sont orientés"
+  ]
+ },
+ "savoir + inf.": {
+  "inf": "savoir",
+  "praesens": [
+   "je sais",
+   "tu sais",
+   "il sait",
+   "nous savons",
+   "vous savez",
+   "ils savent"
+  ],
+  "passe_compose": [
+   "j'ai su",
+   "tu as su",
+   "il a su",
+   "nous avons su",
+   "vous avez su",
+   "ils ont su"
+  ]
+ },
+ "se stresser": {
+  "inf": "se stresser",
+  "praesens": [
+   "je me stresse",
+   "tu te stresses",
+   "il se stresse",
+   "nous nous stressons",
+   "vous vous stressez",
+   "ils se stressent"
+  ],
+  "passe_compose": [
+   "je me suis stressé(e)",
+   "tu t'es stressé(e)",
+   "il s'est stressé",
+   "nous nous sommes stressé(e)s",
+   "vous vous êtes stressé(e)(s)",
+   "ils se sont stressés"
+  ]
+ },
+ "servir à qc.": {
+  "inf": "servir",
+  "praesens": [
+   "je sers",
+   "tu sers",
+   "il sert",
+   "nous servons",
+   "vous servez",
+   "ils servent"
+  ],
+  "passe_compose": [
+   "j'ai servi",
+   "tu as servi",
+   "il a servi",
+   "nous avons servi",
+   "vous avez servi",
+   "ils ont servi"
+  ]
+ },
+ "vouloir + inf.": {
+  "inf": "vouloir",
+  "praesens": [
+   "je veux",
+   "tu veux",
+   "il veut",
+   "nous voulons",
+   "vous voulez",
+   "ils veulent"
+  ],
+  "passe_compose": [
+   "j'ai voulu",
+   "tu as voulu",
+   "il a voulu",
+   "nous avons voulu",
+   "vous avez voulu",
+   "ils ont voulu"
+  ]
+ }
+}

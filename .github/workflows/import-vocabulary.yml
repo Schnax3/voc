@@ -45,8 +45,8 @@ jobs:
         continue-on-error: true
         run: python scripts/import_exercises.py
 
-      # Konjugationsübung aus den Verben der Übungen und Lektionen (rein lokal, kein Download)
-      - name: Build conjugation exercise
+      # Konjugationen für die Verb-Karten der Lektionen (rein lokal, kein Download)
+      - name: Build conjugations
         run: python scripts/import_conjugation.py
 
       - name: Build lesson index

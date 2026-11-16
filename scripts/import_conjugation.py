@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
-"""Erzeugt die Übung "Verben konjugieren" (uebungen/konjugation/uebung.json).
+"""Erzeugt verben.json: Konjugationen für alle Verb-Vokabeln der Lektionen.
 
-Quellen:
-1. Alle Verben der Übungen mit Passé composé (``uebungen/*/uebung.json``, Felder french/german/answer).
-   Das Passé composé wird aus der dort angegebenen Form für alle Personen abgeleitet.
-2. Regelmäßige Verben auf -er aus den Lektionen (``lektionen/*/database*.json``): Ein Verb zählt, wenn
-   ein Satz seinen Infinitiv nennt ("Inf.: rêver") und die Vokabel genau dieses Verb ist.
+Die App zeigt damit bei Verb-Karten in den vorhandenen Lektionen auf Wunsch Zeilen zum Konjugieren
+(je ... / tu ... / il ... und dasselbe im Passé composé). Der Schlüssel ist die Vokabel exakt so, wie sie in
+``lektionen/*/database*.json`` im Feld "vocabulary" steht (klein geschrieben)::
 
-Jeder Eintrag::
+    "rêver de + inf.": {"inf": "rêver", "praesens": ["je rêve", ...], "passe_compose": ["j'ai rêvé", ...]}
 
-    {"french": "venir", "german": "kommen", "ref": "Déc-Kl-6",
-     "praesens": ["je viens", "tu viens", "il vient", "nous venons", "vous venez", "ils viennent"],
-     "passe_compose": ["je suis venu(e)", ...]}
-
-Fehlt eine Person (unpersönliche Verben wie "falloir"), steht an ihrer Stelle ``null``.
-Unregelmäßige Verben außerhalb der Tabelle IRREGULAR werden nicht erraten, sondern im Lauf gemeldet.
+Ein Eintrag ist ein Verb, wenn die Vokabel (ohne Zusätze wie "de + Inf.", "qn", "à") ein einzelnes Wort
+auf -er/-ir/-re/-oir ist, das nicht in NOT_VERBS steht, und
+das Verb regelmäßig ist oder in der Tabelle IRREGULAR steht. Unbekannte Verben werden nicht erraten,
+sondern im Lauf gemeldet. Das Passé composé der Verben aus den Übungen (``uebungen/*/uebung.json``) wird
+aus der dort angegebenen Form abgeleitet. Fehlt eine Person (falloir), steht ``null``.
 
 Aufruf:  python scripts/import_conjugation.py
 """
@@ -26,7 +23,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "uebungen" / "konjugation" / "uebung.json"
+OUTPUT = ROOT / "verben.json"
 PERSONS = ("je", "tu", "il", "nous", "vous", "ils")
 
 # Unregelmäßiges Présent: sechs Formen ohne Pronomen; "-" = Person gibt es nicht
@@ -63,6 +60,21 @@ IRREGULAR = {
     "disparaître": "disparais disparais disparaît disparaissons disparaissez disparaissent",
     "plaire": "plais plais plaît plaisons plaisez plaisent",
     "lever": "lève lèves lève levons levez lèvent",
+    "tenir": "tiens tiens tient tenons tenez tiennent",
+    "retenir": "retiens retiens retient retenons retenez retiennent",
+    "revenir": "reviens reviens revient revenons revenez reviennent",
+    "permettre": "permets permets permet permettons permettez permettent",
+    "promettre": "promets promets promet promettons promettez promettent",
+    "remettre": "remets remets remet remettons remettez remettent",
+    "surprendre": "surprends surprends surprend surprenons surprenez surprennent",
+    "reprendre": "reprends reprends reprend reprenons reprenez reprennent",
+    "mourir": "meurs meurs meurt mourons mourez meurent",
+    "inscrire": "inscris inscris inscrit inscrivons inscrivez inscrivent",
+    "préférer": "préfère préfères préfère préférons préférez préfèrent",
+    "rappeler": "rappelle rappelles rappelle rappelons rappelez rappellent",
+    "ennuyer": "ennuie ennuies ennuie ennuyons ennuyez ennuient",
+    "essayer": "essaie essaies essaie essayons essayez essaient",
+    "envoyer": "envoie envoies envoie envoyons envoyez envoient",
     "falloir": "- - faut - - -",
     "pleuvoir": "- - pleut - - -",
     "offrir": "offre offres offre offrons offrez offrent",
@@ -74,6 +86,15 @@ ETRE_VERBS = {
     "aller", "venir", "devenir", "revenir", "arriver", "partir", "sortir", "entrer", "rentrer", "rester",
     "monter", "descendre", "tomber", "naître", "mourir", "retourner",
 }
+# Partizipien unregelmäßiger Verben (sonst aus der Übung oder nach Regel)
+PARTICIPLES = {
+    "inscrire": "inscrit", "tenir": "tenu", "retenir": "retenu", "revenir": "revenu", "permettre": "permis", "promettre": "promis",
+    "remettre": "remis", "surprendre": "surpris", "reprendre": "repris", "mourir": "mort",
+}
+SECOND_GROUP = {"réfléchir", "réussir", "choisir", "finir", "grandir", "remplir", "obéir", "réagir", "agir", "réunir", "bâtir", "guérir", "punir", "rougir", "saisir", "applaudir", "établir", "grossir", "maigrir", "ralentir"}
+# Wörter auf -er/-ir/-re, die keine Verben sind
+NOT_VERBS = {"cher", "fier", "premier", "dernier", "léger", "étranger", "entier", "régulier", "hier", "cahier", "métier",
+             "quartier", "fermier", "ouvrier", "pied", "hiver", "enfer", "mer", "ver", "amer", "super", "fer", "cuiller"}
 VOWELS = "aeiouyéèêëâîïôûh"
 # Regelmäßige -er-Verben mit Besonderheiten im Stamm werden nicht automatisch gebildet
 STEM_CHANGE = re.compile(r"(yer|eler|eter|ener|eser|emer|ever|érer|écer|écher|éder|éter|éler|éner|éver|ébrer)$")
@@ -95,14 +116,14 @@ def regular_present(infinitive: str) -> list[str] | None:
 
 
 def regular_second_group(infinitive: str) -> list[str] | None:
-    if infinitive in {"réfléchir", "réussir", "choisir", "finir", "grandir", "remplir", "obéir", "réagir", "agir"}:
+    if infinitive in SECOND_GROUP:
         stem = infinitive[:-1]
         return [stem + "s", stem + "s", stem + "t", stem + "ssons", stem + "ssez", stem + "ssent"]
     return None
 
 
 def regular_re(infinitive: str) -> list[str] | None:
-    if infinitive in {"attendre", "perdre", "rendre", "répondre", "descendre", "vendre", "entendre", "répandre"}:
+    if infinitive in {"attendre", "perdre", "rendre", "répondre", "descendre", "vendre", "entendre", "répandre", "dépendre"}:
         stem = infinitive[:-2]
         return [stem + "s", stem + "s", stem, stem + "ons", stem + "ez", stem + "ent"]
     return None
@@ -178,60 +199,102 @@ def regular_pc_answer(verb: str) -> str | None:
     return "j'ai " + participle
 
 
-def exercise_records(root: Path) -> list[dict]:
-    records, seen = [], set()
+
+CUT = re.compile(r"\s+(?:de|d'|d’|à|au|aux|qn|qc|qch|jdn|pour|sur|avec|contre|\+|\(|/)(?=\W|$)|[,;(]|\s+ou\s+")
+
+
+EXPRESSION = re.compile(r"^(?:au|aux|du|des|de la|de l'|de l’|la|le|les|l'|l’|un|une)(?:\s|$|')")
+
+
+def candidate_infinitive(vocabulary: str) -> str | None:
+    """Der Infinitiv hinter einer Vokabel ("rêver de + Inf." -> "rêver", "s'ennuyer" -> "s'ennuyer")."""
+    text = vocabulary.strip().lower().replace("’", "'")
+    first = CUT.split(text, maxsplit=1)[0].strip()
+    rest = text[len(first):].strip()
+    if EXPRESSION.match(rest):          # "jouer au foot", "jouer de la guitare": feste Wendung, keine Verbkarte
+        return None
+    text = first
+    reflexive = re.match(r"^(se |s')(.+)$", text)
+    base = reflexive.group(2) if reflexive else text
+    if not re.fullmatch(r"[a-zàâçéèêëîïôûùüÿœæ-]+", base) or not re.search(r"(er|ir|re|oir)$", base) or len(base) < 4:
+        return None
+    if base in NOT_VERBS:
+        return None
+    return text
+
+
+def participle_for(infinitive: str, exercise_answers: dict[str, str]) -> tuple[str, str, bool] | None:
+    """(Hilfsverb, Partizip, reflexiv) eines Verbs oder None, wenn unbekannt."""
+    if infinitive in exercise_answers:
+        return split_passe_compose(exercise_answers[infinitive])
+    base, reflexive = split_reflexive(infinitive)
+    aux = "être" if reflexive or base in ETRE_VERBS else "avoir"
+    if base in PARTICIPLES:
+        return aux, PARTICIPLES[base], reflexive
+    if base in IRREGULAR and not (base.endswith("er") and base != "aller"):
+        return None
+    if base.endswith("er"):
+        return aux, base[:-2] + "é", reflexive
+    if base in SECOND_GROUP:
+        return aux, base[:-1], reflexive
+    if base.endswith("re"):
+        return aux, base[:-2] + "u", reflexive
+    return None
+
+
+def passe_compose_for(infinitive: str, exercise_answers: dict[str, str]) -> list[str | None] | None:
+    if infinitive in exercise_answers:
+        return passe_compose_forms(exercise_answers[infinitive])
+    parsed = participle_for(infinitive, exercise_answers)
+    if parsed is None:
+        return None
+    aux, participle, reflexive = parsed
+    base = split_reflexive(infinitive)[0]
+    if base in {"falloir", "pleuvoir"}:
+        return [None, None, f"il a {participle}", None, None, None]
+    if aux == "avoir":
+        helpers = ["j'ai", "tu as", "il a", "nous avons", "vous avez", "ils ont"]
+        return [f"{h} {participle}" for h in helpers]
+    helpers = (["je me suis", "tu t'es", "il s'est", "nous nous sommes", "vous vous êtes", "ils se sont"] if reflexive
+               else ["je suis", "tu es", "il est", "nous sommes", "vous êtes", "ils sont"])
+    return [f"{h} {participle}{e}" for h, e in zip(helpers, ["(e)", "(e)", "", "(e)s", "(e)(s)", "s"])]
+
+
+def exercise_answers(root: Path) -> dict[str, str]:
+    answers: dict[str, str] = {}
     for path in sorted((root / "uebungen").glob("*/uebung.json")):
-        if path.parent.name == "konjugation":
-            continue
         for entry in json.loads(path.read_text(encoding="utf-8")):
-            verb = str(entry.get("french", "")).strip()
-            if not verb or verb in seen or "answer" not in entry:
-                continue
-            present = present_forms(verb)
-            if present is None:
-                print(f"  übersprungen (Präsens unbekannt): {verb}", file=sys.stderr)
-                continue
-            seen.add(verb)
-            records.append({"french": verb, "german": entry.get("german", ""), "ref": entry.get("ref", ""),
-                            "praesens": present, "passe_compose": passe_compose_forms(str(entry["answer"]))})
-    return records
+            if entry.get("french") and entry.get("answer"):
+                answers.setdefault(str(entry["french"]).strip().lower(), str(entry["answer"]))
+    return answers
 
 
-INF_MARK = re.compile(r"[Ii]nf(?:initif)?\.?\s*:\s*((?:s[e']\s?|s’)?[a-zàâçéèêëîïôûùüÿ]+)")
-
-
-def lesson_records(root: Path, known: set[str]) -> list[dict]:
-    """Regelmäßige -er-Verben, deren Infinitiv in einem Satz genannt wird und die selbst Vokabel sind."""
-    found: dict[str, dict] = {}
+def build(root: Path = ROOT) -> tuple[dict[str, dict], list[str]]:
+    """Gibt (verben, unbekannte Verben) zurück."""
+    answers = exercise_answers(root)
+    verbs: dict[str, dict] = {}
+    unknown: set[str] = set()
     for path in sorted((root / "lektionen").glob("*/database*.json")):
         for entry in json.loads(path.read_text(encoding="utf-8")):
             vocabulary = str(entry.get("vocabulary") or "").strip().lower()
-            match = INF_MARK.search(str(entry.get("french") or ""))
-            if not match or not vocabulary:
+            infinitive = candidate_infinitive(vocabulary) if vocabulary else None
+            if infinitive is None or vocabulary in verbs:
                 continue
-            verb = re.sub(r"^s[e'’]\s?", lambda m: "se " if m.group(0).startswith("se") else "s'", match.group(1).lower())
-            if verb != vocabulary or verb in known or verb in found:
+            present = present_forms(infinitive)
+            if present is None:
+                unknown.add(infinitive)
                 continue
-            present = present_forms(verb)
-            pc_answer = regular_pc_answer(verb)
-            if present is None or pc_answer is None:
-                continue
-            found[verb] = {"french": verb, "german": entry.get("german", ""), "ref": "",
-                           "praesens": present, "passe_compose": passe_compose_forms(pc_answer)}
-    return list(found.values())
-
-
-def build(root: Path = ROOT) -> list[dict]:
-    records = exercise_records(root)
-    records += lesson_records(root, {r["french"] for r in records})
-    return records
+            verbs[vocabulary] = {"inf": infinitive, "praesens": present,
+                                 "passe_compose": passe_compose_for(infinitive, answers) or [None] * 6}
+    return dict(sorted(verbs.items())), sorted(unknown)
 
 
 def main() -> None:
-    records = build()
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"{len(records)} Verben in {OUTPUT.relative_to(ROOT)} geschrieben.")
+    verbs, unknown = build()
+    OUTPUT.write_text(json.dumps(verbs, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(f"{len(verbs)} Verb-Vokabeln in {OUTPUT.name} geschrieben.")
+    if unknown:
+        print("Unbekannte Verben (bitte in IRREGULAR ergänzen): " + ", ".join(unknown), file=sys.stderr)
 
 
 if __name__ == "__main__":
