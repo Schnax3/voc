@@ -577,6 +577,57 @@ test('Am Rundenende gibt es den Vorschlag-Knopf', async ({ browser, base }) => {
   await context.close();
 });
 
+// Karten durchblättern, bis eine Verb-Karte mit Konjugationszeilen kommt (oder bis zu 80 Schritte)
+async function untilConjugation(page, expected = true) {
+  for (let i = 0; i < 80; i++) {
+    if (await page.$('.crow')) return true;
+    if (!(await page.$('#card'))) break;
+    if (await page.$('#flip')) await page.click('#flip');
+    if (await page.$('#yes')) await page.click('#yes');
+  }
+  return false;
+}
+
+test('Verb-Karten in den Lektionen lassen sich konjugieren', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:opt': { dir: 'fr', all: true, img: false, limit: 0 } } });
+  await page.click('.row:has-text("U1 Tu te rappelles"), .row:has-text("Tu te rappelles")');
+  await page.click('#go');
+  assert.ok(await untilConjugation(page), 'keine Verb-Karte gefunden');
+  assert.equal(await page.locator('h3').count(), 2);
+  assert.ok((await page.locator('.crow input').count()) >= 2);
+  // Enter springt zur nächsten Zeile, nach der letzten wird aufgedeckt
+  const count = await page.locator('.crow input').count();
+  await page.locator('.crow input').first().fill('xxx');
+  for (let i = 0; i < count; i++) await page.keyboard.press('Enter');
+  await page.waitForSelector('.crow.bad');
+  assert.ok(await page.$('.crow .sol'));
+  assert.match(await page.textContent('.card'), /Formen richtig/);
+  await context.close();
+});
+
+test('Verben konjugieren: Schalter für die Zeiten, (e) und (s) werden erkannt', async ({ browser, base }) => {
+  const seed = { 'vk:opt': { dir: 'fr', all: true, img: false, limit: 0, conjPres: false, conjPc: true } };
+  const { context, page } = await openApp(browser, base, { seed });
+  await page.click('.row:has-text("Tu te rappelles")');
+  await page.click('#go');
+  assert.ok(await untilConjugation(page));
+  assert.equal(await page.locator('h3:has-text("Présent")').count(), 0);
+  assert.equal(await page.locator('h3:has-text("Passé composé")').count(), 1);
+  const checks = await page.evaluate(() => [checkPc('venus', 'venu(e)s'), checkPc('VENUES', 'venu(e)s'), checkPc('venu', 'venu(e)(s)'), checkPc('venues', 'venu(e)(s)'), checkPc('venue', 'venu(e)s')]);
+  assert.deepEqual(checks, [true, true, true, true, false]);
+  await page.click('#end');
+  await page.waitForSelector('#conj-pc');
+  await page.uncheck('#conj-pc');
+  await page.click('#go');
+  await page.waitForSelector('#card');
+  for (let i = 0; i < 40; i++) {
+    assert.equal(await page.locator('.crow').count(), 0); // beide aus: nur Grundform
+    if (await page.$('#flip')) await page.click('#flip');
+    if (await page.$('#yes')) await page.click('#yes'); else break;
+  }
+  await context.close();
+});
+
 (async () => {
   const server = await startServer();
   const browser = await chromium.launch();
