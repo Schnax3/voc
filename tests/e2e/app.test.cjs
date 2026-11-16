@@ -628,6 +628,106 @@ test('Verben konjugieren: Schalter für die Zeiten, (e) und (s) werden erkannt',
   await context.close();
 });
 
+// Schulaufgabe: eine Runde lösen. Die richtigen Antworten kommen aus den geladenen Daten (SA), mit `wrongEvery` jede n-te Aufgabe absichtlich falsch.
+async function solveSchulaufgabe(page, topicId, { wrongEvery = 0 } = {}) {
+  await page.click('#sa-open');
+  await page.click(`.topic[data-id="${topicId}"]`);
+  await page.selectOption('#sa-count', '0');
+  await page.click('#sa-go');
+  let n = 0;
+  while (await page.$('#sa-check')) {
+    const topic = await page.evaluate(id => SA.themen.find(t => t.id === id), topicId);
+    const header = (await page.textContent('.sa-card')).trim();
+    const inputs = page.locator('.blank'), count = await inputs.count();
+    const wrong = wrongEvery && ++n % wrongEvery === 0;
+    let item;
+    if (topic.typ === 'konjugieren') {
+      const verb = (await page.textContent('.sa-card .q')).trim();
+      const tense = (await page.textContent('.sa-card .mut + .mut b, .sa-card b')).trim();
+      item = topic.items.find(i => i.verb === verb && i.zeitname === tense);
+      const forms = item.formen.filter(Boolean);
+      for (let i = 0; i < count; i++) await inputs.nth(i).fill(wrong ? 'xx' : forms[i].replace(/^(j'|\S+ )/, '').replace(/\(e\)|\(s\)/g, ''));
+    } else if (topic.typ === 'verneinung') {
+      const q = (await page.textContent('.sa-card .q')).trim();
+      item = topic.items.find(i => i.q === q);
+      await inputs.nth(0).fill(wrong ? 'xx' : item.antworten[0].toLowerCase().replace(/\.$/, ''));
+    } else {
+      const shown = await page.evaluate(() => [...document.querySelector('.gap').childNodes].map(n => (n.nodeType === 3 ? n.textContent : '___')).join(''));
+      item = topic.items.find(i => i.q === shown);
+      assert.ok(item, `Aufgabe nicht gefunden: ${shown}`);
+      for (let i = 0; i < count; i++) await inputs.nth(i).fill(wrong ? 'xx' : item.blanks[i][0].replace('–', '-'));
+    }
+    await page.keyboard.press('Enter'); // Enter in einer Zeile springt weiter, in der letzten wird geprüft
+    for (let i = 1; i < count; i++) if (!(await page.$('#sa-feedback .okmsg, #sa-feedback .badmsg'))) await page.keyboard.press('Enter');
+    await page.waitForSelector('#sa-feedback .okmsg, #sa-feedback .badmsg');
+    await page.keyboard.press('Enter');
+  }
+}
+
+test('Schulaufgabe: Menü, Themen und Zurück', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await page.click('#sa-open');
+  await page.waitForSelector('.topic[data-id="verneinung"]');
+  assert.equal(await page.locator('.topics .topic').count(), 6);
+  await page.click('.topic[data-id="verneinung"]');
+  assert.ok(await page.$('details.rules[open]'));
+  await page.click('#sa-back');
+  assert.equal(await page.locator('.topics .topic').count(), 6);
+  await page.click('#sa-back');
+  await page.waitForSelector('.row');
+  await context.close();
+});
+
+for (const id of ['verneinung', 're', 'infinitiv', 'vergangenheit', 'verben']) {
+  test(`Schulaufgabe: Thema ${id} komplett richtig lösen`, async ({ browser, base }) => {
+    const { context, page, stats } = await openApp(browser, base);
+    await solveSchulaufgabe(page, id);
+    const result = await page.textContent('.big');
+    const [, ok, total] = result.match(/(\d+) von (\d+)/);
+    assert.equal(ok, total, result);
+    assert.deepEqual(stats.errors, []);
+    await context.close();
+  });
+}
+
+test('Schulaufgabe: Fehler zeigen die Lösung, werden gemerkt und lassen sich nochmal üben', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await solveSchulaufgabe(page, 'verneinung', { wrongEvery: 4 });
+  const [, ok, total] = (await page.textContent('.big')).match(/(\d+) von (\d+)/);
+  assert.equal(Number(total) - Number(ok), 4);
+  assert.equal(await page.locator('.miss li').count(), 4);
+  const saved = await storage(page, 'vk:sa');
+  assert.equal(saved.verneinung.last.total, Number(total));
+  assert.equal(Object.values(saved.verneinung.items).filter(x => x.bad === 1).length, 4);
+  await page.click('#sa-again-wrong');
+  assert.match(await page.textContent('.top'), /1 von 4/);
+  await context.close();
+});
+
+test('Schulaufgabe: „–“ bei Lücken ohne Präposition wird als -, – oder rien erkannt', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  const result = await page.evaluate(() => ['-', '–', ' rien ', 'à'].map(t => saMatches(t, ['–'])));
+  assert.deepEqual(result, [true, true, true, false]);
+  assert.equal(await page.evaluate(() => saMatches("Il n’a rien dit !", ["Il n'a rien dit."])), true);
+  assert.equal(await page.evaluate(() => saMatches('Il ne a rien dit.', ["Il n'a rien dit."])), false);
+  await context.close();
+});
+
+test('Schulaufgabe: Textproduktion mit Bausteinen, gespeichertem Text und Checkliste', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  await page.click('#sa-open'); await page.click('.topic[data-id="schreiben"]');
+  await page.click('[data-task="ecole"]');
+  await page.click('.block >> nth=2');
+  assert.match(await page.inputValue('#sa-text'), /^Cette année, je veux/);
+  await page.fill('#sa-text', 'Bonjour tout le monde'); await page.check('.checks input >> nth=0');
+  assert.equal(await page.textContent('#sa-count'), '4 Wörter');
+  await page.reload(); await page.waitForSelector('.row');
+  await page.click('#sa-open'); await page.click('.topic[data-id="schreiben"]'); await page.click('[data-task="ecole"]');
+  assert.equal(await page.inputValue('#sa-text'), 'Bonjour tout le monde');
+  assert.equal(await page.isChecked('.checks input >> nth=0'), true);
+  await context.close();
+});
+
 (async () => {
   const server = await startServer();
   const browser = await chromium.launch();

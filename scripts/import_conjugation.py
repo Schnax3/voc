@@ -129,6 +129,46 @@ def regular_re(infinitive: str) -> list[str] | None:
     return None
 
 
+def reflexive_forms(parts: list[str]) -> list[str | None]:
+    """Fügt das Reflexivpronomen ein: ["lève", ...] -> ["je me lève", "tu te lèves", ...]."""
+    forms: list[str | None] = []
+    for i, (pronoun, part) in enumerate(zip(("me", "te", "se", "nous", "vous", "se"), parts)):
+        if part == "-":
+            forms.append(None)
+            continue
+        if i in (0, 1, 2, 5) and part[0] in VOWELS:   # m'ennuie, t'ennuies ...
+            pronoun = pronoun[0] + "'"
+        joined = pronoun + part if pronoun.endswith("'") else f"{pronoun} {part}"
+        forms.append(with_pronoun(i, joined))
+    return forms
+
+
+def imparfait_forms(verb: str) -> list[str | None] | None:
+    """Imparfait: Stamm der nous-Form des Présent + -ais, -ais, -ait, -ions, -iez, -aient (être: ét-)."""
+    infinitive, reflexive = split_reflexive(verb.strip())
+    present = present_forms(verb)
+    if present is None:
+        return None
+    if infinitive == "falloir":
+        return [None, None, "il fallait", None, None, None]
+    if infinitive == "pleuvoir":
+        return [None, None, "il pleuvait", None, None, None]
+    stem = "ét" if infinitive == "être" else present[3].split()[-1][:-3]
+    endings = ["ais", "ais", "ait", "ions", "iez", "aient"]
+    parts = []
+    for ending in endings:
+        base = stem
+        if ending.startswith("i"):
+            if base.endswith("ge"):      # nous changions (nicht changeions)
+                base = base[:-1]
+            elif base.endswith("ç"):     # nous avancions
+                base = base[:-1] + "c"
+        parts.append(base + ending)
+    if reflexive:
+        return reflexive_forms(parts)
+    return [with_pronoun(i, part) for i, part in enumerate(parts)]
+
+
 def split_reflexive(verb: str) -> tuple[str, bool]:
     for prefix in ("se ", "s'", "s’"):
         if verb.startswith(prefix):
@@ -148,13 +188,7 @@ def present_forms(verb: str) -> list[str | None] | None:
         if infinitive.endswith("cer"):          # avancer -> nous avançons
             parts[3] = infinitive[:-3] + "çons"
     if reflexive:
-        forms = []
-        for i, (pronoun, part) in enumerate(zip(("me", "te", "se", "nous", "vous", "se"), parts)):
-            if i in (0, 1, 2, 5) and part[0] in VOWELS:   # m'ennuie, t'ennuies ...
-                pronoun = pronoun[0] + "'"
-            joined = pronoun + part if pronoun.endswith("'") else f"{pronoun} {part}"
-            forms.append(with_pronoun(i, joined))
-        return forms
+        return reflexive_forms(parts)
     return [None if part == "-" else with_pronoun(i, part) for i, part in enumerate(parts)]
 
 

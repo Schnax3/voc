@@ -1,0 +1,227 @@
+{
+  "titel": "Schulaufgabe",
+  "untertitel": "Übungen zum Stoff der 1. Schulaufgabe (Découvertes 3 bis Unité 2A)",
+  "themen": [
+    {
+      "id": "verben",
+      "symbol": "🔤",
+      "titel": "Verben konjugieren",
+      "kurz": "revenir, croire, rire, offrir, réussir, changer, partager, mentir, servir, finir, dormir",
+      "typ": "konjugieren",
+      "aufgabe": "Schreibe alle sechs Formen. Das Pronomen steht schon da.",
+      "merk": [
+        "revenir geht wie venir: je reviens, nous revenons, ils reviennent. Im Passé composé mit être: je suis revenu(e).",
+        "croire: je crois, nous croyons, ils croient. rire: je ris, nous rions, ils rient. Passé composé: j'ai cru, j'ai ri.",
+        "offrir geht wie ouvrir (Endungen wie bei -er): j'offre, tu offres, il offre, nous offrons. Passé composé: j'ai offert.",
+        "réussir und finir (2. Gruppe): je finis, nous finissons, ils finissent. Imparfait: je finissais.",
+        "mentir, servir, dormir verlieren das Verbende im Singular: je mens, tu mens, il ment; nous mentons.",
+        "changer und partager: vor -o- bleibt das e: nous changeons, nous partageons. Imparfait: je changeais, aber nous changions.",
+        "Imparfait: Stamm der nous-Form (ohne -ons) + -ais, -ais, -ait, -ions, -iez, -aient."
+      ],
+      "verben": ["venir", "revenir", "croire", "rire", "offrir", "réussir", "changer", "partager", "mentir", "servir", "finir", "dormir"],
+      "zeiten": ["praesens", "passe_compose", "imparfait"],
+      "deutsch": {
+        "venir": "kommen", "revenir": "zurückkommen", "croire": "glauben", "rire": "lachen", "offrir": "schenken; anbieten",
+        "réussir": "gelingen; Erfolg haben", "changer": "(ver)ändern; wechseln", "partager": "teilen", "mentir": "lügen",
+        "servir": "dienen; servieren; bedienen", "finir": "beenden; enden", "dormir": "schlafen"
+      }
+    },
+    {
+      "id": "re",
+      "symbol": "🔁",
+      "titel": "Vorsilbe re-",
+      "kurz": "wieder, noch einmal, zurück",
+      "typ": "luecke",
+      "aufgabe": "Ergänze die richtige Form.",
+      "merk": [
+        "Die Vorsilbe re- bedeutet „wieder, noch einmal, zurück“: lire → relire (noch einmal lesen), venir → revenir (zurückkommen).",
+        "Vor einem Vokal wird re- oft zu r-: entrer → rentrer (nach Hause kommen), ouvrir → rouvrir.",
+        "Das neue Verb wird wie das Grundverb konjugiert: Passé composé j'ai relu, je suis revenu(e)."
+      ],
+      "items": [
+        {"q": "lire + re- → ___ (noch einmal lesen)", "blanks": [["relire"]]},
+        {"q": "commencer + re- → ___ (neu anfangen)", "blanks": [["recommencer"]]},
+        {"q": "faire + re- → ___ (noch einmal machen)", "blanks": [["refaire"]]},
+        {"q": "venir + re- → ___ (zurückkommen)", "blanks": [["revenir"]]},
+        {"q": "partir + re- → ___ (wieder wegfahren)", "blanks": [["repartir"]]},
+        {"q": "trouver + re- → ___ (wiederfinden)", "blanks": [["retrouver"]]},
+        {"q": "dire + re- → ___ (noch einmal sagen)", "blanks": [["redire"]]},
+        {"q": "entrer + re- → ___ (nach Hause kommen, zurückgehen)", "blanks": [["rentrer"]]},
+        {"q": "Après les vacances, les élèves ___ (revenir, Passé composé) à l'école.", "blanks": [["sont revenus", "sont revenues"]], "tipp": "revenir bildet das Passé composé mit être."},
+        {"q": "Elle ___ (relire, Passé composé) son texte.", "blanks": [["a relu"]]},
+        {"q": "Je ___ (recommencer, Passé composé) mon exercice.", "blanks": [["ai recommencé"]]},
+        {"q": "Tu ___ (refaire, Présent) la même erreur.", "blanks": [["refais"]]}
+      ]
+    },
+    {
+      "id": "infinitiv",
+      "symbol": "➡️",
+      "titel": "Verben mit Infinitivanschluss",
+      "kurz": "ohne Präposition, mit à, mit de",
+      "typ": "luecke",
+      "aufgabe": "Setze à oder de ein. Wenn keine Präposition steht, schreibe –.",
+      "merk": [
+        "Ohne Präposition: aimer, adorer, détester, préférer, vouloir, pouvoir, devoir, savoir, aller + Infinitiv.",
+        "Mit à: commencer à, continuer à (oder de), apprendre à, aider qn à, réussir à, s'amuser à, hésiter à.",
+        "Mit de: essayer de, oublier de, finir de, arrêter de, rêver de, avoir envie de, avoir peur de, risquer de, proposer à qn de, décider de, refuser de.",
+        "Vergleiche diese Liste mit dem Kasten auf S. 165 im Buch. Dort steht, was du genau können musst."
+      ],
+      "items": [
+        {"q": "Elle aime ___ lire.", "blanks": [["–"]]},
+        {"q": "Nous préférons ___ rester à la maison.", "blanks": [["–"]]},
+        {"q": "Il veut ___ partir.", "blanks": [["–"]]},
+        {"q": "Je peux ___ t'aider.", "blanks": [["–"]]},
+        {"q": "Tu dois ___ faire tes devoirs.", "blanks": [["–"]]},
+        {"q": "Elle sait ___ nager.", "blanks": [["–"]]},
+        {"q": "Ils vont ___ arriver demain.", "blanks": [["–"]]},
+        {"q": "Il commence ___ travailler.", "blanks": [["à"]]},
+        {"q": "Nous continuons ___ apprendre le français.", "blanks": [["à", "de"]], "tipp": "Bei continuer sind à und de möglich."},
+        {"q": "Elle apprend ___ jouer du piano.", "blanks": [["à"]]},
+        {"q": "Il aide son ami ___ sortir du trou.", "blanks": [["à"]]},
+        {"q": "J'ai réussi ___ finir mon projet.", "blanks": [["à"]]},
+        {"q": "Ils s'amusent ___ jouer au foot.", "blanks": [["à"]]},
+        {"q": "J'essaie ___ comprendre.", "blanks": [["de"]]},
+        {"q": "Tu as oublié ___ fermer la porte.", "blanks": [["de"]]},
+        {"q": "Elle a fini ___ travailler.", "blanks": [["de"]]},
+        {"q": "Il arrête ___ fumer.", "blanks": [["de"]]},
+        {"q": "Il rêve ___ devenir pilote.", "blanks": [["de"]]},
+        {"q": "J'ai envie ___ manger du chocolat.", "blanks": [["de"]]},
+        {"q": "Elle a peur ___ tomber.", "blanks": [["de"]]},
+        {"q": "Nous risquons ___ perdre.", "blanks": [["de"]]},
+        {"q": "Il propose à son collègue ___ faire une pause.", "blanks": [["de"]]}
+      ]
+    },
+    {
+      "id": "verneinung",
+      "symbol": "🚫",
+      "titel": "Verneinung",
+      "kurz": "ne … personne, personne ne …, rien ne …, ne … rien",
+      "typ": "verneinung",
+      "aufgabe": "Verneine den Satz. Ersetze quelqu'un durch personne und quelque chose durch rien.",
+      "merk": [
+        "ne … pas, ne … plus (nicht mehr), ne … jamais (nie) stehen um das konjugierte Verb: Je ne mange jamais de viande.",
+        "ne … personne (niemanden) und ne … rien (nichts): Je ne vois personne. Je ne mange rien.",
+        "Im Passé composé steht rien vor dem Partizip, personne danach: Je n'ai rien vu. Je n'ai vu personne.",
+        "Mit Infinitiv: Je ne veux rien manger. Je ne veux inviter personne.",
+        "Personne und rien können Subjekt sein, dann steht ne danach: Personne ne parle. Rien n'est facile. Hier gibt es kein pas.",
+        "Vor einem Vokal wird ne zu n': Il n'a rien dit."
+      ],
+      "items": [
+        {"q": "Je vois quelqu'un.", "antworten": ["Je ne vois personne."]},
+        {"q": "Elle mange quelque chose.", "antworten": ["Elle ne mange rien."]},
+        {"q": "Quelqu'un parle.", "antworten": ["Personne ne parle."]},
+        {"q": "Quelque chose est facile.", "antworten": ["Rien n'est facile."]},
+        {"q": "Nous avons rencontré quelqu'un.", "antworten": ["Nous n'avons rencontré personne."]},
+        {"q": "Il a dit quelque chose.", "antworten": ["Il n'a rien dit."]},
+        {"q": "Quelqu'un est venu.", "antworten": ["Personne n'est venu."]},
+        {"q": "Quelque chose a changé.", "antworten": ["Rien n'a changé."]},
+        {"q": "Elle veut manger quelque chose.", "antworten": ["Elle ne veut rien manger."]},
+        {"q": "Je veux inviter quelqu'un.", "antworten": ["Je ne veux inviter personne."]},
+        {"q": "Tu connais quelqu'un ici.", "antworten": ["Tu ne connais personne ici."]},
+        {"q": "Ils ont acheté quelque chose.", "antworten": ["Ils n'ont rien acheté."]},
+        {"q": "Vous avez trouvé quelqu'un.", "antworten": ["Vous n'avez trouvé personne."]},
+        {"q": "Il fait toujours ses devoirs.", "antworten": ["Il ne fait jamais ses devoirs."], "tipp": "Das Gegenteil von toujours ist jamais."},
+        {"q": "Elle habite encore à Lyon.", "antworten": ["Elle n'habite plus à Lyon."], "tipp": "Das Gegenteil von encore ist ne … plus."},
+        {"q": "Je comprends.", "antworten": ["Je ne comprends pas."]}
+      ]
+    },
+    {
+      "id": "vergangenheit",
+      "symbol": "⏳",
+      "titel": "Passé composé und Imparfait",
+      "kurz": "Wiederholung",
+      "typ": "luecke",
+      "aufgabe": "Setze das Verb in der richtigen Vergangenheit ein. Die Zeitform musst du selbst wählen.",
+      "merk": [
+        "Passé composé: einzelne, abgeschlossene Handlungen („gestern, plötzlich, um 8 Uhr“): Hier, je suis allé(e) au cinéma.",
+        "Imparfait: Beschreibung, Hintergrund, Gewohnheit („früher, jeden Tag, immer“): Quand j'étais petit, je jouais dehors.",
+        "Oft kommt beides zusammen: Il pleuvait (Hintergrund) quand nous sommes sortis (Ereignis).",
+        "Passé composé mit être: aller, venir, arriver, partir, sortir, entrer, rentrer, rester, monter, descendre, tomber, naître und alle reflexiven Verben. Dann richtet sich das Partizip nach dem Subjekt.",
+        "Imparfait: Stamm der nous-Form + -ais, -ais, -ait, -ions, -iez, -aient. Besonderheit: être → j'étais."
+      ],
+      "items": [
+        {"q": "Hier, je ___ (aller) au cinéma.", "blanks": [["suis allé", "suis allée"]]},
+        {"q": "Quand j'étais petit, je ___ (jouer) souvent dehors.", "blanks": [["jouais"]]},
+        {"q": "Il ___ (pleuvoir) quand nous ___ (sortir) de l'école.", "blanks": [["pleuvait"], ["sommes sortis", "sommes sorties"]]},
+        {"q": "Elle ___ (dormir) quand le téléphone ___ (sonner).", "blanks": [["dormait"], ["a sonné"]]},
+        {"q": "Le week-end dernier, nous ___ (finir) tous nos devoirs.", "blanks": [["avons fini"]]},
+        {"q": "Chaque matin, il ___ (prendre) le bus.", "blanks": [["prenait"]]},
+        {"q": "Samedi, elle ___ (rentrer) à midi.", "blanks": [["est rentrée"]]},
+        {"q": "Il ___ (faire) beau et les enfants ___ (jouer) dans le jardin.", "blanks": [["faisait"], ["jouaient"]]},
+        {"q": "Ce matin, j'___ (avoir) une bonne idée.", "blanks": [["ai eu"]]},
+        {"q": "Tu ___ (mentir) hier, n'est-ce pas ?", "blanks": [["as menti"]]},
+        {"q": "Autrefois, nous ___ (aller) à pied à l'école.", "blanks": [["allions"]]},
+        {"q": "Hier soir, ils ___ (lire) un livre pendant une heure.", "blanks": [["ont lu"]]},
+        {"q": "Quand elle ___ (être) jeune, elle ___ (rire) beaucoup.", "blanks": [["était"], ["riait"]]},
+        {"q": "Il ___ (revenir) de l'école quand il ___ (voir) un accident.", "blanks": [["revenait"], ["a vu"]]},
+        {"q": "Elle ___ (naître) en 2012.", "blanks": [["est née"]]}
+      ]
+    },
+    {
+      "id": "schreiben",
+      "symbol": "✍️",
+      "titel": "Textproduktion",
+      "kurz": "L'école, Mes amis et moi",
+      "typ": "schreiben",
+      "aufgabe": "Schreibe einen Text. Die App prüft ihn nicht, aber du hast Satzbausteine und eine Checkliste zum Abhaken.",
+      "aufgaben": [
+        {
+          "id": "ecole",
+          "titel": "L'école: la rentrée, mes résolutions, l'interdiction du portable",
+          "text": "Schreibe 8 bis 10 Sätze: Wie war die Rentrée? Was nimmst du dir für das Schuljahr vor? Was denkst du über das Handyverbot in der Schule?",
+          "bausteine": [
+            ["La rentrée, c'était …", "Die Rentrée war …"],
+            ["Pendant la rentrée, j'ai revu mes amis.", "Bei der Rentrée habe ich meine Freunde wiedergesehen."],
+            ["Cette année, je veux + Infinitiv", "Dieses Jahr will ich …"],
+            ["Je vais essayer de + Infinitiv", "Ich werde versuchen, zu …"],
+            ["Je vais arrêter de + Infinitiv", "Ich werde aufhören, zu …"],
+            ["Je ne veux plus + Infinitiv", "Ich will nicht mehr …"],
+            ["Je commence à + Infinitiv", "Ich fange an, zu …"],
+            ["À mon avis, l'interdiction du portable est …", "Meiner Meinung nach ist das Handyverbot …"],
+            ["D'un côté …, de l'autre …", "Einerseits …, andererseits …"],
+            ["Par exemple, …", "Zum Beispiel …"],
+            ["Personne ne peut utiliser son portable en classe.", "Niemand darf sein Handy im Unterricht benutzen."],
+            ["Pour finir, je pense que …", "Zum Schluss denke ich, dass …"]
+          ],
+          "checkliste": [
+            "Mindestens 8 Sätze geschrieben",
+            "Mindestens ein Verb im Passé composé",
+            "Mindestens ein Verb im Imparfait",
+            "Eine Verneinung mit rien oder personne benutzt",
+            "Ein Verb mit Infinitivanschluss (à oder de) benutzt",
+            "Meine Meinung zum Handyverbot mit einer Begründung genannt",
+            "Alle Verben nochmal auf die richtige Endung kontrolliert"
+          ]
+        },
+        {
+          "id": "amis",
+          "titel": "Mes amis et moi: einen Rat geben",
+          "text": "Schreibe eine kurze Nachricht an einen Freund oder eine Freundin mit einem Problem (z. B. schlechte Note, Streit, keine Zeit). Gib mindestens drei Ratschläge. Der Kasten „on dit“ auf S. 17 im Buch hilft dir.",
+          "bausteine": [
+            ["Salut …, ça va ?", "Hallo …, wie geht’s?"],
+            ["Je comprends que tu es triste.", "Ich verstehe, dass du traurig bist."],
+            ["Tu peux + Infinitiv", "Du kannst …"],
+            ["Tu dois + Infinitiv", "Du musst …"],
+            ["Je te conseille de + Infinitiv", "Ich rate dir, zu …"],
+            ["Il faut + Infinitiv", "Man muss …"],
+            ["Pourquoi tu ne … pas ?", "Warum … du nicht?"],
+            ["N'oublie pas de + Infinitiv", "Vergiss nicht, zu …"],
+            ["Essaie de + Infinitiv", "Versuche, zu …"],
+            ["Ne t'inquiète pas !", "Mach dir keine Sorgen!"],
+            ["Bonne chance !", "Viel Glück!"],
+            ["Amitiés, …", "Liebe Grüße, …"]
+          ],
+          "checkliste": [
+            "Anrede und Gruß am Ende",
+            "Mindestens drei Ratschläge gegeben",
+            "Einmal den Imperativ benutzt (z. B. essaie de, n'oublie pas de)",
+            "Eine Verneinung benutzt",
+            "Ein Verb mit Infinitivanschluss (à oder de) benutzt",
+            "Passé composé oder Imparfait für etwas Vergangenes benutzt",
+            "Alle Sätze nochmal auf Rechtschreibung kontrolliert"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -5,7 +5,7 @@ Vokabeltrainer für Französisch (Découvertes, 8. Jahrgangsstufe).
 ## Projektstruktur
 
 ```
-index.html, style.css, app.js, settings.js, feedback.js, consent.js   die App (statisch, kein Build nötig)
+index.html, style.css, app.js, settings.js, schulaufgabe.js, feedback.js, consent.js   die App (statisch, kein Build nötig)
 sw.js, manifest.webmanifest, icons/          Offline-Modus und Installation als App
 datenschutz.html                             Datenschutzerklärung
 lektionen/<name>/database*.json (+ Audio/Bilder)   Vokabellektionen
@@ -57,6 +57,12 @@ Quelle ist nur die Seite mit der Lösung (`…-tout.html`). Die Varianten tâche
 Jede Verb-Karte in den Lektionen lässt sich konjugieren: Unter dem Verb stehen Zeilen für je, tu, il, nous, vous, ils, getrennt für Présent und Passé composé; man tippt die Formen, Enter springt zur nächsten Zeile, danach kommt die Lösung. In der Lernauswahl gibt es zwei Schalter („Verben konjugieren: Présent“ und „Passé composé“). Sind beide aus, kommt nur die Grundform.
 
 `scripts/import_conjugation.py` erzeugt `verben.json` aus den Vokabeln aller Lektionen. Als Verb gilt eine Vokabel, deren erstes Wort auf -er/-ir/-re/-oir endet (Zusätze wie „de + Inf.“, „qn“, „à“ werden ignoriert, feste Wendungen wie „jouer au foot“ nicht). Regelmäßige Verben bildet das Skript nach Regeln, unregelmäßige stehen in der Tabelle `IRREGULAR` im Skript. Das Passé composé der Verben aus den Übungen (`uebungen/*/uebung.json`) wird aus der dort angegebenen Form abgeleitet. Unbekannte Verben rät das Skript nicht; es meldet sie im Lauf, dann den Eintrag in `IRREGULAR` ergänzen. Der Import-Workflow führt das Skript automatisch aus und committet `verben.json`.
+
+## Bereich „Schulaufgabe“ (`schulaufgabe.json`)
+
+Auf der Startseite führt „Schulaufgabe vorbereiten“ zu Themen mit Merkkasten und Übungen: Verben konjugieren (Présent, Passé composé, Imparfait), Vorsilbe re-, Verben mit Infinitivanschluss, Verneinung, Passé composé und Imparfait sowie Textproduktion mit Satzbausteinen und Checkliste. Aufgaben, die man falsch hatte, kommen in der nächsten Runde zuerst.
+
+Die Themen pflegst du in `scripts/schulaufgabe_themen.json` (Typen `luecke`, `verneinung`, `konjugieren`, `schreiben`). Danach `npm run schulaufgabe` ausführen: Das Skript prüft die Datei, berechnet die Verbformen und schreibt `schulaufgabe.json`. Ein Test stellt sicher, dass beide Dateien zusammenpassen. Neue Themen müssen den Stoff des Zettels abdecken; die Inhalte zu „Kasten S. 165“ und „on dit S. 17“ stammen nicht aus dem Buch und sollten mit diesem verglichen werden.
 
 ## Einstellungen in der App (⚙ oben rechts)
 

@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INDEX_FILE = "index.json"
 TITLES_FILE = "titles.json"
-IGNORED_FOLDERS = {"node_modules", "assets", "docs"}  # wie CFG.ignore in index.html
+IGNORED_FOLDERS = {"node_modules", "assets", "docs", "scripts", "tests"}  # wie CFG.ignore in index.html
 PREFERRED_FILE = re.compile(r"^database", re.IGNORECASE)  # wie CFG.prefer in index.html
 SUBFOLDER_ROOTS = ("lektionen", "uebungen")  # lektionen/<name>/database*.json, uebungen/<name>/uebung.json (Übungen zuletzt)
 
