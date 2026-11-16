@@ -37,6 +37,21 @@ jobs:
           ref: dev
           path: site/dev
 
+      # Pro Seite eine version.json (Commit + Zeit) und der Commit als Cache-Version im Service Worker.
+      # So erkennt die App neue Versionen, und der Service Worker legt bei jeder Änderung einen frischen Cache an.
+      - name: Stamp version
+        run: |
+          stamp() {
+            dir="$1"
+            [ -d "$dir/.git" ] || return 0
+            sha="$(git -C "$dir" rev-parse --short=7 HEAD)"
+            printf '{"version":"%s","built":"%s"}\n' "$sha" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$dir/version.json"
+            sed -i "s/^const VERSION = '[^']*';/const VERSION = '$sha';/" "$dir/sw.js"
+            echo "$dir: $sha"
+          }
+          stamp site
+          stamp site/dev
+
       - name: Assemble site
         run: |
           rm -rf site/.git site/dev/.git

@@ -33,6 +33,7 @@ async function saMenu() {
   const progress = saProgress();
   app.innerHTML = `<div class="top"><button id="sa-back" type="button">← Zurück</button></div>
   <h1>${esc(data.titel)}</h1><p class="mut lead">${esc(data.untertitel)}</p>
+  <details class="rules" open><summary>So funktioniert es</summary><ol>${(data.anleitung || []).map(line => `<li>${esc(line)}</li>`).join('')}</ol></details>
   <div class="topics">${data.themen.map(topic => {
     const last = (progress[topic.id] || {}).last;
     const state = topic.typ === 'schreiben' ? 'Schreibaufgabe' : last ? `Zuletzt ${last.ok} von ${last.total} richtig` : 'Noch nicht geübt';
@@ -53,8 +54,11 @@ function saTopic(id) {
   const isWriting = topic.typ === 'schreiben';
   app.innerHTML = `<div class="top"><button id="sa-back" type="button">← Themen</button></div>
   <h1>${topic.symbol} ${esc(topic.titel)}</h1>
-  ${rules ? `<details class="rules" ${isWriting ? '' : 'open'}><summary>Merkkasten</summary><ul>${rules}</ul></details>` : ''}
-  <p class="mut">${esc(topic.aufgabe)}</p>
+  ${topic.worum ? `<p class="about">${esc(topic.worum)}</p>` : ''}
+  ${rules ? `<details class="rules" open><summary>Merkkasten</summary><ul>${rules}</ul></details>` : ''}
+  ${topic.beispiele ? `<details class="rules" open><summary>Beispiele</summary><ul class="examples">${topic.beispiele.map(([fr, de]) => `<li><b lang="fr">${esc(fr)}</b><br><span class="mut">${esc(de)}</span></li>`).join('')}</ul></details>` : ''}
+  ${topic.eingabe ? `<details class="rules"><summary>So gibst du die Antwort ein</summary><p>${esc(topic.eingabe)}</p></details>` : ''}
+  <p class="task"><b>Aufgabe:</b> ${esc(topic.aufgabe)}</p>
   ${isWriting ? `<div class="topics">${topic.aufgaben.map(task => `<button type="button" class="topic" data-task="${esc(task.id)}"><span class="sym" aria-hidden="true">✍️</span><span class="tt"><b>${esc(task.titel)}</b></span></button>`).join('')}</div>`
     : `<section class="panel"><div class="opts"><label>Aufgaben pro Runde
         <select id="sa-count"><option value="5">5</option><option value="10">10</option><option value="0">Alle (${topic.items.length})</option></select></label></div></section>
@@ -132,7 +136,8 @@ function saRound(topic, count, fixed) {
     }
     app.innerHTML = `<div class="top"><span class="tl"><button id="sa-end" type="button">← Beenden</button></span><span class="mut">${index + 1} von ${total}</span></div>
       <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
-      <div class="card sa-card"><span class="mut">${esc(topic.titel)}</span>${body}<div class="feedback" id="sa-feedback" role="status"></div></div>
+      <div class="card sa-card"><span class="mut">${esc(topic.titel)}</span><p class="mut task-line">${esc(topic.aufgabe)}</p>${body}<div class="feedback" id="sa-feedback" role="status"></div></div>
+      ${(topic.merk || []).length ? `<details class="rules compact"><summary>📖 Merkkasten ansehen</summary><ul>${topic.merk.map(line => `<li>${esc(line)}</li>`).join('')}</ul></details>` : ''}
       <div class="btns"><button id="sa-check" class="primary" type="button" style="flex:1">Prüfen</button></div>`;
     const inputs = [...app.querySelectorAll('.blank')];
     app.querySelector('#sa-end').onclick = () => saTopic(topic.id);
@@ -169,7 +174,7 @@ function saRound(topic, count, fixed) {
     checked = true;
     if (good) right++; else { wrong.push(`<b>${esc(questionText(item))}</b> → ${esc(solutionText(item))}`); wrongIdx.add(index); }
     record(item, good);
-    const tip = !good && item.tipp ? `<div class="tip">💡 ${esc(item.tipp)}</div>` : '';
+    const tip = item.erkl ? `<div class="tip">💡 ${esc(item.erkl)}</div>` : !good && item.tipp ? `<div class="tip">💡 ${esc(item.tipp)}</div>` : '';
     const answer = !good && topic.typ !== 'konjugieren' ? `<div class="sol">Lösung: ${esc(solutionText(item))}</div>` : '';
     app.querySelector('#sa-feedback').innerHTML = `<div class="${good ? 'okmsg' : 'badmsg'}">${good ? '✓ Richtig!' : '✗ Leider falsch.'}</div>${answer}${tip}`;
     const button = app.querySelector('#sa-check');

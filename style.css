@@ -181,3 +181,15 @@ details.rules ul{margin:8px 0 2px;padding-left:1.2em;display:grid;gap:6px;font-s
 #sa-text{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 .checks{display:grid;gap:8px}
 .checks label{display:flex;gap:8px;align-items:flex-start;font-size:.95rem}
+
+.about{margin:6px 0 10px;font-size:.98rem}
+.task{margin:12px 0 8px}
+.task-line{margin:4px 0 0;font-size:.88rem}
+details.rules ol{margin:8px 0 2px;padding-left:1.3em;display:grid;gap:6px;font-size:.93rem}
+details.rules p{margin:8px 0 2px;font-size:.93rem}
+details.rules .examples{list-style:none;padding-left:0}
+details.rules.compact{margin-top:12px}
+
+/* Update-Hinweis */
+#update-banner{position:sticky;top:0;z-index:30;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border-bottom:2px solid var(--acc);font-size:.92rem}
+#update-banner .acts{display:flex;gap:8px}

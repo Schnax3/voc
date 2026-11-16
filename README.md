@@ -5,7 +5,7 @@ Vokabeltrainer für Französisch (Découvertes, 8. Jahrgangsstufe).
 ## Projektstruktur
 
 ```
-index.html, style.css, app.js, settings.js, schulaufgabe.js, feedback.js, consent.js   die App (statisch, kein Build nötig)
+index.html, style.css, app.js, settings.js, schulaufgabe.js, updates.js, feedback.js, consent.js   die App (statisch, kein Build nötig)
 sw.js, manifest.webmanifest, icons/          Offline-Modus und Installation als App
 datenschutz.html                             Datenschutzerklärung
 lektionen/<name>/database*.json (+ Audio/Bilder)   Vokabellektionen
@@ -97,6 +97,15 @@ Die App hat „Verbesserung vorschlagen“ (Startseite unten und am Rundenende).
 4. In `feedback-config.json` eintragen: `{ "endpoint": "https://script.google.com/macros/s/…/exec" }`.
 
 Der Token steht nur im Zwischendienst, nie im Code der Seite. Der Dienst begrenzt auf 20 Vorschläge pro Stunde; die App hat zusätzlich eine Pause und eine Spam-Falle.
+
+## Updates für offline gespeicherte Apps
+
+Audio und Bilder werden offline aus dem Speicher geliefert. Damit geänderte Dateien nicht alt bleiben, legt die Veröffentlichung (`deploy-site.yml`) pro Seite eine `version.json` mit dem Commit ab und setzt denselben Commit als Cache-Version in `sw.js`. Die App (`updates.js`) vergleicht beim Öffnen, beim Zurückkehren zur App und bei wieder vorhandenem Internet:
+
+- läuft eine ältere Version als die veröffentlichte (App lange offen), erscheint oben eine Leiste „Es gibt eine neue Version“;
+- sind offline gespeicherte Lektionen nicht mehr aktuell, erscheint „Es gibt neue Inhalte“.
+
+„Jetzt aktualisieren“ lädt die Lektionen neu, prüft jede gespeicherte Audio-/Bilddatei per ETag/Last-Modified, lädt nur geänderte und neue Dateien nach, entfernt gelöschte und lädt die App neu. In den Einstellungen gibt es „Version und Updates“ mit „Nach Updates suchen“. Lokal (ohne `version.json`) bleibt das ohne Wirkung.
 
 ## Offline-Nutzung
 

@@ -207,6 +207,13 @@ function settings() {
     <div id="install-box">${installHtml()}</div>
   </section>
 
+  <section class="panel" id="sec-update" aria-label="Version und Updates">
+    <h2>Version und Updates</h2>
+    <p class="hint">Ist die App offline gespeichert, liefert sie Audio und Bilder aus dem Speicher. Mit einem Update lädst du neue und geänderte Dateien nach und die neueste Version der App. Die App sucht beim Öffnen automatisch danach.</p>
+    <p class="hint" id="update-status" role="status"></p>
+    <div class="btns small"><button id="update-check" type="button">Nach Updates suchen</button><button id="update-apply" type="button" class="primary" hidden>Jetzt aktualisieren</button></div>
+  </section>
+
   <section class="panel" id="sec-offline" aria-label="Offline-Nutzung">
     <h2>Offline-Nutzung</h2>
     <p class="hint">Einmal online vorbereiten: Speichere die App und Lektionen, solange du Internet hast. „Alle Lektionen offline speichern“ ist der einfachste Weg; danach kannst du die Seite auch ohne Verbindung öffnen.</p>
@@ -392,5 +399,6 @@ function settings() {
   };
 
   $('#back-home').onclick = leaveScreen;
+  bindUpdateSection(app);
   window.scrollTo(0, 0);
 }

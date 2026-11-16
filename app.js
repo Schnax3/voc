@@ -330,13 +330,17 @@ const OFFLINE_SAVED_KEY = `vk:offline-saved:${R.owner}/${R.repo}`;
 const OFFLINE_KNOWN_KEY = `vk:offline-known:${R.owner}/${R.repo}`;
 const OFFLINE_DOWNLOAD_CONCURRENCY = 8;
 const offlineTableKey = table => `${table.dir}/${table.file}`;
-async function saveOffline(dirs, progress) {
-  const cache = await caches.open(MEDIA_CACHE), urls = new Set();
+// Alle Audio- und Bild-Adressen der (bereits geladenen) Lektionen
+function offlineUrlList(dirs) {
+  const urls = new Set();
   for (const d of dirs) for (const c of DB.get(d) || []) {
     if (c.au) urls.add(new URL(audioUrl(c.table, c.au), location.href).href);
     for (const s of c.img) urls.add(new URL(imageUrl(c.table, s), location.href).href);
   }
-  const list = [...urls].filter(u => new URL(u).origin === location.origin);
+  return [...urls].filter(u => new URL(u).origin === location.origin);
+}
+async function saveOffline(dirs, progress) {
+  const cache = await caches.open(MEDIA_CACHE), list = offlineUrlList(dirs);
   let done = 0, failed = 0, next = 0;
   const worker = async () => {
     while (next < list.length) {

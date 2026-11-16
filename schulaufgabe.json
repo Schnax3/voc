@@ -18,6 +18,26 @@
     "changer und partager: vor -o- bleibt das e: nous changeons, nous partageons. Imparfait: je changeais, aber nous changions.",
     "Imparfait: Stamm der nous-Form (ohne -ons) + -ais, -ais, -ait, -ions, -iez, -aient."
    ],
+   "worum": "Du schreibst zu einem Verb alle sechs Formen in einer Zeit: je, tu, il, nous, vous, ils. Du siehst das Verb, die deutsche Bedeutung und die Zeit. Das übt genau die Formen, die im exercice mixte vorkommen.",
+   "eingabe": "Schreibe nur die Verbform, das Pronomen steht schon da (bei j' fehlt nur der Rest: ai offert). Im Passé composé mit être musst du die Endung nicht sicher wissen: venu und venue sind beide richtig, bei nous und vous auch venus und venues. Mit Enter springst du zur nächsten Zeile.",
+   "beispiele": [
+    [
+     "je finis, nous finissons, ils finissent",
+     "ich beende, wir beenden, sie beenden"
+    ],
+    [
+     "j'ai offert",
+     "ich habe geschenkt"
+    ],
+    [
+     "je suis revenu(e)",
+     "ich bin zurückgekommen"
+    ],
+    [
+     "je changeais, nous changions",
+     "ich änderte, wir änderten"
+    ]
+   ],
    "items": [
     {
      "verb": "venir",
@@ -544,7 +564,8 @@
       [
        "relire"
       ]
-     ]
+     ],
+     "erkl": "re- bedeutet „noch einmal“. relire geht wie lire."
     },
     {
      "q": "commencer + re- → ___ (neu anfangen)",
@@ -552,7 +573,8 @@
       [
        "recommencer"
       ]
-     ]
+     ],
+     "erkl": "recommencer = noch einmal anfangen. Es wird wie commencer konjugiert."
     },
     {
      "q": "faire + re- → ___ (noch einmal machen)",
@@ -560,7 +582,8 @@
       [
        "refaire"
       ]
-     ]
+     ],
+     "erkl": "refaire = noch einmal machen. Es geht wie faire: je refais."
     },
     {
      "q": "venir + re- → ___ (zurückkommen)",
@@ -568,7 +591,8 @@
       [
        "revenir"
       ]
-     ]
+     ],
+     "erkl": "revenir = zurückkommen. Es geht wie venir und bildet das Passé composé mit être."
     },
     {
      "q": "partir + re- → ___ (wieder wegfahren)",
@@ -576,7 +600,8 @@
       [
        "repartir"
       ]
-     ]
+     ],
+     "erkl": "repartir = wieder weggehen. Es geht wie partir: je repars."
     },
     {
      "q": "trouver + re- → ___ (wiederfinden)",
@@ -584,7 +609,8 @@
       [
        "retrouver"
       ]
-     ]
+     ],
+     "erkl": "retrouver = wiederfinden oder wiedertreffen."
     },
     {
      "q": "dire + re- → ___ (noch einmal sagen)",
@@ -592,7 +618,8 @@
       [
        "redire"
       ]
-     ]
+     ],
+     "erkl": "redire = noch einmal sagen. Es geht wie dire: il redit."
     },
     {
      "q": "entrer + re- → ___ (nach Hause kommen, zurückgehen)",
@@ -600,7 +627,8 @@
       [
        "rentrer"
       ]
-     ]
+     ],
+     "erkl": "Vor einem Vokal wird re- zu r-: rentrer = zurückgehen, nach Hause gehen."
     },
     {
      "q": "Après les vacances, les élèves ___ (revenir, Passé composé) à l'école.",
@@ -610,7 +638,7 @@
        "sont revenues"
       ]
      ],
-     "tipp": "revenir bildet das Passé composé mit être."
+     "erkl": "revenir bildet das Passé composé mit être. Das Partizip richtet sich nach dem Subjekt: les élèves → revenus."
     },
     {
      "q": "Elle ___ (relire, Passé composé) son texte.",
@@ -618,7 +646,8 @@
       [
        "a relu"
       ]
-     ]
+     ],
+     "erkl": "relire geht wie lire (Partizip lu). Mit avoir bleibt das Partizip unverändert: elle a relu."
     },
     {
      "q": "Je ___ (recommencer, Passé composé) mon exercice.",
@@ -626,7 +655,8 @@
       [
        "ai recommencé"
       ]
-     ]
+     ],
+     "erkl": "recommencer bildet das Passé composé mit avoir: j'ai recommencé."
     },
     {
      "q": "Tu ___ (refaire, Présent) la même erreur.",
@@ -634,8 +664,25 @@
       [
        "refais"
       ]
-     ]
+     ],
+     "erkl": "refaire geht wie faire: tu fais → tu refais."
     }
+   ],
+   "worum": "Die Vorsilbe re- verändert die Bedeutung eines Verbs: wieder, noch einmal oder zurück. Du bildest neue Verben und setzt sie in die richtige Form.",
+   "eingabe": "Schreibe das gesuchte Wort in die Lücke. Besteht die Lösung aus zwei Wörtern (z. B. a relu), schreibe beide.",
+   "beispiele": [
+    [
+     "lire → relire",
+     "lesen → noch einmal lesen"
+    ],
+    [
+     "venir → revenir",
+     "kommen → zurückkommen"
+    ],
+    [
+     "entrer → rentrer",
+     "hineingehen → nach Hause gehen"
+    ]
    ]
   },
   {
@@ -658,7 +705,8 @@
       [
        "–"
       ]
-     ]
+     ],
+     "erkl": "aimer steht direkt vor dem Infinitiv, ohne Präposition."
     },
     {
      "q": "Nous préférons ___ rester à la maison.",
@@ -666,7 +714,8 @@
       [
        "–"
       ]
-     ]
+     ],
+     "erkl": "préférer steht direkt vor dem Infinitiv."
     },
     {
      "q": "Il veut ___ partir.",
@@ -674,7 +723,8 @@
       [
        "–"
       ]
-     ]
+     ],
+     "erkl": "vouloir steht direkt vor dem Infinitiv."
     },
     {
      "q": "Je peux ___ t'aider.",
@@ -682,7 +732,8 @@
       [
        "–"
       ]
-     ]
+     ],
+     "erkl": "pouvoir steht direkt vor dem Infinitiv."
     },
     {
      "q": "Tu dois ___ faire tes devoirs.",
@@ -690,7 +741,8 @@
       [
        "–"
       ]
-     ]
+     ],
+     "erkl": "devoir steht direkt vor dem Infinitiv."
     },
     {
      "q": "Elle sait ___ nager.",
@@ -698,7 +750,8 @@
       [
        "–"
       ]
-     ]
+     ],
+     "erkl": "savoir steht direkt vor dem Infinitiv."
     },
     {
      "q": "Ils vont ___ arriver demain.",
@@ -706,7 +759,8 @@
       [
        "–"
       ]
-     ]
+     ],
+     "erkl": "aller + Infinitiv (futur proche) steht ohne Präposition."
     },
     {
      "q": "Il commence ___ travailler.",
@@ -714,7 +768,8 @@
       [
        "à"
       ]
-     ]
+     ],
+     "erkl": "commencer à + Infinitiv."
     },
     {
      "q": "Nous continuons ___ apprendre le français.",
@@ -724,7 +779,7 @@
        "de"
       ]
      ],
-     "tipp": "Bei continuer sind à und de möglich."
+     "erkl": "continuer à oder continuer de + Infinitiv. Beides ist richtig."
     },
     {
      "q": "Elle apprend ___ jouer du piano.",
@@ -732,7 +787,8 @@
       [
        "à"
       ]
-     ]
+     ],
+     "erkl": "apprendre à + Infinitiv."
     },
     {
      "q": "Il aide son ami ___ sortir du trou.",
@@ -740,7 +796,8 @@
       [
        "à"
       ]
-     ]
+     ],
+     "erkl": "aider qn à + Infinitiv."
     },
     {
      "q": "J'ai réussi ___ finir mon projet.",
@@ -748,7 +805,8 @@
       [
        "à"
       ]
-     ]
+     ],
+     "erkl": "réussir à + Infinitiv."
     },
     {
      "q": "Ils s'amusent ___ jouer au foot.",
@@ -756,7 +814,8 @@
       [
        "à"
       ]
-     ]
+     ],
+     "erkl": "s'amuser à + Infinitiv."
     },
     {
      "q": "J'essaie ___ comprendre.",
@@ -764,7 +823,8 @@
       [
        "de"
       ]
-     ]
+     ],
+     "erkl": "essayer de + Infinitiv."
     },
     {
      "q": "Tu as oublié ___ fermer la porte.",
@@ -772,7 +832,8 @@
       [
        "de"
       ]
-     ]
+     ],
+     "erkl": "oublier de + Infinitiv."
     },
     {
      "q": "Elle a fini ___ travailler.",
@@ -780,7 +841,8 @@
       [
        "de"
       ]
-     ]
+     ],
+     "erkl": "finir de + Infinitiv."
     },
     {
      "q": "Il arrête ___ fumer.",
@@ -788,7 +850,8 @@
       [
        "de"
       ]
-     ]
+     ],
+     "erkl": "arrêter de + Infinitiv."
     },
     {
      "q": "Il rêve ___ devenir pilote.",
@@ -796,7 +859,8 @@
       [
        "de"
       ]
-     ]
+     ],
+     "erkl": "rêver de + Infinitiv."
     },
     {
      "q": "J'ai envie ___ manger du chocolat.",
@@ -804,7 +868,8 @@
       [
        "de"
       ]
-     ]
+     ],
+     "erkl": "avoir envie de + Infinitiv."
     },
     {
      "q": "Elle a peur ___ tomber.",
@@ -812,7 +877,8 @@
       [
        "de"
       ]
-     ]
+     ],
+     "erkl": "avoir peur de + Infinitiv."
     },
     {
      "q": "Nous risquons ___ perdre.",
@@ -820,7 +886,8 @@
       [
        "de"
       ]
-     ]
+     ],
+     "erkl": "risquer de + Infinitiv."
     },
     {
      "q": "Il propose à son collègue ___ faire une pause.",
@@ -828,8 +895,25 @@
       [
        "de"
       ]
-     ]
+     ],
+     "erkl": "proposer à qn de + Infinitiv."
     }
+   ],
+   "worum": "Manche Verben stehen direkt vor einem Infinitiv, andere brauchen à oder de dazwischen. Das gibt es nicht als Regel, du musst die Verben mit ihrer Präposition lernen.",
+   "eingabe": "Schreibe à oder de in die Lücke. Wenn keine Präposition nötig ist, schreibe – (oder einfach -).",
+   "beispiele": [
+    [
+     "Il veut partir.",
+     "Er will gehen. (ohne Präposition)"
+    ],
+    [
+     "Il commence à travailler.",
+     "Er fängt an zu arbeiten. (à)"
+    ],
+    [
+     "Il arrête de fumer.",
+     "Er hört auf zu rauchen. (de)"
+    ]
    ]
   },
   {
@@ -852,100 +936,134 @@
      "q": "Je vois quelqu'un.",
      "antworten": [
       "Je ne vois personne."
-     ]
+     ],
+     "erkl": "quelqu'un wird zu personne. ne und personne umschließen das Verb: Je ne vois personne."
     },
     {
      "q": "Elle mange quelque chose.",
      "antworten": [
       "Elle ne mange rien."
-     ]
+     ],
+     "erkl": "quelque chose wird zu rien. ne … rien umschließt das Verb."
     },
     {
      "q": "Quelqu'un parle.",
      "antworten": [
       "Personne ne parle."
-     ]
+     ],
+     "erkl": "Ist die Person das Subjekt, steht personne am Satzanfang und ne vor dem Verb. Es gibt kein pas."
     },
     {
      "q": "Quelque chose est facile.",
      "antworten": [
       "Rien n'est facile."
-     ]
+     ],
+     "erkl": "rien als Subjekt: Rien ne … Vor einem Vokal wird ne zu n': Rien n'est facile."
     },
     {
      "q": "Nous avons rencontré quelqu'un.",
      "antworten": [
       "Nous n'avons rencontré personne."
-     ]
+     ],
+     "erkl": "Im Passé composé umschließt ne … das Hilfsverb. personne steht hinter dem Partizip."
     },
     {
      "q": "Il a dit quelque chose.",
      "antworten": [
       "Il n'a rien dit."
-     ]
+     ],
+     "erkl": "Im Passé composé steht rien zwischen Hilfsverb und Partizip: n'a rien dit."
     },
     {
      "q": "Quelqu'un est venu.",
      "antworten": [
       "Personne n'est venu."
-     ]
+     ],
+     "erkl": "personne als Subjekt: Personne ne … Vor Vokal wird ne zu n': Personne n'est venu."
     },
     {
      "q": "Quelque chose a changé.",
      "antworten": [
       "Rien n'a changé."
-     ]
+     ],
+     "erkl": "rien als Subjekt: Rien n'a changé."
     },
     {
      "q": "Elle veut manger quelque chose.",
      "antworten": [
       "Elle ne veut rien manger."
-     ]
+     ],
+     "erkl": "Bei Verb + Infinitiv umschließt ne … das konjugierte Verb. rien steht direkt vor dem Infinitiv."
     },
     {
      "q": "Je veux inviter quelqu'un.",
      "antworten": [
       "Je ne veux inviter personne."
-     ]
+     ],
+     "erkl": "Bei Verb + Infinitiv umschließt ne … das konjugierte Verb. personne steht hinter dem Infinitiv."
     },
     {
      "q": "Tu connais quelqu'un ici.",
      "antworten": [
       "Tu ne connais personne ici."
-     ]
+     ],
+     "erkl": "ne … personne umschließt das Verb, ici bleibt am Ende."
     },
     {
      "q": "Ils ont acheté quelque chose.",
      "antworten": [
       "Ils n'ont rien acheté."
-     ]
+     ],
+     "erkl": "Im Passé composé steht rien vor dem Partizip: n'ont rien acheté."
     },
     {
      "q": "Vous avez trouvé quelqu'un.",
      "antworten": [
       "Vous n'avez trouvé personne."
-     ]
+     ],
+     "erkl": "Im Passé composé steht personne hinter dem Partizip: n'avez trouvé personne."
     },
     {
      "q": "Il fait toujours ses devoirs.",
      "antworten": [
       "Il ne fait jamais ses devoirs."
      ],
-     "tipp": "Das Gegenteil von toujours ist jamais."
+     "erkl": "toujours (immer) wird zu ne … jamais (nie)."
     },
     {
      "q": "Elle habite encore à Lyon.",
      "antworten": [
       "Elle n'habite plus à Lyon."
      ],
-     "tipp": "Das Gegenteil von encore ist ne … plus."
+     "erkl": "encore (noch) wird zu ne … plus (nicht mehr). Vor einem Vokal wird ne zu n'."
     },
     {
      "q": "Je comprends.",
      "antworten": [
       "Je ne comprends pas."
-     ]
+     ],
+     "erkl": "Die einfachste Verneinung ist ne … pas um das Verb."
     }
+   ],
+   "worum": "Du verneinst Sätze mit den neuen Wörtern personne (niemand) und rien (nichts). Dazu wiederholst du ne … plus und ne … jamais.",
+   "eingabe": "Schreibe den ganzen verneinten Satz. Groß-/Kleinschreibung, die Form des Apostrophs und der Punkt am Ende sind egal. Die Akzente müssen stimmen.",
+   "beispiele": [
+    [
+     "Je ne vois personne.",
+     "Ich sehe niemanden."
+    ],
+    [
+     "Il n'a rien dit.",
+     "Er hat nichts gesagt."
+    ],
+    [
+     "Personne ne parle.",
+     "Niemand spricht."
+    ],
+    [
+     "Rien n'est facile.",
+     "Nichts ist leicht."
+    ]
    ]
   },
   {
@@ -970,7 +1088,8 @@
        "suis allé",
        "suis allée"
       ]
-     ]
+     ],
+     "erkl": "„Hier“ nennt einen abgeschlossenen Zeitpunkt, deshalb Passé composé. aller bildet es mit être: je suis allé(e)."
     },
     {
      "q": "Quand j'étais petit, je ___ (jouer) souvent dehors.",
@@ -978,7 +1097,8 @@
       [
        "jouais"
       ]
-     ]
+     ],
+     "erkl": "„Quand j'étais petit“ und „souvent“ beschreiben eine Gewohnheit: Imparfait. jouer → je jouais."
     },
     {
      "q": "Il ___ (pleuvoir) quand nous ___ (sortir) de l'école.",
@@ -990,7 +1110,8 @@
        "sommes sortis",
        "sommes sorties"
       ]
-     ]
+     ],
+     "erkl": "Der Regen ist der Hintergrund (Imparfait: pleuvait), das Hinausgehen ein Ereignis (Passé composé mit être: sommes sortis)."
     },
     {
      "q": "Elle ___ (dormir) quand le téléphone ___ (sonner).",
@@ -1001,7 +1122,8 @@
       [
        "a sonné"
       ]
-     ]
+     ],
+     "erkl": "Das Schlafen dauert an (Imparfait), das Klingeln unterbricht es (Passé composé)."
     },
     {
      "q": "Le week-end dernier, nous ___ (finir) tous nos devoirs.",
@@ -1009,7 +1131,8 @@
       [
        "avons fini"
       ]
-     ]
+     ],
+     "erkl": "„Le week-end dernier“ ist abgeschlossen: Passé composé mit avoir: nous avons fini."
     },
     {
      "q": "Chaque matin, il ___ (prendre) le bus.",
@@ -1017,7 +1140,8 @@
       [
        "prenait"
       ]
-     ]
+     ],
+     "erkl": "„Chaque matin“ ist eine Gewohnheit: Imparfait. Stamm von nous prenons: pren- → il prenait."
     },
     {
      "q": "Samedi, elle ___ (rentrer) à midi.",
@@ -1025,7 +1149,8 @@
       [
        "est rentrée"
       ]
-     ]
+     ],
+     "erkl": "Einmalige Handlung: Passé composé. rentrer bildet es mit être, das Partizip bekommt ein e: elle est rentrée."
     },
     {
      "q": "Il ___ (faire) beau et les enfants ___ (jouer) dans le jardin.",
@@ -1036,7 +1161,8 @@
       [
        "jouaient"
       ]
-     ]
+     ],
+     "erkl": "Wetter und gleichzeitige Handlungen im Hintergrund stehen im Imparfait: faisait, jouaient."
     },
     {
      "q": "Ce matin, j'___ (avoir) une bonne idée.",
@@ -1044,7 +1170,8 @@
       [
        "ai eu"
       ]
-     ]
+     ],
+     "erkl": "„Ce matin“ ist einmalig: Passé composé. Das Partizip von avoir ist eu: j'ai eu."
     },
     {
      "q": "Tu ___ (mentir) hier, n'est-ce pas ?",
@@ -1052,7 +1179,8 @@
       [
        "as menti"
       ]
-     ]
+     ],
+     "erkl": "„Hier“ ist abgeschlossen: Passé composé mit avoir: tu as menti."
     },
     {
      "q": "Autrefois, nous ___ (aller) à pied à l'école.",
@@ -1060,7 +1188,8 @@
       [
        "allions"
       ]
-     ]
+     ],
+     "erkl": "„Autrefois“ (früher) beschreibt eine Gewohnheit: Imparfait. nous allons → nous allions."
     },
     {
      "q": "Hier soir, ils ___ (lire) un livre pendant une heure.",
@@ -1068,7 +1197,8 @@
       [
        "ont lu"
       ]
-     ]
+     ],
+     "erkl": "Die Handlung ist abgeschlossen, auch mit Dauer: Passé composé: ils ont lu."
     },
     {
      "q": "Quand elle ___ (être) jeune, elle ___ (rire) beaucoup.",
@@ -1079,7 +1209,8 @@
       [
        "riait"
       ]
-     ]
+     ],
+     "erkl": "Ein Zustand und eine Gewohnheit in der Vergangenheit: Imparfait. être → elle était, rire → elle riait."
     },
     {
      "q": "Il ___ (revenir) de l'école quand il ___ (voir) un accident.",
@@ -1090,7 +1221,8 @@
       [
        "a vu"
       ]
-     ]
+     ],
+     "erkl": "Das Zurückkommen läuft gerade (Imparfait: revenait), der Unfall passiert plötzlich (Passé composé: a vu)."
     },
     {
      "q": "Elle ___ (naître) en 2012.",
@@ -1098,8 +1230,25 @@
       [
        "est née"
       ]
-     ]
+     ],
+     "erkl": "naître bildet das Passé composé mit être. Subjekt elle → est née."
     }
+   ],
+   "worum": "Du entscheidest selbst, ob Passé composé oder Imparfait passt, und bildest die Form. Signalwörter wie „hier“, „chaque jour“ oder „quand j'étais petit“ helfen dir.",
+   "eingabe": "Schreibe nur die Verbform in die Lücke, mit Hilfsverb wenn nötig (ai eu, sommes sortis). Das Pronomen steht schon im Satz. Bei Verben mit être achte auf die Endung: elle est rentrée.",
+   "beispiele": [
+    [
+     "Hier, j'ai fini mes devoirs.",
+     "Gestern habe ich meine Hausaufgaben beendet. (einmalig: Passé composé)"
+    ],
+    [
+     "Chaque jour, je finissais à 5 heures.",
+     "Jeden Tag war ich um 5 Uhr fertig. (Gewohnheit: Imparfait)"
+    ],
+    [
+     "Il pleuvait quand je suis sorti.",
+     "Es regnete, als ich hinausging. (Hintergrund + Ereignis)"
+    ]
    ]
   },
   {
@@ -1240,5 +1389,14 @@
     }
    ]
   }
+ ],
+ "anleitung": [
+  "Wähle ein Thema und lies zuerst den Merkkasten. Dort steht die Regel mit Beispielen.",
+  "Starte eine Runde. Du bekommst nacheinander Aufgaben, die du eintippst. Mit Enter springst du zur nächsten Lücke und prüfst am Ende.",
+  "Nach jeder Aufgabe siehst du, ob sie stimmt, die Lösung und eine kurze Erklärung, warum.",
+  "Am Ende der Runde siehst du alle Fehler. Mit „Fehler nochmal üben“ wiederholst du nur diese. Die App merkt sich Fehler, und diese Aufgaben kommen in der nächsten Runde zuerst.",
+  "Bei der Prüfung zählen Akzente (é, è, à, ç). Groß- und Kleinschreibung, die Form des Apostrophs (' oder ’) und der Punkt am Ende sind egal.",
+  "Während einer Runde kannst du über der Aufgabe den Merkkasten aufklappen und nachlesen.",
+  "Die Textproduktion wird nicht geprüft. Dort hilft dir die App mit Satzbausteinen, einer Checkliste und dem Vorlesen deines Textes."
  ]
 }

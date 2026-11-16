@@ -56,6 +56,10 @@ def validate(topic: dict) -> None:
                 raise ValueError(f"{name}: Aufgabe {task['id']} braucht Bausteine und Checkliste")
     elif kind != "konjugieren":
         raise ValueError(f"Unbekannter Typ {kind} bei {name}")
+    if kind in ("luecke", "verneinung"):
+        for item in topic["items"]:
+            if not item.get("erkl"):
+                raise ValueError(f"{name}: Erklärung fehlt bei {item['q']}")
 
 
 def build(source: Path = SOURCE, root: Path = ROOT) -> dict:
