@@ -361,10 +361,10 @@ test('Runde: Fortschrittsbalken, Tippen zum Aufdecken, Zurück-Knopf und Zusamme
   assert.deepEqual(await storage(page, 'vk:progress'), {}, 'Zurück stellt den Fortschritt wieder her');
   await page.click('#flip'); await page.click('#no'); // erster Fehler zählt
   for (let i = 0; i < 20 && !(await page.$('h1')); i++) { await page.click('#flip'); await page.click('#yes'); }
-  assert.match(await page.innerText('h1'), /Geschafft/);
+  assert.match(await page.innerText('h1'), /Runde geschafft/);
   assert.match(await page.innerText('.big'), /4 von 5 beim ersten Mal richtig/);
   assert.equal(await page.locator('.miss li').count(), 1);
-  assert.match(await page.innerText('#again'), /Nächste Runde \(5 Karten\)/);
+  assert.match(await page.innerText('#again'), /Weiter lernen \(5 Karten\)/);
   assert.equal(stats.errors.length, 0, stats.errors.join('; '));
   await context.close();
 });
@@ -377,6 +377,11 @@ test('Startseite: Hinweis, warum nichts gestartet werden kann', async ({ browser
   const db = readJson('lektionen/dec3-u2-a/database.json');
   const later = Date.now() + 1e10, progress = Object.fromEntries(db.map(c => [cardId('lektionen/dec3-u2-a', c), { b: 2, d: later }]));
   const due = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:progress': progress, 'vk:opt': { dir: 'fr', all: false, img: false } } });
+  // Nichts fällig: mit „Immer weiterlernen“ gibt es trotzdem eine Wiederholung
+  assert.equal(await due.page.isDisabled('#go'), false);
+  assert.match(await due.page.innerText('#go'), /Weiter üben/);
+  assert.match(await due.page.innerText('#go-hint'), /nichts mehr fällig/);
+  await due.page.uncheck('#endless');
   assert.equal(await due.page.isDisabled('#go'), true);
   assert.match(await due.page.innerText('#go-hint'), /Heute ist nichts fällig/);
   await due.page.check('#all');
@@ -400,7 +405,7 @@ test('Aussprache automatisch, große Schrift, Tageszähler und Zurück-Taste', a
   await page.click('#yes');
   await page.click('#end'); // über die Zurück-Funktion des Browsers
   await page.waitForSelector('#go');
-  assert.equal(await page.innerText('#today'), 'Heute geübt: 1 Karte');
+  assert.equal(await page.innerText('#today'), 'Heute geübt: 1 von 20 Karten');
   await page.click('#go'); await page.waitForSelector('#typed-answer');
   await page.goBack(); // Zurück-Taste beendet nur die Runde
   await page.waitForSelector('#go');
@@ -410,10 +415,10 @@ test('Aussprache automatisch, große Schrift, Tageszähler und Zurück-Taste', a
 
   const key = daysAgo => { const d = new Date(); d.setDate(d.getDate() - daysAgo); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   const streak = await openApp(browser, base, { seed: { 'vk:stats': { [key(0)]: 2, [key(1)]: 5, [key(2)]: 3, [key(4)]: 9 } } });
-  assert.equal(await streak.page.innerText('#today'), 'Heute geübt: 2 Karten · 3 Tage in Folge 🔥');
+  assert.equal(await streak.page.innerText('#today'), 'Heute geübt: 2 von 20 Karten · 3 Tage in Folge 🔥');
   await streak.context.close();
   const yesterday = await openApp(browser, base, { seed: { 'vk:stats': { [key(1)]: 5 } } });
-  assert.equal(await yesterday.page.innerText('#today'), 'Heute geübt: 0 Karten', 'eine Serie von einem Tag wird nicht beworben');
+  assert.equal(await yesterday.page.innerText('#today'), 'Heute geübt: 0 von 20 Karten', 'eine Serie von einem Tag wird nicht beworben');
   await yesterday.context.close();
 });
 
@@ -800,6 +805,41 @@ test('Schulaufgabe: Anleitung, Erklärungen zum Thema, Merkkasten in der Runde u
   await page.fill('.blank', 'xx'); await page.keyboard.press('Enter');
   await page.waitForSelector('#sa-feedback .tip');
   assert.match(await page.textContent('#sa-feedback .tip'), /💡/);
+  await context.close();
+});
+
+test('Immer weiterlernen: nach der Runde geht es mit Enter weiter, auch wenn nichts mehr fällig ist', async ({ browser, base }) => {
+  const db = readJson('lektionen/dec3-u2-a/database.json');
+  const progress = Object.fromEntries(db.map(c => [cardId('lektionen/dec3-u2-a', c), { b: 2, d: Date.now() + 1e10 }]));
+  const seed = { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:progress': progress, 'vk:opt': { dir: 'fr', all: false, img: false, limit: 5 } };
+  const { context, page, stats } = await openApp(browser, base, { seed });
+  await page.click('#go'); await page.waitForSelector('#flip');
+  assert.match(await page.innerText('.top .mut'), /Wiederholung/);
+  for (let i = 0; i < 30 && !(await page.$('#again')); i++) { await page.click('#flip'); await page.click('#yes'); }
+  assert.match(await page.innerText('h1'), /Runde geschafft/);
+  assert.match(await page.innerText('p.mut:has-text("nichts mehr fällig")'), /nichts mehr fällig/);
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'again', 'Weiter lernen ist vorausgewählt');
+  await page.keyboard.press('Enter');
+  await page.waitForSelector('#flip');
+  assert.match(await page.innerText('.top .mut'), /noch 5/);
+  assert.equal(stats.errors.length, 0, stats.errors.join('; '));
+  await context.close();
+});
+
+test('Tagesziel: Fortschritt auf der Startseite, Hinweis beim Erreichen, einstellbar', async ({ browser, base }) => {
+  const key = new Date(); const day = `${key.getFullYear()}-${String(key.getMonth() + 1).padStart(2, '0')}-${String(key.getDate()).padStart(2, '0')}`;
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['uebungen/passe-compose'], 'vk:stats': { [day]: 9 }, 'vk:opt': { dir: 'fr', all: true, img: false, goal: 10 } } });
+  assert.equal(await page.innerText('#today'), 'Heute geübt: 9 von 10 Karten');
+  assert.equal(await page.getAttribute('#goal-bar', 'aria-valuenow'), '90');
+  await page.click('#go'); await page.waitForSelector('#flip');
+  await page.click('#flip'); await page.click('#yes');
+  await page.waitForSelector('#toast.on');
+  assert.match(await page.innerText('#toast'), /Tagesziel erreicht/);
+  await page.click('#end'); await page.waitForSelector('#goal');
+  assert.match(await page.innerText('#today'), /10 von 10 Karten 🎯/);
+  await page.selectOption('#goal', '0');
+  assert.equal(await page.isHidden('#goal-bar'), true);
+  assert.match(await page.innerText('#today'), /^Heute geübt: 10 Karten/);
   await context.close();
 });
 

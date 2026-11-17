@@ -379,6 +379,7 @@ function home() {
     <button id="offline-update" type="button" hidden>Offline-Inhalte aktualisieren</button>
   </div>
   <p class="today" id="today" role="status"></p>
+  <div class="progress goal" id="goal-bar" role="progressbar" aria-label="Tagesziel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><i></i></div>
   <details class="help"><summary>So funktioniert's</summary>
     <p>Jede Karte liegt in einem von 5 Kästen. Weißt du sie, rückt sie einen Kasten weiter und kommt erst nach ${DAYS.slice(1).join(', ')} Tagen wieder. Weißt du sie nicht, geht sie zurück in Kasten 1 und kommt in der Runde gleich nochmal.</p>
     <p>Karten, die du mehrfach falsch hattest, gelten als „schwierig“ und lassen sich gezielt üben. Alles wird nur in diesem Browser gespeichert. Mit Export und Import (unter ⚙ Einstellungen) ziehst du auf ein anderes Gerät um.</p>
@@ -392,6 +393,9 @@ function home() {
         <select id="dir"><option value="fr">Französisch → Deutsch</option><option value="de">Deutsch → Französisch</option><option value="mix">Gemischt</option></select></label>
       <label>Karten pro Runde
         <select id="limit"><option value="0">Alle</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option></select></label>
+      <label>Tagesziel
+        <select id="goal"><option value="0">Aus</option><option value="10">10 Karten</option><option value="20">20 Karten</option><option value="30">30 Karten</option><option value="50">50 Karten</option><option value="100">100 Karten</option></select></label>
+      <label><input type="checkbox" id="endless"> Immer weiterlernen (nach jeder Runde geht es gleich weiter)</label>
       <label><input type="checkbox" id="all"> Auch noch nicht fällige Karten üben</label>
       <label><input type="checkbox" id="hard"> Nur schwierige Karten (mehrfach falsch)</label>
       <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
@@ -403,16 +407,18 @@ function home() {
   </section>
   <div class="start"><button id="go" class="primary">Starten</button></div>`;
   const $ = s => app.querySelector(s);
+  $('#goal').value = String(goalToday()); $('#endless').checked = endlessOn();
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#limit').value = String(opt.limit || 0);
   $('#typing').checked = opt.typing || false; $('#hard').checked = opt.hard || false; $('#auto').checked = opt.auto || false;
   $('#conj-pres').checked = opt.conjPres !== false; $('#conj-pc').checked = opt.conjPc !== false;
   renderToday();
   const setOpt = () => {
-    opt = { ...opt, dir: $('#dir').value, all: $('#all').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, limit: Number($('#limit').value) };
+    opt = { ...opt, goal: Number($('#goal').value), endless: $('#endless').checked, dir: $('#dir').value, all: $('#all').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, limit: Number($('#limit').value) };
     LS.set('vk:opt', opt); updateGo();
   };
-  ['#dir', '#limit', '#all', '#typing', '#hard', '#auto', '#conj-pres', '#conj-pc'].forEach(s => $(s).onchange = setOpt);
-  $('#go').onclick = () => { const q = buildQueue(); if (q.length) learn(q); };
+  ['#dir', '#goal', '#endless', '#limit', '#all', '#typing', '#hard', '#auto', '#conj-pres', '#conj-pc'].forEach(s => $(s).onchange = setOpt);
+  $('#go').onclick = () => { const { queue, review } = nextQueue(); if (queue.length) learn(queue, review); };
+  $('#goal').addEventListener('change', renderToday);
   $('#sa-open').onclick = openSchulaufgabe;
   $('#settings').onclick = () => { enterScreen(); settings(); };
   $('#offline-setup').onclick = () => {
@@ -526,13 +532,16 @@ const conjActive = c => Boolean(c.conj) && (opt.conjPres !== false || opt.conjPc
 const cards = n => `${n} ${n === 1 ? 'Karte' : 'Karten'}`;
 function renderToday() {
   const el = app.querySelector('#today'); if (!el) return;
-  const n = S[dayKey(new Date())] || 0, days = streakDays();
-  el.textContent = n || days ? `Heute geübt: ${cards(n)}${days >= 2 ? ` · ${days} Tage in Folge 🔥` : ''}` : '';
+  const n = S[dayKey(new Date())] || 0, days = streakDays(), goal = goalToday();
+  const done = goal > 0 && n >= goal ? ' 🎯' : '';
+  el.textContent = n || days || goal ? `Heute geübt: ${goal ? `${n} von ${cards(goal)}` : cards(n)}${done}${days >= 2 ? ` · ${days} Tage in Folge 🔥` : ''}` : '';
+  const bar = app.querySelector('#goal-bar');
+  if (bar) { bar.hidden = !goal; if (goal) { const pct = Math.min(100, Math.round(n / goal * 100)); bar.setAttribute('aria-valuenow', String(pct)); bar.firstElementChild.style.width = `${pct}%`; } }
 }
 function updateGo() {
   const go = app.querySelector('#go'); if (!go) return;
-  const n = buildQueue().length;
-  go.textContent = n ? `Starten (${cards(n)})` : 'Starten';
+  const { queue, review } = nextQueue(), n = queue.length;
+  go.textContent = n ? `${review ? 'Weiter üben' : 'Starten'} (${cards(n)})` : 'Starten';
   go.disabled = n === 0;
   let note = app.querySelector('#go-hint');
   if (!note) {
@@ -540,20 +549,37 @@ function updateGo() {
     note.id = 'go-hint'; note.className = 'hint'; note.setAttribute('role', 'status');
     go.parentElement.append(note);
   }
-  note.textContent = n ? '' : !sel.size ? 'Wähle oben mindestens eine Lektion aus.'
+  note.textContent = review ? 'Heute ist nichts mehr fällig. Du kannst trotzdem weiterlernen: Es kommen die Karten, die am schwächsten sind.' : n ? '' : !sel.size ? 'Wähle oben mindestens eine Lektion aus.'
     : opt.hard ? 'In den gewählten Lektionen gibt es keine schwierigen Karten.'
     : opt.all ? 'In den gewählten Lektionen gibt es keine Karten.'
     : 'Heute ist nichts fällig. Schalte „Auch noch nicht fällige Karten üben“ ein, um trotzdem zu üben.';
 }
 
 // ---- Lernen ----------------------------------------------------------------
-function buildQueue() {
+function buildQueue(o = opt) {
   const now = Date.now(), q = [];
   for (const d of sel) for (const c of DB.get(d) || [])
-    if (opt.hard ? isHard(c.id) : (opt.all || st(c.id).d <= now)) q.push({ c, dir: c.pc || conjActive(c) ? 'fr' : opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
+    if (o.hard ? isHard(c.id) : (o.all || st(c.id).d <= now)) q.push({ c, dir: c.pc || conjActive(c) ? 'fr' : opt.dir === 'mix' ? (Math.random() < .5 ? 'fr' : 'de') : opt.dir });
   q.sort(() => Math.random() - .5);                    // mischen
   q.sort((a, b) => st(a.c.id).b - st(b.c.id).b); // niedrige Kaesten zuerst
-  return opt.limit > 0 ? q.slice(0, opt.limit) : q;   // optional: nur die ersten N Karten
+  return o.limit > 0 ? q.slice(0, o.limit) : q;   // optional: nur die ersten N Karten
+}
+
+// ---- Weiterlernen ohne Ende ------------------------------------------------
+// Ist nichts mehr fällig, geht es mit einer Wiederholung weiter (die schwächsten Karten zuerst), statt dass das Lernen endet.
+const endlessOn = () => opt.endless !== false;
+const goalToday = () => (opt.goal === undefined ? 20 : Number(opt.goal) || 0); // Tagesziel in Karten, 0 = aus
+function nextQueue() {
+  let queue = buildQueue(), review = false;
+  if (!queue.length && endlessOn() && sel.size && !opt.hard) { queue = buildQueue({ ...opt, all: true }); review = queue.length > 0; }
+  return { queue, review };
+}
+function showToast(text) {
+  let toast = document.getElementById('toast');
+  if (!toast) { toast = document.createElement('div'); toast.id = 'toast'; toast.setAttribute('role', 'status'); document.body.append(toast); }
+  toast.textContent = text; toast.classList.add('on');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove('on'), 4500);
 }
 
 // Eingabe prüfen: Groß-/Kleinschreibung, Apostroph-Form und Leerzeichen sind egal; "(e)" darf fehlen oder als "e" stehen.
@@ -572,7 +598,7 @@ const checkPc = (typed, expected) => {
 // Eine Zeile der Konjugation: Pronomen ("je", "j'", "il") als Beschriftung, der Rest wird eingetippt.
 const splitPerson = form => { const m = form.match(/^(j'|\S+ )(.*)$/); return m ? [m[1].trim(), m[2]] : ['', form]; };
 
-function learn(q) {
+function learn(q, isReview = false) {
   enterScreen();
   let lastAuto = null;
   let shown = false, hint = false, typedAnswer = '', typedForms = {}, ok = 0, bad = 0;
@@ -607,6 +633,7 @@ function learn(q) {
     const newlyMissed = !good && !missed.has(it.c.id);
     history.push({ it, prev: P[it.c.id], good, newlyMissed });
     bumpToday(1);
+    if (goalToday() > 0 && (S[dayKey(new Date())] || 0) === goalToday()) showToast('🎯 Tagesziel erreicht! Du kannst einfach weiterlernen.');
     P[it.c.id] = { b: nb, d: Date.now() + (good ? DAYS[nb - 1] * 864e5 : 0), w: good ? Math.max(0, (s.w || 0) - 1) : (s.w || 0) + 1 };
     save();
     if (good) ok++; else { bad++; missed.set(it.c.id, it.c); q.push(it); } // falsche Karten kommen am Ende nochmal
@@ -625,7 +652,7 @@ function learn(q) {
   const topHtml = c => {
     const remaining = new Set(q.map(x => x.c.id)).size, pct = Math.round((total - remaining) / total * 100);
     return `<div class="top"><span class="tl"><button id="end">← Beenden</button>${history.length ? '<button id="undo" title="Letzte Antwort rückgängig machen">↶ Zurück</button>' : ''}</span>
-      <span class="mut">noch ${q.length} · Kasten ${st(c.id).b}${isHard(c.id) ? ' · schwierig' : ''}</span></div>
+      <span class="mut">noch ${q.length} · Kasten ${st(c.id).b}${isHard(c.id) ? ' · schwierig' : ''}${isReview ? ' · Wiederholung' : ''}${goalToday() ? ` · Heute ${S[dayKey(new Date())] || 0}/${goalToday()}` : ''}</span></div>
     <div class="progress" role="progressbar" aria-label="Fortschritt dieser Runde" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>`;
   };
   const buttonsHtml = flipLabel => `<div class="btns">${shown
@@ -756,16 +783,26 @@ function learn(q) {
   const done = () => {
     stopAudio();
     document.onkeydown = null;
-    const wrong = [...missed.values()], first = total - wrong.length, more = buildQueue().length;
+    const wrong = [...missed.values()], first = total - wrong.length;
+    const { queue: nextQ, review } = endlessOn() ? nextQueue() : { queue: buildQueue(), review: false }, more = nextQ.length;
     const list = wrong.length
       ? `<h2 class="sp">Hier hattest du Fehler</h2><ul class="miss">${wrong.map(c => `<li><b>${esc(c.fr)}</b> – ${esc(c.pc || c.de)}</li>`).join('')}</ul>`
       : '<p class="mut">Alle Karten gleich beim ersten Mal richtig. Stark!</p>';
-    app.innerHTML = `<h1>Geschafft! 🎉</h1><p class="big">${first} von ${total} beim ersten Mal richtig</p>${list}
-      <div class="btns">${more ? `<button id="again" class="primary">Nächste Runde (${cards(more)})</button>` : ''}<button id="back"${more ? '' : ' class="primary"'}>Zurück zur Auswahl</button></div>
+    const today = S[dayKey(new Date())] || 0, goal = goalToday();
+    const goalLine = goal ? `<p class="mut">${today >= goal ? `🎯 Tagesziel erreicht: ${cards(today)} heute.` : `Heute ${today} von ${cards(goal)}. Noch ${goal - today} bis zum Ziel.`}</p>` : '';
+    const reviewNote = more && review ? '<p class="mut">Heute ist nichts mehr fällig. Es geht mit einer Wiederholung weiter: Du bekommst die Karten, die am schwächsten sind.</p>' : '';
+    app.innerHTML = `<h1>Runde geschafft! 🎉</h1><p class="big">${first} von ${total} beim ersten Mal richtig</p>${goalLine}${list}${reviewNote}
+      <div class="btns">${more ? `<button id="again" class="primary">Weiter lernen (${cards(more)})</button>` : ''}<button id="back"${more ? '' : ' class="primary"'}>${more ? 'Aufhören' : 'Zurück zur Auswahl'}</button></div>
+      ${more ? '<p class="hint">Mit Enter geht es sofort weiter.</p>' : ''}
       <p class="end-note"><button id="suggest" type="button" class="lnk-btn">💡 Verbesserung vorschlagen</button></p>`;
     app.querySelector('#back').onclick = leaveScreen;
     app.querySelector('#suggest').onclick = () => openFeedback({ where: 'Rundenende', lessons });
-    if (more) app.querySelector('#again').onclick = () => learn(buildQueue());
+    if (more) {
+      const again = app.querySelector('#again');
+      again.onclick = () => learn(nextQ, review);
+      again.focus();
+      document.onkeydown = e => { if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); again.click(); } };
+    }
     window.scrollTo(0, 0);
   };
   draw();
