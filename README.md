@@ -126,6 +126,8 @@ Einrichtung unter *Settings → Secrets and variables → Actions*:
 - Secret `NTFY_TOPIC`: geheimer Themenname (z. B. `voc-vorschlaege-48213`). Diesen Namen abonnierst du in der ntfy-App auf dem Handy.
 - Variable `GEMINI_MODEL` (optional): Modellname, falls der Standard `gemini-3.5-flash-lite` nicht mehr verfügbar ist.
 
+- Variable `KI_DIRECT_DEV` (optional): `true` = nach bestandenen Tests direkt auf `dev` pushen statt Pull Request. Das ist riskanter, weil `/dev/` auf derselben Adresse wie die Hauptseite liegt. Klappt der Push nicht, entsteht ein Pull Request.
+
 Manuell starten: *Actions → Neue Issues bearbeiten (KI) → Run workflow* und die Issue-Nummer eingeben.
 
 ## Offline-Nutzung

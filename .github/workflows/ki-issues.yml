@@ -8,6 +8,7 @@ name: Neue Issues bearbeiten (KI)
 #   Secret   GEMINI_API_KEY   Schlüssel von aistudio.google.com (ohne ihn gibt es nur die Benachrichtigung)
 #   Secret   NTFY_TOPIC       geheimer Themenname für ntfy.sh (dasselbe in der ntfy-App abonnieren)
 #   Variable GEMINI_MODEL     optional, Modellname; Standard siehe scripts/ki_issue.py
+#   Variable KI_DIRECT_DEV    optional, true = nach bestandenen Tests direkt auf dev pushen statt Pull Request
 on:
   issues:
     types: [opened]
@@ -33,6 +34,7 @@ env:
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
   NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+  KI_DIRECT_DEV: ${{ vars.KI_DIRECT_DEV }}
 
 jobs:
   bearbeiten:

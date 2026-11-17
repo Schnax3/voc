@@ -119,6 +119,7 @@ def notification(state: dict) -> dict:
     status = state.get("status", "unbekannt")
     texts = {
         "pr": f"Pull Request gegen dev ist bereit: {state.get('pr_url', '')}",
+        "direkt": "Direkt auf dev hochgeladen (Tests bestanden). Bitte die Testseite prüfen.",
         "kein-pr": f"Nicht automatisch umgesetzt: {state.get('grund') or 'siehe Issue'}",
         "fremd": f"Neues Issue von {issue.get('author', '?')}. Nicht von der KI bearbeitet.",
         "ki-fehler": f"Die KI war nicht erreichbar: {state.get('grund', '')}",
@@ -129,9 +130,10 @@ def notification(state: dict) -> dict:
     if state.get("zusammenfassung"):
         lines.append(state["zusammenfassung"])
     lines.append(texts.get(status, f"Status: {status}"))
-    return {"title": f"Neues Issue #{number}" if status != "pr" else f"KI-Vorschlag für #{number}",
+    done = status in {"pr", "direkt"}
+    return {"title": f"KI-Vorschlag für #{number}" if done else f"Neues Issue #{number}",
             "message": "\n".join(lines)[:900], "click": state.get("pr_url") if status == "pr" else issue.get("url", ""),
-            "tags": ["robot_face"] if status == "pr" else ["memo"]}
+            "tags": ["robot_face"] if done else ["memo"]}
 
 
 # ---- Netzwerk -----------------------------------------------------------------------------------------
@@ -308,12 +310,29 @@ def phase_apply() -> None:
     save_state(state); output(publish="true")
 
 
+def push_directly(state: dict) -> bool:
+    """Optional (Variable KI_DIRECT_DEV=true): Commit direkt auf dev, ohne Pull Request. Bei Fehlern False (dann gibt es einen Pull Request)."""
+    number = state["issue"]["number"]
+    commands = (["git", "checkout", "dev"], ["git", "add", *state["geaendert"]],
+                ["git", "commit", "-m", f"KI-Vorschlag für Issue #{number} (ungeprüft, Tests bestanden)"],
+                ["git", "pull", "--rebase", "origin", "dev"], ["git", "push", "origin", "HEAD:dev"])
+    for command in commands:
+        if subprocess.run(command, cwd=ROOT).returncode != 0:
+            subprocess.run(["git", "rebase", "--abort"], cwd=ROOT)
+            return False
+    return True
+
+
 def phase_publish() -> None:
     repo, state = os.environ["REPO"], load_state()
     number, branch = state["issue"]["number"], f"ki/issue-{state['issue']['number']}"
     for command in (["git", "config", "user.name", "github-actions[bot]"],
-                    ["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
-                    ["git", "checkout", "-B", branch], ["git", "add", *state["geaendert"]],
+                    ["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"]):
+        subprocess.run(command, cwd=ROOT, check=True)
+    if os.environ.get("KI_DIRECT_DEV", "").strip().lower() == "true" and push_directly(state):
+        gh("POST", f"/repos/{repo}/issues/{number}/comments", {"body": "🤖 Der Änderungsvorschlag wurde nach bestandenen Tests direkt auf `dev` hochgeladen. Er ist noch nicht geprüft. Bitte die Testseite ansehen, bevor `dev` nach `main` übernommen wird."})
+        state["status"] = "direkt"; save_state(state); return
+    for command in (["git", "checkout", "-B", branch], ["git", "add", *state["geaendert"]],
                     ["git", "commit", "-m", f"KI-Vorschlag für Issue #{number} (ungeprüft)"],
                     ["git", "push", "--force", "origin", branch]):
         subprocess.run(command, cwd=ROOT, check=True)

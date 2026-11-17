@@ -71,6 +71,11 @@ class NotificationTest(unittest.TestCase):
         self.assertEqual(n["click"], "https://x/pr/1")
         self.assertIn("#7", n["title"])
 
+    def test_direct_push_counts_as_done(self):
+        n = ki.notification({"issue": {"number": 5, "title": "t", "url": "u"}, "status": "direkt"})
+        self.assertEqual(n["title"], "KI-Vorschlag für #5")
+        self.assertIn("dev", n["message"])
+
     def test_foreign_issue_and_failure(self):
         foreign = ki.notification({"issue": {"number": 8, "title": "t", "url": "u", "author": "fremd"}, "status": "fremd"})
         self.assertIn("fremd", foreign["message"])
