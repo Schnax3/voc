@@ -1,0 +1,82 @@
+name: Neue Issues bearbeiten (KI)
+
+# Bei jedem neuen Issue: Gemini fasst zusammen und ordnet ein, setzt Labels, schlägt bei kleinen Wünschen eine Änderung vor,
+# die Tests bestehen muss, und legt dafür einen Pull Request gegen dev an (kein Merge, nichts geht live).
+# Danach kommt eine Push-Nachricht über ntfy.sh. Nur Issues des Repo-Besitzers werden von der KI bearbeitet.
+#
+# Einrichtung (Settings -> Secrets and variables -> Actions):
+#   Secret   GEMINI_API_KEY   Schlüssel von aistudio.google.com (ohne ihn gibt es nur die Benachrichtigung)
+#   Secret   NTFY_TOPIC       geheimer Themenname für ntfy.sh (dasselbe in der ntfy-App abonnieren)
+#   Variable GEMINI_MODEL     optional, Modellname; Standard siehe scripts/ki_issue.py
+#   Variable KI_DIRECT_DEV    optional, true = nach bestandenen Tests direkt auf dev pushen statt Pull Request
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Nummer des Issues
+        required: true
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ki-issue-${{ github.event.issue.number || inputs.issue }}
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  REPO: ${{ github.repository }}
+  ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+  NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+  KI_DIRECT_DEV: ${{ vars.KI_DIRECT_DEV }}
+
+jobs:
+  bearbeiten:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out dev
+        uses: actions/checkout@v7
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Labels anlegen (falls sie fehlen)
+        continue-on-error: true
+        run: |
+          gh label create ki-vorschlag --color 5319e7 --description "Von der KI vorgeschlagen, ungeprüft" || true
+          gh label create ki-ignorieren --color cccccc --description "Von der KI-Bearbeitung ausnehmen" || true
+
+      - name: Einordnen (Gemini)
+        id: triage
+        run: python scripts/ki_issue.py triage
+
+      - name: Playwright installieren
+        if: steps.triage.outputs.apply == 'true'
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Änderung vorschlagen und testen
+        id: apply
+        if: steps.triage.outputs.apply == 'true'
+        run: python scripts/ki_issue.py apply
+
+      - name: Pull Request gegen dev anlegen
+        if: steps.apply.outputs.publish == 'true'
+        run: python scripts/ki_issue.py publish
+
+      - name: Benachrichtigung senden
+        if: always()
+        run: python scripts/ki_issue.py notify
