@@ -107,6 +107,27 @@ Audio und Bilder werden offline aus dem Speicher geliefert. Damit geänderte Dat
 
 „Jetzt aktualisieren“ lädt die Lektionen neu, prüft jede gespeicherte Audio-/Bilddatei per ETag/Last-Modified, lädt nur geänderte und neue Dateien nach, entfernt gelöschte und lädt die App neu. In den Einstellungen gibt es „Version und Updates“ mit „Nach Updates suchen“. Lokal (ohne `version.json`) bleibt das ohne Wirkung.
 
+## KI-Bearbeitung neuer Issues (Gemini)
+
+`.github/workflows/ki-issues.yml` startet bei jedem neuen Issue und ruft `scripts/ki_issue.py` auf:
+
+1. **Einordnen:** Gemini schreibt eine kurze Zusammenfassung als Kommentar und setzt Labels (`bug`, `enhancement`, `vokabeln`, `vorschlag`).
+2. **Vorschlagen:** Bei kleinen, eindeutigen Wünschen schlägt Gemini Änderungen vor. Sie werden geprüft (nur erlaubte Dateien, höchstens 150 Zeilen, keine neuen externen Adressen, kein eval/Tracking), angewendet und mit den Unit- und Browser-Tests getestet.
+3. **Pull Request:** Bei bestandenen Tests entsteht der Branch `ki/issue-N` und ein Pull Request **gegen `dev`** mit Label `ki-vorschlag`. Es wird nichts gemergt und nichts veröffentlicht. Du liest den Diff und mergst selbst.
+4. **Benachrichtigung:** Eine Push-Nachricht über [ntfy.sh](https://ntfy.sh) mit Zusammenfassung und Link, bei jedem Ausgang (auch bei Fehlern).
+
+Warum ein Pull Request: Die Seite `/dev/` liegt auf derselben Adresse wie die Hauptseite und könnte deren Browser-Daten lesen. Ungeprüfter Code von der KI soll deshalb nie direkt auf `dev` landen. Issues sind außerdem Eingaben von Fremden.
+
+Es bearbeitet die KI nur Issues des Repo-Besitzers (dazu zählen die über den Zwischendienst angelegten). Bei Issues anderer Personen kommt nur die Benachrichtigung. Mit dem Label `ki-ignorieren` nimmst du ein Issue aus. Es gibt höchstens 3 offene KI-Pull-Requests.
+
+Einrichtung unter *Settings → Secrets and variables → Actions*:
+
+- Secret `GEMINI_API_KEY`: Schlüssel von aistudio.google.com. Ohne ihn gibt es nur die Benachrichtigung.
+- Secret `NTFY_TOPIC`: geheimer Themenname (z. B. `voc-vorschlaege-48213`). Diesen Namen abonnierst du in der ntfy-App auf dem Handy.
+- Variable `GEMINI_MODEL` (optional): Modellname, falls der Standard `gemini-3.5-flash-lite` nicht mehr verfügbar ist.
+
+Manuell starten: *Actions → Neue Issues bearbeiten (KI) → Run workflow* und die Issue-Nummer eingeben.
+
 ## Offline-Nutzung
 
 Wenn noch keine Offline-Inhalte gespeichert sind, zeigt die Startseite den kleinen Knopf **„Möchtest du offline gehen?“**. Speichere dann einmal online alle Lektionen oder nur die ausgewählten; so werden auch Audio und Bilder verfügbar. Kommen später neue Lektionen hinzu, bietet die Startseite **„Offline-Inhalte aktualisieren“** an. Anschließend kannst du die Seite über „Als App installieren“ zum Startbildschirm oder Desktop hinzufügen. Der Service Worker steht in `sw.js`.
