@@ -432,6 +432,39 @@ test('Leertaste deckt die Antwort auf', async ({ browser, base }) => {
   await context.close();
 });
 
+test('Tastenkürzel: im Eingabefeld normal tippen; als Option auch dort Kürzel, auch mit anderer Belegung', async ({ browser, base }) => {
+  const seed = keys => ({ 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false, typing: true, ...keys } });
+  // Standard: Leertaste und P erscheinen im Feld, die Karte bleibt zu
+  let { context, page } = await openApp(browser, base, { seed: seed({}) });
+  await page.click('#go'); await page.waitForSelector('#typed-answer');
+  await page.keyboard.type('un p a');
+  assert.equal(await page.inputValue('#typed-answer'), 'un p a');
+  assert.equal(await page.$('#yes'), null, 'Karte ist noch zu');
+  await context.close();
+  // Option „auch im Eingabefeld“ mit alternativer Belegung: P deckt auf und wird nicht getippt
+  ({ context, page } = await openApp(browser, base, { seed: seed({ keymap: 'alt', keysInInput: true }) }));
+  await page.click('#go'); await page.waitForSelector('#typed-answer');
+  await page.keyboard.type('x');
+  await page.keyboard.press('p');
+  await page.waitForSelector('#yes');
+  assert.equal(await page.inputValue('#typed-answer'), 'x');
+  assert.equal(await page.evaluate(() => keyAudioName()), 'Leertaste');
+  await context.close();
+  // Standardbelegung mit Option: Leertaste deckt im Feld auf
+  ({ context, page } = await openApp(browser, base, { seed: seed({ keysInInput: true }) }));
+  await page.click('#go'); await page.waitForSelector('#typed-answer');
+  await page.keyboard.press('Space');
+  await page.waitForSelector('#yes');
+  assert.equal(await page.inputValue('#typed-answer'), '');
+  await context.close();
+  // Einstellung auf der Startseite wird gespeichert
+  ({ context, page } = await openApp(browser, base, {}));
+  await page.selectOption('#keymap', 'alt'); await page.check('#keys-input');
+  const opt = await page.evaluate(() => JSON.parse(localStorage.getItem('vk:opt') || localStorage.getItem('dev:vk:opt')));
+  assert.equal(opt.keymap, 'alt'); assert.equal(opt.keysInInput, true);
+  await context.close();
+});
+
 test('Einstellungen: Farbvorlagen, eigene Farben, Modus und Zurücksetzen', async ({ browser, base }) => {
   const { context, page, stats } = await openApp(browser, base);
   const css = name => page.evaluate(n => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), name);

@@ -50,7 +50,7 @@ const updateAudioButtons = () => {
   const playing = Boolean((au && !au.paused) || speech);
   app.querySelectorAll('.spk').forEach(button => {
     button.textContent = playing ? '⏹' : '🔊';
-    button.title = playing ? 'Stoppen (P)' : 'Anhören (P)';
+    button.title = playing ? 'Stoppen (' + keyAudioName() + ')' : 'Anhören (' + keyAudioName() + ')';
     button.setAttribute('aria-label', playing ? 'Stoppen' : 'Anhören');
   });
 };
@@ -400,6 +400,9 @@ function home() {
       <label><input type="checkbox" id="hard"> Nur schwierige Karten (mehrfach falsch)</label>
       <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
       <label><input type="checkbox" id="auto"> Aussprache automatisch abspielen</label>
+      <label>Tastenkürzel
+        <select id="keymap"><option value="std">P = Anhören, Leertaste = Aufdecken</option><option value="alt">Leertaste = Anhören, P = Aufdecken</option></select></label>
+      <label><input type="checkbox" id="keys-input"> Kürzel auch im Eingabefeld (dort lassen sich dann Leertaste und P nicht mehr tippen)</label>
       <label><input type="checkbox" id="conj-pres"> Verben konjugieren: Présent</label>
       <label><input type="checkbox" id="conj-pc"> Verben konjugieren: Passé composé</label>
       <p class="hint">Gilt für alle Verben in den Lektionen. Sind beide aus, kommt nur die Grundform.</p>
@@ -409,14 +412,15 @@ function home() {
   const $ = s => app.querySelector(s);
   $('#goal').value = String(goalToday()); $('#endless').checked = endlessOn();
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#limit').value = String(opt.limit || 0);
+  $('#keymap').value = opt.keymap === 'alt' ? 'alt' : 'std'; $('#keys-input').checked = !!opt.keysInInput;
   $('#typing').checked = opt.typing || false; $('#hard').checked = opt.hard || false; $('#auto').checked = opt.auto || false;
   $('#conj-pres').checked = opt.conjPres !== false; $('#conj-pc').checked = opt.conjPc !== false;
   renderToday();
   const setOpt = () => {
-    opt = { ...opt, goal: Number($('#goal').value), endless: $('#endless').checked, dir: $('#dir').value, all: $('#all').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, limit: Number($('#limit').value) };
+    opt = { ...opt, keymap: $('#keymap').value, keysInInput: $('#keys-input').checked, goal: Number($('#goal').value), endless: $('#endless').checked, dir: $('#dir').value, all: $('#all').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, limit: Number($('#limit').value) };
     LS.set('vk:opt', opt); updateGo();
   };
-  ['#dir', '#goal', '#endless', '#limit', '#all', '#typing', '#hard', '#auto', '#conj-pres', '#conj-pc'].forEach(s => $(s).onchange = setOpt);
+  ['#dir', '#keymap', '#keys-input', '#goal', '#endless', '#limit', '#all', '#typing', '#hard', '#auto', '#conj-pres', '#conj-pc'].forEach(s => $(s).onchange = setOpt);
   $('#go').onclick = () => { const { queue, review } = nextQueue(); if (queue.length) learn(queue, review); };
   $('#goal').addEventListener('change', renderToday);
   $('#sa-open').onclick = openSchulaufgabe;
@@ -568,6 +572,9 @@ function buildQueue(o = opt) {
 // ---- Weiterlernen ohne Ende ------------------------------------------------
 // Ist nichts mehr fällig, geht es mit einer Wiederholung weiter (die schwächsten Karten zuerst), statt dass das Lernen endet.
 const endlessOn = () => opt.endless !== false;
+const keyAudio = () => (opt.keymap === 'alt' ? ' ' : 'p');
+const keyReveal = () => (opt.keymap === 'alt' ? 'p' : ' ');
+const keyAudioName = () => (opt.keymap === 'alt' ? 'Leertaste' : 'P');
 const goalToday = () => (opt.goal === undefined ? 20 : Number(opt.goal) || 0); // Tagesziel in Karten, 0 = aus
 function nextQueue() {
   let queue = buildQueue(), review = false;
@@ -681,7 +688,7 @@ function learn(q, isReview = false) {
     if (conjActive(q[0].c)) return drawConj();
     if (q[0].c.pc) return drawPc();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
-    const spk = hasSound(c) ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
+    const spk = hasSound(c) ? '<button class="spk" title="Anhören (' + keyAudioName() + ')" aria-label="Anhören">🔊</button>' : '';
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="" decoding="async" fetchpriority="high" onerror="this.remove()">`).join('')}</div>` : '';
     app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
@@ -707,7 +714,7 @@ function learn(q, isReview = false) {
   // Übung: französisches Verb zeigen, Deutsch auf Wunsch aufdecken, Passé composé eintippen, dann die Lösung zeigen
   const drawPc = () => {
     const { c } = q[0], hit = shown && checkPc(typedAnswer, c.pc);
-    const spk = canSpeak ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
+    const spk = canSpeak ? '<button class="spk" title="Anhören (' + keyAudioName() + ')" aria-label="Anhören">🔊</button>' : '';
     app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>
       <div class="q">${esc(c.fr)}${spk}</div>
@@ -741,7 +748,7 @@ function learn(q, isReview = false) {
         ${shown && !hit ? `<span class="sol">${esc(rest)}</span>` : ''}</div>`;
     }).join('')}</div>`;
     const html = tenses.map(section).join('');
-    const spk = hasSound(c) || canSpeak ? '<button class="spk" title="Anhören (P)" aria-label="Anhören">🔊</button>' : '';
+    const spk = hasSound(c) || canSpeak ? '<button class="spk" title="Anhören (' + keyAudioName() + ')" aria-label="Anhören">🔊</button>' : '';
     app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>
       <div class="q">${esc(c.fr)}${spk}</div>
@@ -766,9 +773,11 @@ function learn(q, isReview = false) {
     if (!q.length) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
-    if (key === 'p' && hasSound(c) && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); c.pc ? speak(c.fr) : sound(c); return; }
+    const plain = !(e.ctrlKey || e.metaKey || e.altKey);
+    const inField = e.target instanceof HTMLInputElement && !opt.keysInInput;
+    if (plain && key === keyAudio() && hasSound(c) && !inField) { e.preventDefault(); c.pc ? speak(c.fr) : sound(c); return; }
     if (key === 'z' && (e.ctrlKey || e.metaKey) && history.length) { e.preventDefault(); undo(); return; }
-    if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown' || (e.key === ' ' && !(e.target instanceof HTMLInputElement)))) {
+    if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown' || (plain && key === keyReveal() && !inField))) {
       e.preventDefault();
       shown = true;
       draw();
