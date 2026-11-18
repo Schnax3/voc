@@ -69,6 +69,12 @@ async function openApp(browser, base, { query = '', seed = {}, waitRows = true }
 const storage = (page, key) => page.evaluate(k => JSON.parse(localStorage.getItem(k)), key);
 const appKeys = page => page.evaluate(() => Object.keys(localStorage).filter(k => k !== '__seeded'));
 
+// Lerneinstellungen liegen unter ⚙ Einstellungen: öffnen, ändern, zurück zur Startseite
+const setLearn = async (page, change) => {
+  await page.click('#settings'); await page.waitForSelector('#sec-learn');
+  await change(page);
+  await page.click('#back-home'); await page.waitForSelector('#go');
+};
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
 
@@ -381,7 +387,7 @@ test('Startseite: Hinweis, warum nichts gestartet werden kann', async ({ browser
   assert.equal(await due.page.isDisabled('#go'), false);
   assert.match(await due.page.innerText('#go'), /Weiter üben/);
   assert.match(await due.page.innerText('#go-hint'), /nichts mehr fällig/);
-  await due.page.uncheck('#endless');
+  await setLearn(due.page, p => p.uncheck('#endless'));
   assert.equal(await due.page.isDisabled('#go'), true);
   assert.match(await due.page.innerText('#go-hint'), /Heute ist nichts fällig/);
   await due.page.check('#all');
@@ -459,7 +465,8 @@ test('Tastenkürzel: im Eingabefeld normal tippen; als Option auch dort Kürzel,
   await context.close();
   // Einstellung auf der Startseite wird gespeichert
   ({ context, page } = await openApp(browser, base, {}));
-  await page.selectOption('#keymap', 'alt'); await page.check('#keys-input');
+  assert.equal(await page.$('#keymap'), null, 'Tastenkürzel gehören nicht auf die Startseite');
+  await setLearn(page, async p => { await p.selectOption('#keymap', 'alt'); await p.check('#keys-input'); });
   const opt = await page.evaluate(() => JSON.parse(localStorage.getItem('vk:opt') || localStorage.getItem('dev:vk:opt')));
   assert.equal(opt.keymap, 'alt'); assert.equal(opt.keysInInput, true);
   await context.close();
@@ -654,8 +661,8 @@ test('Verben konjugieren: Schalter für die Zeiten, (e) und (s) werden erkannt',
   const checks = await page.evaluate(() => [checkPc('venus', 'venu(e)s'), checkPc('VENUES', 'venu(e)s'), checkPc('venu', 'venu(e)(s)'), checkPc('venues', 'venu(e)(s)'), checkPc('venue', 'venu(e)s')]);
   assert.deepEqual(checks, [true, true, true, true, false]);
   await page.click('#end');
-  await page.waitForSelector('#conj-pc');
-  await page.uncheck('#conj-pc');
+  await page.waitForSelector('#go');
+  await setLearn(page, p => p.uncheck('#conj-pc'));
   await page.click('#go');
   await page.waitForSelector('#card');
   for (let i = 0; i < 40; i++) {
@@ -868,9 +875,9 @@ test('Tagesziel: Fortschritt auf der Startseite, Hinweis beim Erreichen, einstel
   await page.click('#flip'); await page.click('#yes');
   await page.waitForSelector('#toast.on');
   assert.match(await page.innerText('#toast'), /Tagesziel erreicht/);
-  await page.click('#end'); await page.waitForSelector('#goal');
+  await page.click('#end'); await page.waitForSelector('#go');
   assert.match(await page.innerText('#today'), /10 von 10 Karten 🎯/);
-  await page.selectOption('#goal', '0');
+  await setLearn(page, p => p.selectOption('#goal', '0'));
   assert.equal(await page.isHidden('#goal-bar'), true);
   assert.match(await page.innerText('#today'), /^Heute geübt: 10 Karten/);
   await context.close();

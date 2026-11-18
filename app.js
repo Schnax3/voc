@@ -386,43 +386,33 @@ function home() {
   </details>
   <button id="sa-open" class="topic entry" type="button"><span class="sym" aria-hidden="true">🎓</span><span class="tt"><b>Schulaufgabe vorbereiten</b><small>Übungen zu Verben, Verneinung, Vergangenheit und Textproduktion</small></span></button>
   <div id="list"></div>
-  <section class="panel" aria-label="Lernen">
-    <h2>Lernen</h2>
+  <section class="panel" aria-label="Diese Runde">
+    <h2>Diese Runde</h2>
     <div class="opts">
       <label>Richtung
         <select id="dir"><option value="fr">Französisch → Deutsch</option><option value="de">Deutsch → Französisch</option><option value="mix">Gemischt</option></select></label>
       <label>Karten pro Runde
         <select id="limit"><option value="0">Alle</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option></select></label>
-      <label>Tagesziel
-        <select id="goal"><option value="0">Aus</option><option value="10">10 Karten</option><option value="20">20 Karten</option><option value="30">30 Karten</option><option value="50">50 Karten</option><option value="100">100 Karten</option></select></label>
-      <label><input type="checkbox" id="endless"> Immer weiterlernen (nach jeder Runde geht es gleich weiter)</label>
-      <label><input type="checkbox" id="all"> Auch noch nicht fällige Karten üben</label>
+      <label><input type="checkbox" id="all"> Auch Karten üben, die noch nicht fällig sind</label>
       <label><input type="checkbox" id="hard"> Nur schwierige Karten (mehrfach falsch)</label>
-      <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
-      <label><input type="checkbox" id="auto"> Aussprache automatisch abspielen</label>
-      <label>Tastenkürzel
-        <select id="keymap"><option value="std">P = Anhören, Leertaste = Aufdecken</option><option value="alt">Leertaste = Anhören, P = Aufdecken</option></select></label>
-      <label><input type="checkbox" id="keys-input"> Kürzel auch im Eingabefeld (dort lassen sich dann Leertaste und P nicht mehr tippen)</label>
-      <label><input type="checkbox" id="conj-pres"> Verben konjugieren: Présent</label>
-      <label><input type="checkbox" id="conj-pc"> Verben konjugieren: Passé composé</label>
-      <p class="hint">Gilt für alle Verben in den Lektionen. Sind beide aus, kommt nur die Grundform.</p>
     </div>
+    <button id="more-opts" class="linklike" type="button">Mehr Lerneinstellungen (Tagesziel, Verben, Tastatur)</button>
   </section>
   <div class="start"><button id="go" class="primary">Starten</button></div>`;
   const $ = s => app.querySelector(s);
-  $('#goal').value = String(goalToday()); $('#endless').checked = endlessOn();
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#limit').value = String(opt.limit || 0);
-  $('#keymap').value = opt.keymap === 'alt' ? 'alt' : 'std'; $('#keys-input').checked = !!opt.keysInInput;
-  $('#typing').checked = opt.typing || false; $('#hard').checked = opt.hard || false; $('#auto').checked = opt.auto || false;
-  $('#conj-pres').checked = opt.conjPres !== false; $('#conj-pc').checked = opt.conjPc !== false;
+  $('#hard').checked = opt.hard || false;
   renderToday();
   const setOpt = () => {
-    opt = { ...opt, keymap: $('#keymap').value, keysInInput: $('#keys-input').checked, goal: Number($('#goal').value), endless: $('#endless').checked, dir: $('#dir').value, all: $('#all').checked, typing: $('#typing').checked, hard: $('#hard').checked, auto: $('#auto').checked, conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, limit: Number($('#limit').value) };
+    opt = { ...opt, dir: $('#dir').value, all: $('#all').checked, hard: $('#hard').checked, limit: Number($('#limit').value) };
     LS.set('vk:opt', opt); updateGo();
   };
-  ['#dir', '#keymap', '#keys-input', '#goal', '#endless', '#limit', '#all', '#typing', '#hard', '#auto', '#conj-pres', '#conj-pc'].forEach(s => $(s).onchange = setOpt);
+  ['#dir', '#limit', '#all', '#hard'].forEach(s => $(s).onchange = setOpt);
+  $('#more-opts').onclick = () => {
+    enterScreen(); settings();
+    app.querySelector('#sec-learn').scrollIntoView({ block: 'start' });
+  };
   $('#go').onclick = () => { const { queue, review } = nextQueue(); if (queue.length) learn(queue, review); };
-  $('#goal').addEventListener('change', renderToday);
   $('#sa-open').onclick = openSchulaufgabe;
   $('#settings').onclick = () => { enterScreen(); settings(); };
   $('#offline-setup').onclick = () => {

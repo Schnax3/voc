@@ -199,3 +199,6 @@ details.rules.compact{margin-top:12px}
 .progress.goal{margin:6px 0 12px;height:8px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);max-width:min(92vw,420px);padding:12px 16px;border-radius:12px;background:var(--acc);color:var(--on-acc);font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:50;text-align:center}
 #toast.on{opacity:1;transform:translate(-50%,0)}
+.panel .opts h3{margin:12px 0 0;font-size:.85rem;font-weight:600;color:var(--mut);text-transform:none}
+.panel .opts .hint{margin:-4px 0 4px 26px}
+.linklike{display:block;margin:12px 0 0;padding:6px 0;border:0;background:none;color:var(--acc);font:inherit;font-size:.9rem;text-align:left;cursor:pointer;text-decoration:underline}
