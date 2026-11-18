@@ -64,8 +64,13 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;paddi
       <label class="mut">Zoom <input type="range" id="zoom" min="3" max="60" value="15"> <span id="zoomv">15 s</span></label>
       <label class="mut"><input type="checkbox" id="trim" checked> Stille an Anfang/Ende abschneiden</label>
     </div>
+    <div class="row" style="margin-top:10px">
+      <label class="mut"><input type="checkbox" id="alt" checked> Abwechselnd: erst Deutsch (wird verworfen), dann Französisch (wird gespeichert)</label>
+      <button id="phase" title="Taste T"></button>
+      <button id="skip" title="Taste D">✂ Verwerfen (D)</button>
+    </div>
     <p class="mut" style="margin:10px 0 0">
-      <kbd>S</kbd> schneiden (Aufnahme läuft weiter) · <kbd>Leertaste</kbd> Pause · <kbd>Z</kbd> letzten Schnitt zurück ·
+      <kbd>S</kbd> schneiden (Aufnahme läuft weiter) · <kbd>D</kbd> Stück verwerfen, z. B. eine Erklärung (die Reihenfolge Deutsch/Französisch bleibt) · <kbd>T</kbd> Deutsch/Französisch umschalten, falls es nicht passt · <kbd>Leertaste</kbd> Pause · <kbd>Z</kbd> letzten Schnitt zurück ·
       <kbd>←</kbd><kbd>→</kbd> 1 s (mit <kbd>Umschalt</kbd> 0,2 s) · Klick in die Welle springt dorthin
     </p>
     <div id="msg" class="mut"></div>
@@ -81,7 +86,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;paddi
 const $ = (s) => document.querySelector(s);
 const audio = new Audio();
 audio.preservesPitch = true;
-let peaks = null, PEAK = 0.01, dur = 0, done = 0, viewStart = 0, win = 15, segs = [], nextId = 1, cutLine = [];
+let peaks = null, PEAK = 0.01, dur = 0, done = 0, viewStart = 0, win = 15, segs = [], nextId = 1, history = [], phase = 'de';
 
 const fmt = (t) => { const m = Math.floor(t / 60), s = (t % 60).toFixed(1); return m + ':' + (s < 10 ? '0' : '') + s; };
 const say = (t, bad) => { const m = $('#msg'); m.textContent = t; m.style.color = bad ? 'var(--bad)' : ''; };
@@ -121,7 +126,7 @@ async function loadFile(f) {
   }
   let max = 0; for (const v of peaks) if (v > max) max = v;
   const k = max > 0 ? 1 / max : 1; for (let i = 0; i < peaks.length; i++) peaks[i] *= k;
-  dur = ab.duration; done = 0; viewStart = 0; segs = []; cutLine = [];
+  dur = ab.duration; done = 0; viewStart = 0; segs = []; history = []; phase = 'de'; updatePhase();
   audio.src = URL.createObjectURL(f);
   audio.playbackRate = Number($('#speed').value);
   $('#work').hidden = false;
@@ -186,12 +191,26 @@ function draw() {
 function toggle() { audio.paused ? audio.play() : audio.pause(); }
 function seek(d) { audio.currentTime = Math.max(done, Math.min(dur, audio.currentTime + d)); }
 
-async function doCut() {
+function updatePhase() {
+  const alt = $('#alt').checked;
+  $('#phase').hidden = !alt;
+  $('#phase').textContent = phase === 'de' ? 'Nächster Schnitt: Deutsch → verwerfen' : 'Nächster Schnitt: Französisch → speichern';
+}
+
+async function doCut(forceSkip) {
   if (!peaks) return;
   const end = audio.currentTime;
   if (end - done < 0.15) return say('Zu kurz: erst weiter abspielen, dann schneiden', true);
-  const s = { id: nextId++, start: done, end, name: '', state: 'pending' };
-  segs.unshift(s); done = end; viewStart = done;
+  const alt = $('#alt').checked;
+  const save = !forceSkip && (!alt || phase === 'fr');
+  const h = { start: done, end, phaseBefore: phase, seg: null };
+  history.push(h);
+  done = end; viewStart = done;
+  if (alt && !forceSkip) phase = phase === 'fr' ? 'de' : 'fr';
+  updatePhase();
+  if (!save) return say('Verworfen (' + fmt(h.start) + ' – ' + fmt(end) + ')');
+  const s = { id: nextId++, start: h.start, end, name: '', state: 'pending' };
+  h.seg = s; segs.unshift(s);
   renderList();
   try {
     const r = await post('/cut', { start: s.start, end: s.end, trim: $('#trim').checked });
@@ -202,9 +221,10 @@ async function doCut() {
 }
 
 async function undo() {
-  const s = segs.shift(); if (!s) return;
-  s.cancelled = true; done = s.start; viewStart = done;
-  if (s.state === 'ok') await post('/delete', { name: s.name }).catch((e) => say(e.message, true));
+  const h = history.pop(); if (!h) return;
+  done = h.start; viewStart = done; phase = h.phaseBefore; updatePhase();
+  const s = h.seg;
+  if (s) { s.cancelled = true; segs = segs.filter((x) => x !== s); if (s.state === 'ok') await post('/delete', { name: s.name }).catch((e) => say(e.message, true)); }
   say('Letzter Schnitt zurückgenommen');
   renderList();
 }
@@ -234,7 +254,9 @@ const drop = $('#drop');
 drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
 drop.ondragleave = () => drop.classList.remove('over');
 drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); loadFile(e.dataTransfer.files[0]); };
-$('#play').onclick = toggle; $('#cut').onclick = doCut; $('#undo').onclick = undo;
+$('#play').onclick = toggle; $('#cut').onclick = () => doCut(false); $('#skip').onclick = () => doCut(true);
+$('#alt').onchange = (e) => { e.target.blur(); updatePhase(); };
+$('#phase').onclick = () => { phase = phase === 'de' ? 'fr' : 'de'; updatePhase(); }; $('#undo').onclick = undo;
 $('#speed').onchange = (e) => { audio.playbackRate = Number(e.target.value); e.target.blur(); };
 $('#zoom').oninput = (e) => { win = Number(e.target.value); $('#zoomv').textContent = win + ' s'; e.target.blur(); };
 $('#wave').onclick = (e) => { const r = e.currentTarget.getBoundingClientRect(); audio.currentTime = Math.max(done, Math.min(dur, viewStart + ((e.clientX - r.left) / r.width) * win)); };
@@ -244,13 +266,16 @@ document.addEventListener('keydown', (e) => {
   const tag = (e.target.tagName || '').toLowerCase();
   if (tag === 'input' && e.target.type === 'text') return;
   if (e.key === ' ') { e.preventDefault(); toggle(); }
-  else if (e.key === 's' || e.key === 'S') { e.preventDefault(); doCut(); }
+  else if (e.key === 's' || e.key === 'S') { e.preventDefault(); doCut(false); }
+  else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); doCut(true); }
+  else if (e.key === 't' || e.key === 'T') { e.preventDefault(); phase = phase === 'de' ? 'fr' : 'de'; updatePhase(); }
   else if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); undo(); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); seek(e.shiftKey ? -0.2 : -1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); seek(e.shiftKey ? 0.2 : 1); }
 });
 document.addEventListener('click', (e) => { if (e.target.matches('button')) e.target.blur(); });
 $('#trim').onchange = (e) => e.target.blur();
+updatePhase();
 info();
 </script>
 </body>

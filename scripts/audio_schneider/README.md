@@ -20,9 +20,13 @@ Der Browser öffnet sich. Aufnahme hineinziehen, abspielen und an jeder Wortgren
 | Taste | Wirkung |
 |---|---|
 | **S** | Stück seit dem letzten Schnitt ausschneiden, erkennen, als `<Wort>.mp3` im Zielordner speichern. Die Aufnahme läuft weiter. |
+| **D** | Stück verwerfen (nicht speichern), z. B. eine Erklärung. Die Reihenfolge Deutsch/Französisch ändert sich dabei nicht. |
+| **T** | Umschalten, ob der nächste Schnitt Deutsch (verwerfen) oder Französisch (speichern) ist |
 | Leertaste | Abspielen / Pause |
 | **Z** | Letzten Schnitt zurück (Datei wird wieder gelöscht) |
 | ← / → | 1 s springen (mit Umschalt 0,2 s) |
+
+Standardmäßig ist der Abwechsel-Modus an: Aufnahmen mit „Deutsch, Französisch, Deutsch, Französisch …“ schneidest du einfach durchgehend mit **S**. Jeder deutsche Abschnitt wird verworfen, jeder französische gespeichert und erkannt. Kommt eine Erklärung dazwischen, drückst du an ihrem Ende **D**. Das Häkchen „Abwechselnd“ schaltet den Modus aus, dann speichert **S** jedes Stück.
 
 Das geschnittene Stück verschwindet aus der Timeline. Namen kannst du in der Liste ändern, Stücke abspielen oder löschen.
 Wird nichts erkannt, heißt die Datei „Segment 1“ usw.
