@@ -446,6 +446,11 @@ test('Tastenkürzel: im Eingabefeld normal tippen; als Option auch dort Kürzel,
   await page.keyboard.type('un p a');
   assert.equal(await page.inputValue('#typed-answer'), 'un p a');
   assert.equal(await page.$('#yes'), null, 'Karte ist noch zu');
+  // Pfeiltasten und Tastenkombinationen gelten im Eingabefeld immer: ↓ deckt auf, → = gewusst
+  await page.keyboard.press('ArrowDown');
+  await page.waitForSelector('#yes');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => !document.querySelector('#yes'));
   await context.close();
   // Option „auch im Eingabefeld“ mit alternativer Belegung: P deckt auf und wird nicht getippt
   ({ context, page } = await openApp(browser, base, { seed: seed({ keymap: 'alt', keysInInput: true }) }));
