@@ -139,3 +139,10 @@ Wenn noch keine Offline-Inhalte gespeichert sind, zeigt die Startseite den klein
 - Python: `python -m unittest discover -s tests -t .`
 - Browser (Playwright): `npm install --no-save playwright && npx playwright install chromium && node tests/e2e/app.test.cjs`
 - Beides läuft bei jedem Push im Workflow „Tests“.
+
+## Tastenkürzel
+
+In der Lernrunde: **P** = Anhören, **Leertaste**, **Enter** oder **↓** = Aufdecken, **←/→** oder **1/2** = falsch/richtig, **Strg+Z** = zurück.
+Auf der Startseite lässt sich unter „Tastenkürzel“ die Belegung tauschen (Leertaste = Anhören, P = Aufdecken). Das Häkchen
+„Kürzel auch im Eingabefeld“ lässt die Kürzel auch während des Tippens gelten. Dann kann man dort kein Leerzeichen und kein P mehr tippen,
+deshalb ist es standardmäßig aus.

@@ -159,6 +159,27 @@ function settings() {
   app.innerHTML = `<div class="top"><button id="back-home" type="button">← Zurück</button></div>
   <h1>Einstellungen</h1>
 
+  <section class="panel" id="sec-learn" aria-label="Lernen">
+    <h2>Lernen</h2>
+    <div class="opts">
+      <label>Tagesziel
+        <select id="goal"><option value="0">Aus</option><option value="10">10 Karten</option><option value="20">20 Karten</option><option value="30">30 Karten</option><option value="50">50 Karten</option><option value="100">100 Karten</option></select></label>
+      <label><input type="checkbox" id="endless"> Immer weiterlernen</label>
+      <p class="hint">Nach jeder Runde geht es gleich weiter. Ist nichts mehr fällig, wiederholst du schon gelernte Karten.</p>
+      <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
+      <label><input type="checkbox" id="auto"> Aussprache automatisch abspielen</label>
+      <h3>Verben konjugieren</h3>
+      <label><input type="checkbox" id="conj-pres"> Présent</label>
+      <label><input type="checkbox" id="conj-pc"> Passé composé</label>
+      <p class="hint">Gilt für alle Verben in den Lektionen. Sind beide aus, kommt nur die Grundform.</p>
+      <h3>Tastatur</h3>
+      <label>Tastenkürzel
+        <select id="keymap"><option value="std">P = Anhören, Leertaste = Aufdecken</option><option value="alt">Leertaste = Anhören, P = Aufdecken</option></select></label>
+      <label><input type="checkbox" id="keys-input"> Kürzel auch im Eingabefeld</label>
+      <p class="hint">Dann lassen sich dort Leertaste und P nicht mehr tippen. Ohne Häkchen kannst du im Eingabefeld normal schreiben.</p>
+    </div>
+  </section>
+
   <section class="panel" id="sec-colors" aria-label="Farben">
     <h2>Farben</h2>
     <div class="opts">
@@ -286,6 +307,18 @@ function settings() {
     LS.set('vk:opt', opt); document.documentElement.classList.toggle('big', opt.big);
   };
   $('#img').onchange = setDisplay; $('#big').onchange = setDisplay;
+
+  // Lernen
+  $('#goal').value = String(goalToday()); $('#endless').checked = endlessOn();
+  $('#typing').checked = Boolean(opt.typing); $('#auto').checked = Boolean(opt.auto);
+  $('#conj-pres').checked = opt.conjPres !== false; $('#conj-pc').checked = opt.conjPc !== false;
+  $('#keymap').value = opt.keymap === 'alt' ? 'alt' : 'std'; $('#keys-input').checked = Boolean(opt.keysInInput);
+  const setLearn = () => {
+    opt = { ...opt, goal: Number($('#goal').value), endless: $('#endless').checked, typing: $('#typing').checked, auto: $('#auto').checked,
+      conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, keymap: $('#keymap').value, keysInInput: $('#keys-input').checked };
+    LS.set('vk:opt', opt);
+  };
+  ['#goal', '#endless', '#typing', '#auto', '#conj-pres', '#conj-pc', '#keymap', '#keys-input'].forEach(sel => { $(sel).onchange = setLearn; });
 
   // Installation
   const bindInstall = () => {
