@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audio-Schneider</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#6b6a64;--acc:#2f6fed;--ok:#1f9d55;--bad:#d64545;--line:#e2e0d8;--wave:#8aa9ee;--gone:#e9e7df}
+@media (prefers-color-scheme:dark){:root{--bg:#161614;--card:#222220;--ink:#efeee8;--mut:#9a9890;--acc:#6b9bff;--line:#383733;--wave:#4d6fb8;--gone:#2b2a27}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+main{max-width:900px;margin:0 auto;padding:18px 16px 60px}
+h1{font-size:1.4rem;margin:0 0 4px}
+.mut{color:var(--mut);font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+button,select{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.p{background:var(--acc);border-color:var(--acc);color:#fff}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#drop{border:2px dashed var(--line);border-radius:12px;padding:26px;text-align:center}
+#drop.over{border-color:var(--acc)}
+canvas{width:100%;display:block;border-radius:8px;background:var(--bg);touch-action:none}
+#wave{height:150px;cursor:pointer}
+#over{height:34px;margin-top:8px}
+kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;font:.85rem ui-monospace,monospace;background:var(--card)}
+#list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.seg{display:flex;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+.seg input{flex:1;min-width:0;font:inherit;padding:6px 8px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--ink)}
+.seg input:focus{border-color:var(--acc);background:var(--bg);outline:0}
+.seg .t{color:var(--mut);font-size:.85rem;white-space:nowrap}
+.seg.pending input{color:var(--mut);font-style:italic}
+.seg.err{border-color:var(--bad)}
+.seg button{padding:4px 10px}
+#msg{min-height:1.4em}
+.big{font-size:1.3rem;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<main>
+<h1>Audio-Schneider</h1>
+<div class="mut" id="info">Lädt …</div>
+
+<div id="drop" class="card">
+  <p style="margin:0 0 10px">Aufnahme hierher ziehen oder auswählen</p>
+  <input type="file" id="file" accept="audio/*,video/*">
+</div>
+
+<div id="work" hidden>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div><span class="big" id="clock">0:00.0</span> <span class="mut" id="rest"></span></div>
+      <div class="row">
+        <button id="play" class="p">▶ Abspielen</button>
+        <button id="cut">✂ Schneiden</button>
+        <button id="undo">↶ Zurück</button>
+      </div>
+    </div>
+    <canvas id="wave" style="margin-top:10px"></canvas>
+    <canvas id="over"></canvas>
+    <div class="row" style="margin-top:10px">
+      <label class="mut">Tempo
+        <select id="speed"><option>0.6</option><option>0.8</option><option selected>1</option><option>1.25</option><option>1.5</option><option>2</option></select>
+      </label>
+      <label class="mut">Zoom <input type="range" id="zoom" min="3" max="60" value="15"> <span id="zoomv">15 s</span></label>
+      <label class="mut"><input type="checkbox" id="trim" checked> Stille an Anfang/Ende abschneiden</label>
+    </div>
+    <p class="mut" style="margin:10px 0 0">
+      <kbd>S</kbd> schneiden (Aufnahme läuft weiter) · <kbd>Leertaste</kbd> Pause · <kbd>Z</kbd> letzten Schnitt zurück ·
+      <kbd>←</kbd><kbd>→</kbd> 1 s (mit <kbd>Umschalt</kbd> 0,2 s) · Klick in die Welle springt dorthin
+    </p>
+    <div id="msg" class="mut"></div>
+  </div>
+  <div class="card">
+    <strong id="count">Ausschnitte</strong> <span class="mut">(Name anklicken zum Ändern, Enter bestätigt)</span>
+    <div id="list"></div>
+  </div>
+</div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const audio = new Audio();
+audio.preservesPitch = true;
+let peaks = null, PEAK = 0.01, dur = 0, done = 0, viewStart = 0, win = 15, segs = [], nextId = 1, cutLine = [];
+
+const fmt = (t) => { const m = Math.floor(t / 60), s = (t % 60).toFixed(1); return m + ':' + (s < 10 ? '0' : '') + s; };
+const say = (t, bad) => { const m = $('#msg'); m.textContent = t; m.style.color = bad ? 'var(--bad)' : ''; };
+
+async function post(url, data) {
+  const r = await fetch(url, { method: 'POST', body: JSON.stringify(data) });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+
+async function info() {
+  try {
+    const i = await (await fetch('/info')).json();
+    let t = 'Zielordner: ' + i.out + ' · Spracherkennung: ' + ({ whisper: 'Whisper', none: 'aus (Namen von Hand)', fake: 'Test' }[i.stt] || i.stt);
+    if (i.stt === 'whisper') t += i.error ? ' – ' + i.error : i.ready ? ' (bereit)' : ' (Modell lädt …)';
+    $('#info').textContent = t;
+    if (i.stt === 'whisper' && !i.ready && !i.error) setTimeout(info, 1500);
+  } catch { $('#info').textContent = 'Keine Verbindung zum Programm'; }
+}
+
+async function loadFile(f) {
+  if (!f) return;
+  say('');
+  $('#drop').querySelector('p').textContent = 'Lädt ' + f.name + ' …';
+  await fetch('/upload?name=' + encodeURIComponent(f.name), { method: 'POST', body: f });
+  const buf = await f.arrayBuffer();
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const ab = await ctx.decodeAudioData(buf);
+  ctx.close();
+  const ch = ab.getChannelData(0), per = Math.max(1, Math.floor(ab.sampleRate * PEAK));
+  peaks = new Float32Array(Math.ceil(ch.length / per));
+  for (let i = 0; i < peaks.length; i++) {
+    let m = 0;
+    for (let j = i * per, e = Math.min(ch.length, j + per); j < e; j++) { const v = Math.abs(ch[j]); if (v > m) m = v; }
+    peaks[i] = m;
+  }
+  let max = 0; for (const v of peaks) if (v > max) max = v;
+  const k = max > 0 ? 1 / max : 1; for (let i = 0; i < peaks.length; i++) peaks[i] *= k;
+  dur = ab.duration; done = 0; viewStart = 0; segs = []; cutLine = [];
+  audio.src = URL.createObjectURL(f);
+  audio.playbackRate = Number($('#speed').value);
+  $('#work').hidden = false;
+  $('#drop').hidden = true;
+  renderList();
+  draw();
+}
+
+function setupCanvas(c) {
+  const r = devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== Math.round(w * r)) { c.width = Math.round(w * r); c.height = Math.round(h * r); }
+  const g = c.getContext('2d'); g.setTransform(r, 0, 0, r, 0, 0);
+  return { g, w, h };
+}
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n);
+
+function colRange(t0, t1) { // maximaler Ausschlag im Zeitfenster
+  const a = Math.max(0, Math.floor(t0 / PEAK)), b = Math.min(peaks.length, Math.max(a + 1, Math.ceil(t1 / PEAK)));
+  let m = 0; for (let i = a; i < b; i++) if (peaks[i] > m) m = peaks[i];
+  return m;
+}
+
+function draw() {
+  if (!peaks) return;
+  const t = audio.currentTime;
+  if (t < done) audio.currentTime = done;
+  // Ausschnitt folgt dem Abspielpunkt
+  if (t > viewStart + win * 0.92 || t < viewStart) viewStart = Math.max(done, t - win * 0.08);
+  viewStart = Math.max(done, Math.min(viewStart, Math.max(done, dur - win)));
+  { const { g, w, h } = setupCanvas($('#wave'));
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = css('--wave');
+    for (let x = 0; x < w; x++) {
+      const t0 = viewStart + (x / w) * win, t1 = viewStart + ((x + 1) / w) * win;
+      if (t0 > dur) break;
+      const a = colRange(t0, t1) * (h / 2 - 4);
+      g.fillRect(x, h / 2 - a, 1, Math.max(1, 2 * a));
+    }
+    g.fillStyle = css('--mut'); g.font = '11px system-ui';
+    const step = win > 30 ? 5 : win > 12 ? 2 : 1;
+    for (let s = Math.ceil(viewStart / step) * step; s < viewStart + win; s += step) {
+      const x = ((s - viewStart) / win) * w; g.fillRect(x, h - 8, 1, 8); g.fillText(fmt(s), x + 3, h - 10);
+    }
+    g.fillStyle = css('--bad');
+    const px = ((t - viewStart) / win) * w; g.fillRect(px - 1, 0, 2, h);
+  }
+  { const { g, w, h } = setupCanvas($('#over'));
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = css('--gone'); g.fillRect(0, 0, (done / dur) * w, h);
+    g.fillStyle = css('--wave');
+    for (let x = 0; x < w; x++) { const a = colRange((x / w) * dur, ((x + 1) / w) * dur) * (h / 2 - 2); g.fillRect(x, h / 2 - a, 1, Math.max(1, 2 * a)); }
+    g.fillStyle = css('--acc'); g.globalAlpha = .25;
+    g.fillRect((viewStart / dur) * w, 0, (win / dur) * w, h); g.globalAlpha = 1;
+    g.fillStyle = css('--bad'); g.fillRect((t / dur) * w - 1, 0, 2, h);
+  }
+  $('#clock').textContent = fmt(t);
+  $('#rest').textContent = 'von ' + fmt(dur) + ' · übrig ' + fmt(Math.max(0, dur - done));
+  $('#play').textContent = audio.paused ? '▶ Abspielen' : '❚❚ Pause';
+  requestAnimationFrame(draw);
+}
+
+function toggle() { audio.paused ? audio.play() : audio.pause(); }
+function seek(d) { audio.currentTime = Math.max(done, Math.min(dur, audio.currentTime + d)); }
+
+async function doCut() {
+  if (!peaks) return;
+  const end = audio.currentTime;
+  if (end - done < 0.15) return say('Zu kurz: erst weiter abspielen, dann schneiden', true);
+  const s = { id: nextId++, start: done, end, name: '', state: 'pending' };
+  segs.unshift(s); done = end; viewStart = done;
+  renderList();
+  try {
+    const r = await post('/cut', { start: s.start, end: s.end, trim: $('#trim').checked });
+    if (s.cancelled) { await post('/delete', { name: r.name }).catch(() => {}); return; }
+    s.name = r.name; s.state = 'ok'; say('Gespeichert: ' + r.name + '.mp3' + (r.text ? '' : ' (nichts erkannt – Namen bitte ändern)'));
+  } catch (e) { s.state = 'err'; say('Fehler beim Schneiden: ' + e.message, true); }
+  renderList();
+}
+
+async function undo() {
+  const s = segs.shift(); if (!s) return;
+  s.cancelled = true; done = s.start; viewStart = done;
+  if (s.state === 'ok') await post('/delete', { name: s.name }).catch((e) => say(e.message, true));
+  say('Letzter Schnitt zurückgenommen');
+  renderList();
+}
+
+function renderList() {
+  $('#count').textContent = (n => n + (n === 1 ? ' Ausschnitt' : ' Ausschnitte'))(segs.filter((s) => s.state === 'ok').length);
+  const box = $('#list'); box.textContent = '';
+  for (const s of segs) {
+    const row = document.createElement('div'); row.className = 'seg ' + s.state;
+    const play = document.createElement('button'); play.textContent = '▶'; play.disabled = s.state !== 'ok';
+    play.onclick = () => { const a = new Audio('/clip?name=' + encodeURIComponent(s.name) + '&t=' + Date.now()); a.play(); };
+    const inp = document.createElement('input'); inp.value = s.state === 'pending' ? 'wird erkannt …' : s.name; inp.disabled = s.state !== 'ok';
+    inp.onkeydown = (e) => { e.stopPropagation(); if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = s.name; inp.blur(); } };
+    inp.onchange = async () => {
+      try { const r = await post('/rename', { name: s.name, new: inp.value }); s.name = r.name; inp.value = r.name; say('Umbenannt: ' + r.name + '.mp3'); }
+      catch (e) { inp.value = s.name; say('Umbenennen nicht möglich: ' + e.message, true); }
+    };
+    const t = document.createElement('span'); t.className = 't'; t.textContent = (s.end - s.start).toFixed(1) + ' s';
+    const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Löschen';
+    del.onclick = async () => { if (s.state === 'ok') await post('/delete', { name: s.name }).catch(() => {}); s.cancelled = true; segs = segs.filter((x) => x !== s); renderList(); };
+    row.append(play, inp, t, del); box.append(row);
+  }
+}
+
+$('#file').onchange = (e) => loadFile(e.target.files[0]);
+const drop = $('#drop');
+drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); loadFile(e.dataTransfer.files[0]); };
+$('#play').onclick = toggle; $('#cut').onclick = doCut; $('#undo').onclick = undo;
+$('#speed').onchange = (e) => { audio.playbackRate = Number(e.target.value); e.target.blur(); };
+$('#zoom').oninput = (e) => { win = Number(e.target.value); $('#zoomv').textContent = win + ' s'; e.target.blur(); };
+$('#wave').onclick = (e) => { const r = e.currentTarget.getBoundingClientRect(); audio.currentTime = Math.max(done, Math.min(dur, viewStart + ((e.clientX - r.left) / r.width) * win)); };
+$('#over').onclick = (e) => { const r = e.currentTarget.getBoundingClientRect(); audio.currentTime = Math.max(done, ((e.clientX - r.left) / r.width) * dur); };
+document.addEventListener('keydown', (e) => {
+  if (!peaks || e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' && e.target.type === 'text') return;
+  if (e.key === ' ') { e.preventDefault(); toggle(); }
+  else if (e.key === 's' || e.key === 'S') { e.preventDefault(); doCut(); }
+  else if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); undo(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); seek(e.shiftKey ? -0.2 : -1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); seek(e.shiftKey ? 0.2 : 1); }
+});
+document.addEventListener('click', (e) => { if (e.target.matches('button')) e.target.blur(); });
+$('#trim').onchange = (e) => e.target.blur();
+info();
+</script>
+</body>
+</html>
