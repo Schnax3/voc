@@ -765,6 +765,7 @@ function learn(q, isReview = false) {
     const key = e.key.toLowerCase();
     const plain = !(e.ctrlKey || e.metaKey || e.altKey);
     const inField = e.target instanceof HTMLInputElement && !opt.keysInInput;
+    if (inField && e.key !== 'Escape') return;
     if (plain && key === keyAudio() && hasSound(c) && !inField) { e.preventDefault(); c.pc ? speak(c.fr) : sound(c); return; }
     if (key === 'z' && (e.ctrlKey || e.metaKey) && history.length) { e.preventDefault(); undo(); return; }
     if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown' || (plain && key === keyReveal() && !inField))) {
