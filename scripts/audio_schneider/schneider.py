@@ -43,11 +43,27 @@ def unique_path(folder, name, ext=".mp3", ignore=None):
     return p
 
 
+def chunks_from_silences(starts, ends, total, min_len=0.12, pad=0.05):
+    """Teilt ein Stück an Sprechpausen in Abschnitte (Anfang, Ende) in Sekunden."""
+    ends = list(ends)
+    if len(starts) > len(ends):
+        ends.append(total)
+    chunks, pos = [], 0.0
+    for a, b in zip(starts, ends):
+        a = max(0.0, a)
+        if a - pos >= min_len:
+            chunks.append((max(0.0, pos - pad), min(total, a + pad)))
+        pos = max(pos, b)
+    if total - pos >= min_len:
+        chunks.append((max(0.0, pos - pad), total))
+    return chunks or [(0.0, total)]
+
+
 class Whisper:
     """faster-whisper, lazy geladen. Fällt bei GPU-Problemen auf CPU zurück."""
 
-    def __init__(self, model="large-v3-turbo", lang="fr"):
-        self.model_name, self.lang = model, lang
+    def __init__(self, model="large-v3-turbo", lang="fr", other="de"):
+        self.model_name, self.lang, self.other = model, lang, other
         self.model = None
         self.ready = False
         self.error = None
@@ -66,36 +82,59 @@ class Whisper:
             self.error = f"Whisper konnte nicht geladen werden: {e}"
             print(self.error, file=sys.stderr)
 
-    def _run(self, path):
-        segs, _ = self.model.transcribe(str(path), language=self.lang, beam_size=5,
-                                        condition_on_previous_text=False)
-        return " ".join(s.text.strip() for s in segs)
+    def _transcribe(self, path, lang):
+        segs, info = self.model.transcribe(str(path), language=lang, beam_size=5,
+                                           condition_on_previous_text=False)
+        return " ".join(x.text.strip() for x in segs).strip(), info
 
-    def __call__(self, path):
+    def _classify(self, path):
+        """Gibt (Sprache, Text) für einen Abschnitt zurück, entschieden nur zwischen Zielsprache und Muttersprache."""
+        text, info = self._transcribe(path, None)
+        probs = dict(getattr(info, "all_language_probs", None) or [])
+        if self.lang in probs or self.other in probs:
+            lang = self.lang if probs.get(self.lang, 0) >= probs.get(self.other, 0) else self.other
+        else:
+            lang = info.language
+        if lang != info.language:
+            text, _ = self._transcribe(path, lang)
+        return lang, text
+
+    def _french(self, chunks):
+        for a, b, path in chunks:
+            lang, text = self._classify(path)
+            if lang == self.lang and text:
+                return text, [(a, b)]
+        return "", []
+
+    def __call__(self, path, chunks=None):
+        """Findet im Stück den ersten französischen Abschnitt. Gibt (Text, [(Anfang, Ende)]) zurück."""
+        chunks = chunks or [(0.0, 0.0, path)]
         with self.lock:
             if self.model is None:
                 if self.error:
-                    return ""
+                    return "", []
                 self.load()
             try:
-                return self._run(path)
+                return self._french(chunks)
             except Exception as e:  # noqa: BLE001  (z. B. fehlende CUDA-Bibliotheken)
                 print(f"GPU/Modell-Fehler ({e}); wechsle zur CPU mit Modell 'small'.", file=sys.stderr)
                 self.load(device="cpu", model="small")
-                return self._run(path)
+                return self._french(chunks)
 
 
 class FakeStt:
-    """Für Tests: liefert 'Mot 1', 'Mot 2' …"""
+    """Für Tests: liefert 'Mot 1', 'Mot 2' … (Bereiche None = ganzes Stück)."""
+
+    wants_chunks = False
 
     def __init__(self):
         self.n = 0
         self.ready = True
         self.error = None
 
-    def __call__(self, path):
+    def __call__(self, path, chunks=None):
         self.n += 1
-        return f"Mot {self.n}"
+        return f"Mot {self.n}", None
 
 
 class Cutter:
@@ -113,30 +152,62 @@ class Cutter:
         self.source.write_bytes(data)
         return self.source
 
-    def _encode(self, start, end, dest, trim):
-        cmd = ["ffmpeg", "-y", "-v", "error", "-ss", f"{start:.3f}", "-to", f"{end:.3f}",
-               "-i", str(self.source), "-vn"]
-        if trim:
-            sil = "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.06"
-            cmd += ["-af", f"{sil},areverse,{sil},areverse"]
-        cmd += ["-ac", "1", "-c:a", "libmp3lame", "-q:a", "3", str(dest)]
+    def _ffmpeg(self, src, dest, start=None, end=None, af=None, mp3=False):
+        cmd = ["ffmpeg", "-y", "-v", "error"]
+        if start is not None:
+            cmd += ["-ss", f"{start:.3f}"]
+        if end is not None:
+            cmd += ["-to", f"{end:.3f}"]
+        cmd += ["-i", str(src), "-vn"]
+        if af:
+            cmd += ["-af", af]
+        cmd += ["-ac", "1"] + (["-c:a", "libmp3lame", "-q:a", "3"] if mp3 else ["-c:a", "pcm_s16le", "-ar", "16000"])
+        cmd.append(str(dest))
         r = subprocess.run(cmd, capture_output=True, text=True)
-        if r.returncode != 0 or not dest.exists() or dest.stat().st_size == 0:
+        if r.returncode != 0 or not Path(dest).exists() or Path(dest).stat().st_size == 0:
             raise RuntimeError(r.stderr.strip() or "ffmpeg lieferte keine Datei")
 
-    def cut(self, start, end, trim=True):
+    def _duration(self, path):
+        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
+                           capture_output=True, text=True)
+        return float(r.stdout.strip() or 0)
+
+    def _chunks(self, wav, tag):
+        total = self._duration(wav)
+        r = subprocess.run(["ffmpeg", "-v", "info", "-i", str(wav), "-af", "silencedetect=noise=-38dB:d=0.3",
+                            "-f", "null", "-"], capture_output=True, text=True)
+        starts = [float(x) for x in re.findall(r"silence_start: (-?[\d.]+)", r.stderr)]
+        ends = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", r.stderr)]
+        out = []
+        for i, (a, b) in enumerate(chunks_from_silences(starts, ends, total)):
+            p = self.work / f"{tag}-teil{i}.wav"
+            self._ffmpeg(wav, p, a, b)
+            out.append((a, b, p))
+        return out
+
+    def cut(self, start, end, trim=True, french_only=False):
         if self.source is None:
             raise RuntimeError("Noch keine Aufnahme geladen")
         if not end > start:
             raise ValueError("Ende liegt vor dem Anfang")
-        tmp = self.work / f"schnitt-{threading.get_ident()}-{abs(hash((start, end)))}.mp3"
-        self._encode(start, end, tmp, trim)
-        text = ""
+        tag = f"schnitt-{threading.get_ident()}-{abs(hash((start, end)))}"
+        wav, tmp = self.work / f"{tag}.wav", self.work / f"{tag}.mp3"
+        sil = "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.06"
+        self._ffmpeg(self.source, wav, start, end, af=f"{sil},areverse,{sil},areverse" if trim else None)
+        text, ranges, parts = "", None, []
         if self.stt is not None:
             try:
-                text = self.stt(tmp)
+                parts = self._chunks(wav, tag) if getattr(self.stt, "wants_chunks", True) else []
+                text, ranges = self.stt(wav, parts)
             except Exception as e:  # noqa: BLE001
                 print(f"Spracherkennung fehlgeschlagen: {e}", file=sys.stderr)
+        if french_only and ranges:
+            a, b = min(r[0] for r in ranges), max(r[1] for r in ranges)
+            self._ffmpeg(wav, tmp, a, b, mp3=True)
+        else:
+            self._ffmpeg(wav, tmp, mp3=True)
+        for f in [wav] + [p[2] for p in parts]:
+            f.unlink(missing_ok=True)
         name = clean_name(text)
         with self.lock:
             if not name:
@@ -217,7 +288,7 @@ def make_handler(cutter, info):
                 data = json.loads(raw or b"{}")
                 if u.path == "/cut":
                     return self._json(cutter.cut(float(data["start"]), float(data["end"]),
-                                                 bool(data.get("trim", True))))
+                                                 bool(data.get("trim", True)), bool(data.get("french_only", False))))
                 if u.path == "/rename":
                     return self._json({"name": cutter.rename(data["name"], data["new"])})
                 if u.path == "/delete":
@@ -236,13 +307,14 @@ def main(argv=None):
                     help="Spracherkennung: whisper (Standard), none (Namen später von Hand) oder fake (Test)")
     ap.add_argument("--model", default="large-v3-turbo", help="Whisper-Modell, z. B. small, medium, large-v3-turbo")
     ap.add_argument("--lang", default="fr", help="Sprache der Vokabeln (Standard fr)")
+    ap.add_argument("--other-lang", default="de", help="Zweite Sprache in der Aufnahme (Standard de)")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args(argv)
 
     stt = None
     if a.stt == "whisper":
-        stt = Whisper(a.model, a.lang)
+        stt = Whisper(a.model, a.lang, a.other_lang)
         threading.Thread(target=stt.preload, daemon=True).start()
     elif a.stt == "fake":
         stt = FakeStt()

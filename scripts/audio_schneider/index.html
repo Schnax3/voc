@@ -63,9 +63,10 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;paddi
       </label>
       <label class="mut">Zoom <input type="range" id="zoom" min="3" max="60" value="15"> <span id="zoomv">15 s</span></label>
       <label class="mut"><input type="checkbox" id="trim" checked> Stille an Anfang/Ende abschneiden</label>
+      <label class="mut"><input type="checkbox" id="fronly"> Nur den französischen Teil speichern (ohne das deutsche Wort)</label>
     </div>
     <div class="row" style="margin-top:10px">
-      <label class="mut"><input type="checkbox" id="alt" checked> Abwechselnd: erst Deutsch (wird verworfen), dann Französisch (wird gespeichert)</label>
+      <label class="mut"><input type="checkbox" id="alt"> Getrennte Schnitte: erst Deutsch (wird verworfen), dann Französisch (wird gespeichert)</label>
       <button id="phase" title="Taste T"></button>
       <button id="skip" title="Taste D">✂ Verwerfen (D)</button>
     </div>
@@ -213,7 +214,7 @@ async function doCut(forceSkip) {
   h.seg = s; segs.unshift(s);
   renderList();
   try {
-    const r = await post('/cut', { start: s.start, end: s.end, trim: $('#trim').checked });
+    const r = await post('/cut', { start: s.start, end: s.end, trim: $('#trim').checked, french_only: $('#fronly').checked });
     if (s.cancelled) { await post('/delete', { name: r.name }).catch(() => {}); return; }
     s.name = r.name; s.state = 'ok'; say('Gespeichert: ' + r.name + '.mp3' + (r.text ? '' : ' (nichts erkannt – Namen bitte ändern)'));
   } catch (e) { s.state = 'err'; say('Fehler beim Schneiden: ' + e.message, true); }
@@ -274,7 +275,7 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'ArrowRight') { e.preventDefault(); seek(e.shiftKey ? 0.2 : 1); }
 });
 document.addEventListener('click', (e) => { if (e.target.matches('button')) e.target.blur(); });
-$('#trim').onchange = (e) => e.target.blur();
+$('#trim').onchange = $('#fronly').onchange = (e) => e.target.blur();
 updatePhase();
 info();
 </script>

@@ -26,7 +26,10 @@ Der Browser öffnet sich. Aufnahme hineinziehen, abspielen und an jeder Wortgren
 | **Z** | Letzten Schnitt zurück (Datei wird wieder gelöscht) |
 | ← / → | 1 s springen (mit Umschalt 0,2 s) |
 
-Standardmäßig ist der Abwechsel-Modus an: Aufnahmen mit „Deutsch, Französisch, Deutsch, Französisch …“ schneidest du einfach durchgehend mit **S**. Jeder deutsche Abschnitt wird verworfen, jeder französische gespeichert und erkannt. Kommt eine Erklärung dazwischen, drückst du an ihrem Ende **D**. Das Häkchen „Abwechselnd“ schaltet den Modus aus, dann speichert **S** jedes Stück.
+**Deutsch und Französisch in einem Stück** (der übliche Fall): Du schneidest nach dem französischen Wort mit **S**. Das Programm teilt das Stück an den Sprechpausen, bestimmt für jeden Abschnitt, ob er Französisch oder Deutsch ist, und benennt die Datei nach dem ersten französischen Abschnitt. Deutsche Wörter und Erklärungen fließen nicht in den Namen ein. Damit das klappt, muss zwischen dem deutschen und dem französischen Wort eine kleine Pause (mindestens 0,3 s) sein.
+Mit dem Häkchen „Nur den französischen Teil speichern“ enthält die MP3 nur das französische Wort, sonst das ganze Stück.
+
+**Getrennte Schnitte:** Wer Deutsch und Französisch lieber einzeln schneidet, schaltet „Getrennte Schnitte“ ein. Jeder deutsche Abschnitt wird dann verworfen, jeder französische gespeichert. Mit **D** verwirfst du ein Stück ohne Wechsel (z. B. eine Erklärung).
 
 Das geschnittene Stück verschwindet aus der Timeline. Namen kannst du in der Liste ändern, Stücke abspielen oder löschen.
 Wird nichts erkannt, heißt die Datei „Segment 1“ usw.

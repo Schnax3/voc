@@ -41,6 +41,51 @@ class NameTests(unittest.TestCase):
             self.assertEqual(sc.unique_path(d, "Autre").name, "Autre.mp3")
 
 
+class FakeModel:
+    """Ersetzt faster-whisper: Abschnitt 0 = Deutsch, Abschnitt 1 = Französisch."""
+
+    class Seg:
+        def __init__(self, text):
+            self.text = text
+
+    class Info:
+        def __init__(self, language, probs):
+            self.language, self.all_language_probs = language, probs
+
+    TEXTS = {"a.wav": ("Der Dieb", "de"), "b.wav": ("Le voleur.", "fr"), "c.wav": ("Erklärung", "de")}
+
+    def transcribe(self, path, language=None, **kw):
+        text, lang = self.TEXTS[Path(path).name]
+        if language and language != lang:
+            text = "Quatsch"
+        probs = [("de", 0.7 if lang == "de" else 0.2), ("fr", 0.7 if lang == "fr" else 0.2), ("en", 0.1)]
+        return [self.Seg(text)], self.Info(language or lang, probs)
+
+
+class WhisperLogicTests(unittest.TestCase):
+    def test_picks_first_french_chunk(self):
+        w = sc.Whisper()
+        w.model, w.ready = FakeModel(), True
+        chunks = [(0.0, 0.8, Path("a.wav")), (1.4, 2.6, Path("b.wav")), (3.0, 4.0, Path("c.wav"))]
+        self.assertEqual(w(Path("x.wav"), chunks), ("Le voleur.", [(1.4, 2.6)]))
+
+    def test_no_french_gives_nothing(self):
+        w = sc.Whisper()
+        w.model, w.ready = FakeModel(), True
+        self.assertEqual(w(Path("x.wav"), [(0, 1, Path("a.wav"))]), ("", []))
+
+
+class ChunkTests(unittest.TestCase):
+    def test_chunks_from_silences(self):
+        c = sc.chunks_from_silences([1.0], [1.6], 2.6)
+        self.assertEqual(len(c), 2)
+        self.assertAlmostEqual(c[0][1], 1.05)
+        self.assertAlmostEqual(c[1][0], 1.55)
+        self.assertEqual(sc.chunks_from_silences([], [], 2.0), [(0.0, 2.0)])
+        # Stille bis zum Ende (kein silence_end)
+        self.assertEqual(len(sc.chunks_from_silences([1.0], [], 2.0)), 1)
+
+
 @unittest.skipUnless(HAS_FFMPEG, "ffmpeg fehlt")
 class CutterTests(unittest.TestCase):
     def setUp(self):
@@ -78,8 +123,8 @@ class CutterTests(unittest.TestCase):
 
     def test_duplicate_rename_delete(self):
         class Same(sc.FakeStt):
-            def __call__(self, path):
-                return "Depuis."
+            def __call__(self, path, chunks=None):
+                return "Depuis.", None
         self.c.stt = Same()
         a = self.c.cut(0, 1.5)["name"]
         b = self.c.cut(1.5, 3.0)["name"]
@@ -90,6 +135,32 @@ class CutterTests(unittest.TestCase):
         self.assertFalse((self.out / "voleur.mp3").exists())
         with self.assertRaises(ValueError):
             self.c.cut(2.0, 1.0)
+
+    def test_german_then_french_in_one_clip(self):
+        """Deutsch (440 Hz), Pause, Französisch (880 Hz): Pausen werden erkannt, nur der französische Teil bleibt."""
+        t = Path(self.tmp.name)
+        both = t / "beide.wav"
+        make_audio(both, [(440, 0.8), (0, 0.7), (880, 1.2)])
+        c = sc.Cutter(self.out, None, t / "work")
+        c.save_upload("beide.wav", both.read_bytes())
+        seen = {}
+
+        class Stub:
+            ready = True
+            error = None
+
+            def __call__(self, path, chunks=None):
+                seen["n"] = len(chunks)
+                a, b, _ = chunks[-1]  # der zweite Abschnitt ist das Französische
+                return "Le voleur.", [(a, b)]
+        c.stt = Stub()
+        full = c.cut(0, 2.7, trim=True, french_only=False)
+        self.assertEqual(seen["n"], 2)
+        self.assertGreater(self.dur(self.out / (full["name"] + ".mp3")), 2.4)
+        only = c.cut(0, 2.7, trim=True, french_only=True)
+        self.assertEqual(only["name"], "Le voleur 2")
+        self.assertLess(self.dur(self.out / "Le voleur 2.mp3"), 1.6)
+        self.assertGreater(self.dur(self.out / "Le voleur 2.mp3"), 1.0)
 
     def test_http_flow(self):
         info = {"stt": "fake"}
