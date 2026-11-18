@@ -144,5 +144,5 @@ Wenn noch keine Offline-Inhalte gespeichert sind, zeigt die Startseite den klein
 
 In der Lernrunde: **P** = Anhören, **Leertaste**, **Enter** oder **↓** = Aufdecken, **←/→** oder **1/2** = falsch/richtig, **Strg+Z** = zurück.
 Auf der Startseite lässt sich unter „Tastenkürzel“ die Belegung tauschen (Leertaste = Anhören, P = Aufdecken). Das Häkchen
-„Kürzel auch im Eingabefeld“ lässt die Kürzel auch während des Tippens gelten. Dann kann man dort kein Leerzeichen und kein P mehr tippen,
-deshalb ist es standardmäßig aus.
+„Kürzel auch im Eingabefeld“ lässt auch Leertaste und P während des Tippens gelten (dann nicht mehr tippbar, deshalb standardmäßig aus).
+Pfeiltasten, Enter und Strg+Z funktionieren im Eingabefeld immer.

@@ -765,17 +765,16 @@ function learn(q, isReview = false) {
     const key = e.key.toLowerCase();
     const plain = !(e.ctrlKey || e.metaKey || e.altKey);
     const inField = e.target instanceof HTMLInputElement && !opt.keysInInput;
-    if (inField && e.key !== 'Escape') return;
     if (plain && key === keyAudio() && hasSound(c) && !inField) { e.preventDefault(); c.pc ? speak(c.fr) : sound(c); return; }
     if (key === 'z' && (e.ctrlKey || e.metaKey) && history.length) { e.preventDefault(); undo(); return; }
     if (!shown && (e.key === 'Enter' || e.key === 'ArrowDown' || (plain && key === keyReveal() && !inField))) {
       e.preventDefault();
       shown = true;
       draw();
-    } else if (shown && (e.key === 'ArrowLeft' || e.key === '1')) {
+    } else if (shown && (e.key === 'ArrowLeft' || (e.key === '1' && !inField))) {
       e.preventDefault();
       answer(false);
-    } else if (shown && (e.key === 'ArrowRight' || e.key === '2')) {
+    } else if (shown && (e.key === 'ArrowRight' || (e.key === '2' && !inField))) {
       e.preventDefault();
       answer(true);
     }

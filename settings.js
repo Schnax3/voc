@@ -176,7 +176,7 @@ function settings() {
       <label>Tastenkürzel
         <select id="keymap"><option value="std">P = Anhören, Leertaste = Aufdecken</option><option value="alt">Leertaste = Anhören, P = Aufdecken</option></select></label>
       <label><input type="checkbox" id="keys-input"> Kürzel auch im Eingabefeld</label>
-      <p class="hint">Dann lassen sich dort Leertaste und P nicht mehr tippen. Ohne Häkchen kannst du im Eingabefeld normal schreiben.</p>
+      <p class="hint">Gilt für Leertaste und P (die lassen sich dort dann nicht mehr tippen). Pfeiltasten, Enter und Tastenkombinationen wie Strg+Z funktionieren im Eingabefeld immer.</p>
     </div>
   </section>
 
