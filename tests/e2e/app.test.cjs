@@ -68,6 +68,16 @@ async function openApp(browser, base, { query = '', seed = {}, waitRows = true }
 
 const storage = (page, key) => page.evaluate(k => JSON.parse(localStorage.getItem(k)), key);
 const appKeys = page => page.evaluate(() => Object.keys(localStorage).filter(k => k !== '__seeded'));
+const mockNsfwJs = async context => {
+  await context.route('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: 'window.tf = { enableProdMode() {}, ready: async () => {} };',
+  }));
+  await context.route('https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: 'window.nsfwjs = { load: async () => ({ classify: async () => window.__nsfwPredictions || [{ className: "Neutral", probability: 0.99 }] }) };',
+  }));
+};
 
 // Lerneinstellungen liegen unter ⚙ Einstellungen: öffnen, ändern, zurück zur Startseite
 const setLearn = async (page, change) => {
@@ -664,15 +674,33 @@ test('Vorschlag ohne Endpunkt öffnet ein vorausgefülltes GitHub-Issue', async 
   await context.close();
 });
 
+test('NSFWJS blockiert markierte Bilder vor der Issue-Erstellung', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base);
+  const posts = [];
+  await context.route('**/feedback-config.json', route => route.fulfill({ json: { endpoint: 'https://hook.test/x' } }));
+  await context.route('https://hook.test/**', route => { posts.push(route.request().postData()); return route.fulfill({ json: { ok: true }, headers: { 'access-control-allow-origin': '*' } }); });
+  await mockNsfwJs(context);
+  await page.evaluate(() => { window.__nsfwPredictions = [{ className: 'Porn', probability: 0.99 }]; });
+  await page.click('#feedback-link');
+  await page.waitForSelector('dialog#feedback[open]');
+  await page.fill('#fb-text', 'Bitte prüfe dieses Bild');
+  await page.setInputFiles('#fb-files', { name: 'bild.png', mimeType: 'image/png', buffer: fs.readFileSync(path.join(ROOT, 'icons', 'icon-192.png')) });
+  await page.click('#fb-send');
+  await page.waitForFunction(() => /nichts gesendet/.test(document.getElementById('fb-status').textContent));
+  assert.equal(posts.length, 0, 'bei einem NSFW-Treffer darf kein Backend-Aufruf erfolgen');
+  await context.close();
+});
+
 test('Vorschlag mit Endpunkt wird direkt gesendet, Spam-Falle und Pause greifen', async ({ browser, base }) => {
   const { context, page } = await openApp(browser, base);
   const posts = [];
   await context.route('**/feedback-config.json', route => route.fulfill({ json: { endpoint: 'https://hook.test/x' } }));
   await context.route('https://hook.test/**', route => { posts.push(JSON.parse(route.request().postData())); return route.fulfill({ json: { ok: true }, headers: { 'access-control-allow-origin': '*' } }); });
+  await mockNsfwJs(context);
   await page.click('#feedback-link');
   await page.waitForSelector('dialog#feedback[open]');
   await page.selectOption('#fb-type', 'fehler');
-  await page.setInputFiles('#fb-files', { name: 'fehler.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgo=') });
+  await page.setInputFiles('#fb-files', { name: 'fehler.png', mimeType: 'image/png', buffer: fs.readFileSync(path.join(ROOT, 'icons', 'icon-192.png')) });
   await page.evaluate(() => { document.getElementById('fb-hp').value = 'bot'; });
   await page.fill('#fb-text', 'Ein Fehler beim Start'); await page.click('#fb-send');
   assert.equal(posts.length, 0);

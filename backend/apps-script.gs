@@ -8,7 +8,6 @@
  *   GITHUB_TOKEN  Fine-grained Token, nur für dieses Repository, nur Berechtigung "Issues: Read and write"
  *   GITHUB_REPO   z. B. owner/repo
  *   FEEDBACK_DRIVE_FOLDER_ID  Google-Drive-Ordner für Bildanhänge (optional, für Bilder erforderlich)
- *   GOOGLE_VISION_API_KEY  API-Key für Google Cloud Vision SafeSearch
  *   GITHUB_WEBHOOK_SECRET  Geheimnis des GitHub-Issue-Webhooks zum Löschen geschlossener Anhänge
  */
 var MAX_TEXT = 3000;          // Zeichen im Issue-Text
@@ -16,15 +15,6 @@ var MAX_PER_HOUR = 20;        // Vorschläge pro Stunde insgesamt (Schutz vor Sp
 var ALLOWED_LABELS = ['vorschlag', 'enhancement', 'bug', 'vokabeln'];
 var MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024;
 var MAX_ATTACHMENTS = 5;
-var MODERATION_WEIGHTS = {
-  UNKNOWN: 0,
-  VERY_UNLIKELY: 0,
-  UNLIKELY: 1,
-  POSSIBLE: 2,
-  LIKELY: 3,
-  VERY_LIKELY: 4
-};
-
 function doPost(e) {
   try {
     var raw = getPostData(e);
@@ -137,7 +127,6 @@ function secureEqual(a, b) {
 function uploadAttachments(files) {
   var props = PropertiesService.getScriptProperties();
   var folderId = props.getProperty('FEEDBACK_DRIVE_FOLDER_ID');
-  var visionKey = props.getProperty('GOOGLE_VISION_API_KEY');
   if (!Array.isArray(files) || !files.length) return { links: [], fileIds: [] };
   Logger.log('uploadAttachments: starting; files=' + files.length);
   if (files.length > MAX_ATTACHMENTS) {
@@ -148,11 +137,6 @@ function uploadAttachments(files) {
     Logger.log('uploadAttachments: FEEDBACK_DRIVE_FOLDER_ID is missing');
     return { error: 'Bilder sind nicht eingerichtet' };
   }
-  if (!visionKey) {
-    Logger.log('uploadAttachments: GOOGLE_VISION_API_KEY is missing');
-    return { error: 'Bildprüfung ist nicht eingerichtet' };
-  }
-
   var folder;
   try { folder = DriveApp.getFolderById(folderId); }
   catch (err) {
@@ -185,15 +169,6 @@ function uploadAttachments(files) {
       Logger.log('uploadAttachments: decoded image is empty or oversized at index=' + i);
       return { error: 'Ein Bild ist zu groß' };
     }
-    var moderation = moderateImage(visionKey, data);
-    if (moderation.error) {
-      Logger.log('uploadAttachments: moderation failed at index=' + i + ': ' + moderation.error);
-      return moderation;
-    }
-    if (moderation.blocked) {
-      Logger.log('uploadAttachments: image blocked by SafeSearch at index=' + i);
-      return { error: 'Bild abgelehnt: Der Inhalt wurde als nicht jugendfrei erkannt' };
-    }
     var name = String(file.name || ('Screenshot-' + (i + 1))).replace(/[\\/:*?"<>|]/g, '_').slice(0, 120);
     try {
       var blob = Utilities.newBlob(bytes, file.type, name);
@@ -217,44 +192,6 @@ function testDriveFolderAccess() {
   var folder = DriveApp.getFolderById(folderId);
   Logger.log('Drive-Zugriff erfolgreich; Ordnername=' + folder.getName());
   return folder.getName();
-}
-
-function moderateImage(apiKey, base64) {
-  var threshold = MODERATION_WEIGHTS.POSSIBLE;
-  var response;
-  try {
-    response = UrlFetchApp.fetch('https://vision.googleapis.com/v1/images:annotate?key=' + encodeURIComponent(apiKey), {
-      method: 'post',
-      contentType: 'application/json',
-      muteHttpExceptions: true,
-      payload: JSON.stringify({
-        requests: [{
-          image: { content: base64 },
-          features: [{ type: 'SAFE_SEARCH_DETECTION', maxResults: 1 }]
-        }]
-      })
-    });
-  } catch (err) {
-    var detail = String(err && err.message ? err.message : err).replace(apiKey, '[redacted]');
-    Logger.log('moderateImage: Vision API request failed: ' + detail);
-    return { error: 'Bildprüfung konnte nicht erreicht werden' };
-  }
-
-  if (response.getResponseCode() !== 200) {
-    Logger.log('moderateImage: Vision API returned HTTP ' + response.getResponseCode());
-    return { error: 'Bildprüfung fehlgeschlagen' };
-  }
-  var result = JSON.parse(response.getContentText());
-  var safe = result.responses && result.responses[0] && result.responses[0].safeSearchAnnotation;
-  if (!safe) {
-    Logger.log('moderateImage: Vision API response did not contain SafeSearch results');
-    return { error: 'Bildprüfung lieferte kein Ergebnis' };
-  }
-  var blocked = ['adult', 'racy'].some(function (field) {
-    return MODERATION_WEIGHTS[safe[field] || 'UNKNOWN'] >= threshold;
-  });
-  Logger.log('moderateImage: SafeSearch completed; blocked=' + blocked);
-  return { blocked: blocked };
 }
 
 // Zur Kontrolle im Browser: die Adresse der Web-App aufrufen
