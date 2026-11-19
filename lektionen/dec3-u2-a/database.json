@@ -70,7 +70,7 @@
     "audio": null
   },
   {
-    "french": "Il pense que Maman aime son petit frère plus que lui. Donc, il est jaloux (f: jalouse) de son petit frère.",
+    "french": "Il pense que Maman aime son petit frère >plusieurs que lui. Donc, il est jaloux (f: jalouse) de son petit frère.",
     "german": "eifersuchtig; auch: neidisch auf jmdn.",
     "vocabulary": "jaloux jalouse de",
     "image": null,
@@ -106,7 +106,7 @@
   },
   {
     "french": "Voici la Côte d'Ivoire. C'est un pays d'Afrique. On fait de l'ivoire des dents des‿éléphants.",
-    "german": "Elfenbeinküste",
+    "german": "Elfenbein-Küste",
     "vocabulary": "Côte d'Ivoire l'ivoire",
     "image": null,
     "audio": null
@@ -182,7 +182,7 @@
     "audio": null
   },
   {
-    "french": "C'est le principal / la principale.",
+    "french": "c'est le principal / la principale.",
     "german": "Schulleiter/in",
     "vocabulary": "principal la principale",
     "image": null,

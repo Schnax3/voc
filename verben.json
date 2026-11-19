@@ -436,6 +436,25 @@
    "ils ont essayé"
   ]
  },
+ "essayer de essaie de j'essaie ‿essayons ‿essaient essayé": {
+  "inf": "essayer",
+  "praesens": [
+   "j'essaie",
+   "tu essaies",
+   "il essaie",
+   "nous essayons",
+   "vous essayez",
+   "ils essaient"
+  ],
+  "passe_compose": [
+   "j'ai essayé",
+   "tu as essayé",
+   "il a essayé",
+   "nous avons essayé",
+   "vous avez essayé",
+   "ils ont essayé"
+  ]
+ },
  "finir de + inf.": {
   "inf": "finir",
   "praesens": [
