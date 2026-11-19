@@ -135,14 +135,14 @@
     {
         "french":  "C\u0027est une publicité pour l\u0027énergie verte (fem).",
         "german":  "die Energie",
-        "vocabulary":  "énergie",
+        "vocabulary":  "l\u0027énergie",
         "image":  "die Energie.png",
         "audio":  null
     },
     {
         "french":  "Elles font un‿entraînement de gymnastique ensemble.",
         "german":  "ein Training",
-        "vocabulary":  "un‿entraînement",
+        "vocabulary":  "un entraînement",
         "image":  "ein Training.jpg",
         "audio":  null
     },

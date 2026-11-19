@@ -84,7 +84,7 @@
         "audio": "circulation.mp3"
     },
     {
-        "french": "La voiture roule (Inf.: rouler) à 110 kilomètres à l'heure .",
+        "french": "La voiture roule (Inf.: rouler) à 110 kilomètres à l'heure.",
         "german": "das Auto fährt",
         "vocabulary": "rouler",
         "image": "das Auto fährt.jpg",
@@ -231,14 +231,14 @@
         "audio": "à quarante kilomètres de Nantes.mp3"
     },
     {
-        "french": "Combien d' heures est-ce qu'on met pour aller de  Blain à Nantes?",
+        "french": "Combien d'heures est-ce qu'on met pour aller de Blain à Nantes?",
         "german": "Wie lange braucht man von … bis…?",
         "vocabulary": "combien d'heures est-ce qu'on met pour aller de ... à ... ?",
         "image": "wie lange.jpg",
         "audio": "Combien d' heures est-ce qu'on met pour aller de Blain à Nantes.mp3"
     },
     {
-        "french": "On met environ une heure pour aller de  Blain à Nantes en voiture.",
+        "french": "On met environ une heure pour aller de Blain à Nantes en voiture.",
         "german": "Man braucht mit dem Auto etwa 1 h von … bis…",
         "vocabulary": "mettre environ ... pour aller de ... à ...",
         "image": "Man braucht mit dem Auto etwa 1 h von … bis….jpg",

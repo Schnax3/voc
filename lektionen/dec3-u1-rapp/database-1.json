@@ -32,7 +32,7 @@
     "image": "wichtig.png"
   },
   {
-    "french": "Dans le texte, je marque les passages importants.",
+    "french": "Dans le texte, je marque les passages intéressants.",
     "german": "interessant",
     "vocabulary": "intéressant",
     "image": "interessant.png",
@@ -78,16 +78,16 @@
     "audio": null
   },
   {
-    "french": "Douze mois, C'est‿une année.",
+    "french": "Douze mois, c'est‿une année.",
     "german": "ein Jahr",
     "vocabulary": "une année",
     "image": null,
     "audio": null
   },
   {
-    "french": "Tu dois (infintif: devoir) faire ton travail!",
+    "french": "Tu dois (infinitif: devoir) faire ton travail!",
     "german": "etw. tun müssen",
-    "vocabulary": "dois devoir",
+    "vocabulary": "devoir",
     "image": null,
     "audio": null
   }

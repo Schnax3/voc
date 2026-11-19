@@ -303,6 +303,25 @@
    "ils ont dessiné"
   ]
  },
+ "devoir": {
+  "inf": "devoir",
+  "praesens": [
+   "je dois",
+   "tu dois",
+   "il doit",
+   "nous devons",
+   "vous devez",
+   "ils doivent"
+  ],
+  "passe_compose": [
+   "j'ai dû",
+   "tu as dû",
+   "il a dû",
+   "nous avons dû",
+   "vous avez dû",
+   "ils ont dû"
+  ]
+ },
  "devoir + inf.": {
   "inf": "devoir",
   "praesens": [
@@ -456,25 +475,6 @@
   ]
  },
  "inscrire": {
-  "inf": "inscrire",
-  "praesens": [
-   "j'inscris",
-   "tu inscris",
-   "il inscrit",
-   "nous inscrivons",
-   "vous inscrivez",
-   "ils inscrivent"
-  ],
-  "passe_compose": [
-   "j'ai inscrit",
-   "tu as inscrit",
-   "il a inscrit",
-   "nous avons inscrit",
-   "vous avez inscrit",
-   "ils ont inscrit"
-  ]
- },
- "inscrire à j'inscris ‿inscrivons ‿inscrivent jai inscrit": {
   "inf": "inscrire",
   "praesens": [
    "j'inscris",
