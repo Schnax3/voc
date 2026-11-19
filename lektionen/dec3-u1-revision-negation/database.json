@@ -23,14 +23,14 @@
   {
     "french": "Le bus est encore là ⤄ Le bus n'est plus là.",
     "german": "noch ⤄ nicht mehr",
-    "vocabulary": "encore n'est plus",
+    "vocabulary": "encore ⤄ ne plus",
     "image": null,
     "audio": null
   },
   {
     "french": "Le bus est déjà là ⤄ Le bus n'est pas encore là.",
     "german": "schon ⤄ noch nicht.",
-    "vocabulary": "déjà n'est pas encore",
+    "vocabulary": "déjà ⤄ ne pas encore",
     "image": null,
     "audio": null
   }
