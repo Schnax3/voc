@@ -107,6 +107,7 @@ Die App hat „Verbesserung vorschlagen“ (Startseite unten und am Rundenende).
 4. In `feedback-config.json` eintragen: `{ "endpoint": "https://script.google.com/macros/s/…/exec" }`.
 
 Der Token steht nur im Zwischendienst, nie im Code der Seite. Der Dienst begrenzt auf 20 Vorschläge pro Stunde; die App hat zusätzlich eine Pause und eine Spam-Falle.
+Zur Fehlersuche im Apps-Script-Editor links auf **Ausführungen** klicken und den fehlgeschlagenen Lauf öffnen. Für den Drive-Zugriff kann `testDriveFolderAccess` direkt im Editor ausgeführt werden; die Funktion protokolliert den Ordnernamen oder zeigt den konkreten Zugriffsfehler.
 
 ## Updates für offline gespeicherte Apps
 
