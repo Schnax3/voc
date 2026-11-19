@@ -1,6 +1,6 @@
 [
   {
-    "french": "On ne connaît pas encore le criminel, mais la police a un soupçon: La police croit savoir qui est le criminel",
+    "french": "On ne connaît pas encore le criminel, mais la police a un soupçon: La police croit savoir qui est le criminel.",
     "german": "Verdacht",
     "vocabulary": "un soupçon",
     "image": null,
@@ -16,7 +16,7 @@
   {
     "french": "C'est‿un‿objet (=une chose) bizarre.",
     "german": "Objekt, Gegenstand",
-    "vocabulary": "un‿objet",
+    "vocabulary": "un objet",
     "image": null,
     "audio": null
   },
@@ -44,7 +44,7 @@
   {
     "french": "Elle a les‿yeux bleus.",
     "german": "blaue Augen - achte auf den Artikel!",
-    "vocabulary": "les‿yeux",
+    "vocabulary": "les yeux",
     "image": null,
     "audio": null
   },

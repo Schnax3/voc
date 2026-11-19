@@ -1,0 +1,155 @@
+[
+  {
+    "lektion": "dec3-u1b3-verben",
+    "entfernen": {
+      "vocabulary": "s'amusent s'amuser s'amusent à à"
+    }
+  },
+  {
+    "lektion": "dec3-u1b3-verben",
+    "entfernen": {
+      "vocabulary": "essayer de essaie de j'essaie ‿essayons ‿essaient essayé"
+    }
+  },
+  {
+    "lektion": "dec2-u7a",
+    "feld": "french",
+    "alt": "à l'heure .",
+    "neu": "à l'heure."
+  },
+  {
+    "lektion": "dec2-u7a",
+    "feld": "french",
+    "alt": "d' heures",
+    "neu": "d'heures"
+  },
+  {
+    "lektion": "dec2-u7a",
+    "feld": "french",
+    "alt": "de  Blain",
+    "neu": "de Blain"
+  },
+  {
+    "lektion": "dec3-u1-rapp",
+    "feld": "french",
+    "alt": "passages importants",
+    "neu": "passages intéressants",
+    "wo": {
+      "vocabulary": "intéressant"
+    }
+  },
+  {
+    "lektion": "dec3-u1-rapp",
+    "feld": "french",
+    "alt": "Douze mois, C'est",
+    "neu": "Douze mois, c'est"
+  },
+  {
+    "lektion": "dec3-u1-rapp",
+    "feld": "french",
+    "alt": "infintif",
+    "neu": "infinitif"
+  },
+  {
+    "lektion": "dec3-u1-rapp",
+    "feld": "vocabulary",
+    "alt": "dois devoir",
+    "neu": "devoir",
+    "wo": {
+      "vocabulary": "dois devoir"
+    }
+  },
+  {
+    "lektion": "dec3-u1a",
+    "feld": "french",
+    "alt": "secretariat",
+    "neu": "secrétariat"
+  },
+  {
+    "lektion": "dec3-u1a",
+    "feld": "french",
+    "alt": "septembre.j'inscris",
+    "neu": "septembre. J'inscris"
+  },
+  {
+    "lektion": "dec3-u1a",
+    "feld": "french",
+    "alt": "jai inscrit",
+    "neu": "j'ai inscrit"
+  },
+  {
+    "lektion": "dec3-u1a",
+    "feld": "vocabulary",
+    "alt": "inscrire à j'inscris ‿inscrivons ‿inscrivent jai inscrit",
+    "neu": "inscrire"
+  },
+  {
+    "lektion": "*",
+    "feld": "vocabulary",
+    "alt": "énergie",
+    "neu": "l'énergie",
+    "wo": {
+      "vocabulary": "énergie"
+    }
+  },
+  {
+    "lektion": "*",
+    "feld": "vocabulary",
+    "alt": "‿",
+    "neu": " "
+  },
+  {
+    "lektion": "*",
+    "feld": "french",
+    "alt": "déjà la ⤄",
+    "neu": "déjà là ⤄"
+  },
+  {
+    "lektion": "dec3-u1b3-verben",
+    "feld": "french",
+    "alt": "j'ai appris L'enfant",
+    "neu": "j'ai appris. L'enfant"
+  },
+  {
+    "lektion": "dec3-u1b3-verben",
+    "feld": "french",
+    "alt": "elles préfèrent Je peux",
+    "neu": "elles préfèrent. Je peux"
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "french",
+    "alt": ">plusieurs que lui",
+    "neu": "plus que lui"
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "german",
+    "alt": "Elfenbein-Küste",
+    "neu": "Elfenbeinküste"
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "french",
+    "alt": "c'est le principal / la principale.",
+    "neu": "C'est le principal / la principale."
+  },
+  {
+    "lektion": "dec3-u2-de",
+    "feld": "french",
+    "alt": "qui est le criminel",
+    "neu": "qui est le criminel."
+  },
+  {
+    "lektion": "dec3-u2-rapp",
+    "feld": "*",
+    "alt": "‘",
+    "neu": "'"
+  },
+  {
+    "lektion": "dec3-u2-rapp",
+    "feld": "french",
+    "alt": "Il fait un coup",
+    "neu": "Il donne un coup"
+  }
+]

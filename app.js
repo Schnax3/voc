@@ -195,6 +195,7 @@ async function load(t, force = false) {
     };
   });
   migrateLegacyIds(cards);
+  migrateFixedCards(cards);
   DB.set(t.dir, cards);
   const meta = LS.get('vk:meta', {}); meta[t.dir] = cards.map(c => c.id); LS.set('vk:meta', meta);
   return cards;
@@ -273,6 +274,46 @@ function legacyVariants(text) {
     out.push(s);
   }
   return out;
+}
+// Korrigierte Karten (Tippfehler usw.): Die ID entsteht aus dem Text, deshalb wird der Fortschritt von der
+// alten auf die neue ID übertragen. Eintrag: [Lektion, alter Text, alte Übersetzung, neuer Text, neue Übersetzung].
+const CARD_FIXES = [
+  ["lektionen/dec2-u7a", "La voiture roule (Inf.: rouler) à 110 kilomètres à l'heure .", "das Auto fährt", "La voiture roule (Inf.: rouler) à 110 kilomètres à l'heure.", "das Auto fährt"],
+  ["lektionen/dec2-u7a", "Combien d' heures est-ce qu'on met pour aller de  Blain à Nantes?", "Wie lange braucht man von … bis…?", "Combien d'heures est-ce qu'on met pour aller de  Blain à Nantes?", "Wie lange braucht man von … bis…?"],
+  ["lektionen/dec2-u7a", "Combien d'heures est-ce qu'on met pour aller de  Blain à Nantes?", "Wie lange braucht man von … bis…?", "Combien d'heures est-ce qu'on met pour aller de Blain à Nantes?", "Wie lange braucht man von … bis…?"],
+  ["lektionen/dec2-u7a", "On met environ une heure pour aller de  Blain à Nantes en voiture.", "Man braucht mit dem Auto etwa 1 h von … bis…", "On met environ une heure pour aller de Blain à Nantes en voiture.", "Man braucht mit dem Auto etwa 1 h von … bis…"],
+  ["lektionen/dec3-u1-rapp", "Dans le texte, je marque les passages importants.", "interessant", "Dans le texte, je marque les passages intéressants.", "interessant"],
+  ["lektionen/dec3-u1-rapp", "Douze mois, C'est‿une année.", "ein Jahr", "Douze mois, c'est‿une année.", "ein Jahr"],
+  ["lektionen/dec3-u1-rapp", "Tu dois (infintif: devoir) faire ton travail!", "etw. tun müssen", "Tu dois (infinitif: devoir) faire ton travail!", "etw. tun müssen"],
+  ["lektionen/dec3-u1a", "Voilà le secretariat d'une école primaire. Les parents y vont pour inscrire leurs‿enfants à l'école: En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu'ils veulent que leurs‿enfants entrent à cette école en septembre.j'inscris, nous‿inscrivons, elles‿inscrivent; passé composé: jai inscrit…", "jemanden für etwas anmelden", "Voilà le secrétariat d'une école primaire. Les parents y vont pour inscrire leurs‿enfants à l'école: En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu'ils veulent que leurs‿enfants entrent à cette école en septembre.j'inscris, nous‿inscrivons, elles‿inscrivent; passé composé: jai inscrit…", "jemanden für etwas anmelden"],
+  ["lektionen/dec3-u1a", "Voilà le secrétariat d'une école primaire. Les parents y vont pour inscrire leurs‿enfants à l'école: En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu'ils veulent que leurs‿enfants entrent à cette école en septembre.j'inscris, nous‿inscrivons, elles‿inscrivent; passé composé: jai inscrit…", "jemanden für etwas anmelden", "Voilà le secrétariat d'une école primaire. Les parents y vont pour inscrire leurs‿enfants à l'école: En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu'ils veulent que leurs‿enfants entrent à cette école en septembre. J'inscris, nous‿inscrivons, elles‿inscrivent; passé composé: jai inscrit…", "jemanden für etwas anmelden"],
+  ["lektionen/dec3-u1a", "Voilà le secrétariat d'une école primaire. Les parents y vont pour inscrire leurs‿enfants à l'école: En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu'ils veulent que leurs‿enfants entrent à cette école en septembre. J'inscris, nous‿inscrivons, elles‿inscrivent; passé composé: jai inscrit…", "jemanden für etwas anmelden", "Voilà le secrétariat d'une école primaire. Les parents y vont pour inscrire leurs‿enfants à l'école: En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu'ils veulent que leurs‿enfants entrent à cette école en septembre. J'inscris, nous‿inscrivons, elles‿inscrivent; passé composé: j'ai inscrit…", "jemanden für etwas anmelden"],
+  ["lektionen/dec3-u1b", "Le bus est déjà la ⤄ Le bus n'est pas encore là.", "schon ⤄ noch nicht.", "Le bus est déjà là ⤄ Le bus n'est pas encore là.", "schon ⤄ noch nicht."],
+  ["lektionen/dec3-u1-revision-negation", "Le bus est déjà la ⤄ Le bus n'est pas encore là.", "schon ⤄ noch nicht.", "Le bus est déjà là ⤄ Le bus n'est pas encore là.", "schon ⤄ noch nicht."],
+  ["lektionen/dec3-u1b3-verben", "Il va à l'école pour apprendre beaucoup de choses. J'apprends, nous‿apprenons, ils‿apprennent, j'ai appris L'enfant apprend à aller à vélo.", "lernen; das Kind lernt Fahrradfahren", "Il va à l'école pour apprendre beaucoup de choses. J'apprends, nous‿apprenons, ils‿apprennent, j'ai appris. L'enfant apprend à aller à vélo.", "lernen; das Kind lernt Fahrradfahren"],
+  ["lektionen/dec3-u1b3-verben", "Elle préfère (Inf: préférer) le chocolat. Je préfère, nous préférons, elles préfèrent Je peux aller à pied aussi, mais je préfère ____ aller à vélo.", "lieber mögen; ich fahre lieber Rad.", "Elle préfère (Inf: préférer) le chocolat. Je préfère, nous préférons, elles préfèrent. Je peux aller à pied aussi, mais je préfère ____ aller à vélo.", "lieber mögen; ich fahre lieber Rad."],
+  ["lektionen/dec3-u1b3-verben", "Il veut essayer de faire du saut à l'élastique, mais il hésite: «Est-ce que c'est dangereux?» Il essaie de réparer la voiture, mais c'est difficile. j'essaie, nous‿essayons, elles‿essaient, j'ai essayé", "versuchen – ça se conjugue comme envoyer", "Il veut essayer de faire du saut à l'élastique, mais il hésite: «Est-ce que c'est dangereux?» Il essaie de réparer la voiture, mais c'est difficile. j'essaie, nous‿essayons, elles‿essaient, j'ai essayé", "versuchen – konjugiert wie envoyer"],
+  ["lektionen/dec3-u2-a", "Il pense que Maman aime son petit frère >plusieurs que lui. Donc, il est jaloux (f: jalouse) de son petit frère.", "eifersuchtig; auch: neidisch auf jmdn.", "Il pense que Maman aime son petit frère plus que lui. Donc, il est jaloux (f: jalouse) de son petit frère.", "eifersuchtig; auch: neidisch auf jmdn."],
+  ["lektionen/dec3-u2-a", "Voici la Côte d'Ivoire. C'est un pays d'Afrique. On fait de l'ivoire des dents des‿éléphants.", "Elfenbein-Küste", "Voici la Côte d'Ivoire. C'est un pays d'Afrique. On fait de l'ivoire des dents des‿éléphants.", "Elfenbeinküste"],
+  ["lektionen/dec3-u2-a", "c'est le principal / la principale.", "Schulleiter/in", "C'est le principal / la principale.", "Schulleiter/in"],
+  ["lektionen/dec3-u2-de", "On ne connaît pas encore le criminel, mais la police a un soupçon: La police croit savoir qui est le criminel", "Verdacht", "On ne connaît pas encore le criminel, mais la police a un soupçon: La police croit savoir qui est le criminel.", "Verdacht"],
+  ["lektionen/dec3-u2-rapp", "d‘abord, ensuite, enfin / finalement", "Zunächst; anschließend; am Ende / Schließlich; auch: endlich", "d'abord, ensuite, enfin / finalement", "Zunächst; anschließend; am Ende / Schließlich; auch: endlich"],
+  ["lektionen/dec3-u2-rapp", "Jean ne dit rien, mais tout‿à coup (= d‘un moment à l‘autre), il commence à rire.", "plötzlich", "Jean ne dit rien, mais tout‿à coup (= d'un moment à l'autre), il commence à rire.", "plötzlich"],
+  ["lektionen/dec3-u2-rapp", "Dans un hôtel de luxe, il y a des suites (des appartements avec une pièce après l‘autre)", "Suite (Folge von Zimmern)", "Dans un hôtel de luxe, il y a des suites (des appartements avec une pièce après l'autre)", "Suite (Folge von Zimmern)"],
+  ["lektionen/dec3-u2-rapp", "Il fait un coup sur la table.", "Schlag", "Il donne un coup sur la table.", "Schlag"]
+];
+function migrateFixedCards(cards) {
+  let changed = false;
+  for (const c of cards) {
+    for (const [dir, oldFr, oldDe, newFr, newDe] of CARD_FIXES) {
+      if (dir !== c.table || c.example !== newFr || c.de !== newDe) continue;
+      const old = dir + '::' + hash(oldFr + '|' + oldDe);
+      if (!P[old]) continue;
+      if (!P[c.id]) P[c.id] = P[old];
+      delete P[old]; changed = true;
+    }
+  }
+  if (changed) save();
 }
 function migrateLegacyIds(cards) {
   let changed = false;

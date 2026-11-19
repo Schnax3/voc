@@ -146,3 +146,11 @@ In der Lernrunde: **P** = Anhören, **Leertaste**, **Enter** oder **↓** = Aufd
 Auf der Startseite lässt sich unter „Tastenkürzel“ die Belegung tauschen (Leertaste = Anhören, P = Aufdecken). Das Häkchen
 „Kürzel auch im Eingabefeld“ lässt auch Leertaste und P während des Tippens gelten (dann nicht mehr tippbar, deshalb standardmäßig aus).
 Pfeiltasten, Enter und Strg+Z funktionieren im Eingabefeld immer.
+
+## Korrekturen an importierten Lektionen
+
+Die Lektionen werden aus den Quellseiten importiert (`sources.csv`), deshalb würden direkte Änderungen an den JSON-Dateien beim
+nächsten Import verloren gehen. Korrekturen (Tippfehler, doppelte oder kaputte Karten) stehen in `scripts/korrekturen.json` und werden
+nach jedem Import von `scripts/apply_corrections.py` erneut angewendet. In Lektionen mit `merge_existing=true` darf dabei das Feld
+`german` nicht geändert werden, weil der Import neue Karten daran erkennt. Wird der Text einer Karte geändert, trägt man ihn zusätzlich in
+`CARD_FIXES` (`app.js`) ein, damit der Lernfortschritt der Karte erhalten bleibt.

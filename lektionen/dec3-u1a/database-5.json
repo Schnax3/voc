@@ -135,14 +135,14 @@
   {
     "french": "C'est une publicité pour l'énergie verte (fem).",
     "german": "die Energie",
-    "vocabulary": "énergie",
+    "vocabulary": "l'énergie",
     "image": "die Energie.png",
     "audio": "énergie.mp3"
   },
   {
     "french": "Elles font un entraînement de gymnastique ensemble.",
     "german": "ein Training",
-    "vocabulary": "un‿entraînement",
+    "vocabulary": "un entraînement",
     "image": "ein Training.jpg",
     "audio": "entraînement.mp3"
   },
@@ -301,9 +301,9 @@
     "audio": "mentir.mp3"
   },
   {
-    "french": "Voilà le secretariat d'une école primaire. Les parents y vont pour inscrire leurs‿enfants à l'école: En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu'ils veulent que leurs‿enfants entrent à cette école en septembre.j'inscris, nous‿inscrivons, elles‿inscrivent; passé composé: jai inscrit…",
+    "french": "Voilà le secrétariat d'une école primaire. Les parents y vont pour inscrire leurs‿enfants à l'école: En avril ou mai, ils mettent les noms de leurs‿enfants sur une liste parce qu'ils veulent que leurs‿enfants entrent à cette école en septembre. J'inscris, nous‿inscrivons, elles‿inscrivent; passé composé: j'ai inscrit…",
     "german": "jemanden für etwas anmelden",
-    "vocabulary": "inscrire à j'inscris ‿inscrivons ‿inscrivent jai inscrit",
+    "vocabulary": "inscrire",
     "image": null,
     "audio": null
   }

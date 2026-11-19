@@ -137,6 +137,22 @@ test('Google Analytics lädt nur nach Einwilligung', async ({ browser, base }) =
   await b.context.close();
 });
 
+test('Fortschritt bleibt bei korrigierten Karten erhalten', async ({ browser, base }) => {
+  const db = readJson('lektionen/dec3-u2-a/database.json');
+  const card = db.find(e => e.french.includes('plus que lui'));
+  assert.ok(card, 'korrigierte Karte fehlt');
+  const oldKey = `lektionen/dec3-u2-a::${hash(card.french.replace('plus que lui', '>plusieurs que lui') + '|' + card.german)}`;
+  const { context, page } = await openApp(browser, base, {
+    seed: { 'vk:progress': { [oldKey]: { b: 3, d: 77, w: 2 } }, 'vk:sel': ['lektionen/dec3-u2-a'] },
+  });
+  const newKey = cardId('lektionen/dec3-u2-a', card);
+  await page.waitForFunction(k => k in (JSON.parse(localStorage.getItem('vk:progress')) || {}), newKey);
+  const progress = await storage(page, 'vk:progress');
+  assert.deepEqual(progress[newKey], { b: 3, d: 77, w: 2 });
+  assert.equal(oldKey in progress, false);
+  await context.close();
+});
+
 test('Fortschritt zieht bei umbenannten Ordnern und geändertem Liaison-Zeichen um', async ({ browser, base }) => {
   const db = readJson('lektionen/dec3-u2-a/database.json');
   const card = db.find(e => e.french.includes('‿'));
@@ -429,7 +445,7 @@ test('Aussprache automatisch, große Schrift, Tageszähler und Zurück-Taste', a
 });
 
 test('Leertaste deckt die Antwort auf', async ({ browser, base }) => {
-  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false } } });
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false, conjPres: false, conjPc: false } } });
   await page.click('#go'); await page.waitForSelector('#flip');
   await page.keyboard.press('Space');
   await page.waitForSelector('#yes');
@@ -439,7 +455,7 @@ test('Leertaste deckt die Antwort auf', async ({ browser, base }) => {
 });
 
 test('Tastenkürzel: im Eingabefeld normal tippen; als Option auch dort Kürzel, auch mit anderer Belegung', async ({ browser, base }) => {
-  const seed = keys => ({ 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false, typing: true, ...keys } });
+  const seed = keys => ({ 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false, typing: true, conjPres: false, conjPc: false, ...keys } });
   // Standard: Leertaste und P erscheinen im Feld, die Karte bleibt zu
   let { context, page } = await openApp(browser, base, { seed: seed({}) });
   await page.click('#go'); await page.waitForSelector('#typed-answer');
