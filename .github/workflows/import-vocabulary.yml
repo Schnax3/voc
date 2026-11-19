@@ -8,6 +8,8 @@ on:
       - scripts/import_exercises.py
       - scripts/import_conjugation.py
       - scripts/import_vocabulary.py
+      - scripts/apply_corrections.py
+      - scripts/korrekturen.json
       - scripts/build_index.py
       - tests/**
       - .github/workflows/import-vocabulary.yml
@@ -44,6 +46,10 @@ jobs:
       - name: Import exercise pages
         continue-on-error: true
         run: python scripts/import_exercises.py
+
+      # Korrekturen (Tippfehler der Quellseiten) nach jedem Import erneut anwenden: scripts/korrekturen.json
+      - name: Apply corrections
+        run: python scripts/apply_corrections.py
 
       # Konjugationen für die Verb-Karten der Lektionen (rein lokal, kein Download)
       - name: Build conjugations
