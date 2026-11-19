@@ -801,7 +801,7 @@ function learn(q, isReview = false) {
     if (app.querySelector('#hint')) app.querySelector('#hint').onclick = () => { hint = true; drawConj(); };
   };
   document.onkeydown = e => {
-    if (!q.length) return;
+    if (!q.length || opt.keymapOff) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
     const plain = !(e.ctrlKey || e.metaKey || e.altKey);
