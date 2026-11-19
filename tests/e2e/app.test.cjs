@@ -454,6 +454,52 @@ test('Leertaste deckt die Antwort auf', async ({ browser, base }) => {
   await context.close();
 });
 
+test('Falsch getippt: Fenster, bis die Vokabel einmal richtig geschrieben ist (Einstellung)', async ({ browser, base }) => {
+  const db = readJson('lektionen/dec3-u2-a/database.json');
+  const seed = extra => ({ 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'de', all: true, img: false, conjPres: false, conjPc: false, ...extra } });
+  const frontOf = async page => (await page.innerText('.q')).replace('🔊', '').trim();
+  const solutionOf = async page => { const front = await frontOf(page); return db.find(e => e.german === front).vocabulary; };
+  // Aus: kein Eingabefeld, kein Fenster
+  let { context, page } = await openApp(browser, base, { seed: seed({}) });
+  await page.click('#go'); await page.waitForSelector('#flip');
+  assert.equal(await page.$('#typed-answer'), null);
+  await context.close();
+  // Einstellung lässt sich auf der Seite „Einstellungen“ einschalten
+  ({ context, page } = await openApp(browser, base, {}));
+  await setLearn(page, p => p.check('#retype'));
+  assert.equal((await storage(page, 'vk:opt')).retype, true);
+  await context.close();
+  // An: richtig getippt -> kein Fenster; falsch -> Fenster, wiederholen bis richtig
+  ({ context, page } = await openApp(browser, base, { seed: seed({ retype: true }) }));
+  await page.click('#go'); await page.waitForSelector('#typed-answer');
+  await page.fill('#typed-answer', (await solutionOf(page)).toUpperCase());
+  await page.click('#flip'); await page.waitForSelector('#yes');
+  assert.equal(await page.$('#retype'), null, 'richtige Eingabe öffnet kein Fenster');
+  await page.click('#yes');
+  await page.waitForSelector('#typed-answer');
+  const solution = await solutionOf(page);
+  await page.fill('#typed-answer', 'xyz');
+  await page.click('#flip');
+  await page.waitForSelector('#retype');
+  assert.match(await page.innerText('#retype'), new RegExp(solution.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  await page.fill('#rt-input', 'immer noch falsch'); await page.keyboard.press('Enter');
+  assert.match(await page.innerText('#rt-msg'), /Versuch 1/);
+  assert.notEqual(await page.$('#retype'), null, 'bleibt offen, bis es stimmt');
+  await page.keyboard.press('ArrowRight');   // Kürzel wirken im Fenster nicht auf die Karte
+  assert.notEqual(await page.$('#retype'), null);
+  await page.fill('#rt-input', solution); await page.keyboard.press('Enter');
+  await page.waitForSelector('#retype', { state: 'detached' });
+  await page.waitForSelector('#yes');
+  await context.close();
+  // Überspringen schließt das Fenster
+  ({ context, page } = await openApp(browser, base, { seed: seed({ retype: true }) }));
+  await page.click('#go'); await page.waitForSelector('#typed-answer');
+  await page.fill('#typed-answer', 'xyz'); await page.click('#flip');
+  await page.waitForSelector('#retype'); await page.click('#rt-skip');
+  await page.waitForSelector('#retype', { state: 'detached' });
+  await context.close();
+});
+
 test('Tastenkürzel: im Eingabefeld normal tippen; als Option auch dort Kürzel, auch mit anderer Belegung', async ({ browser, base }) => {
   const seed = keys => ({ 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false, typing: true, conjPres: false, conjPc: false, ...keys } });
   // Standard: Leertaste und P erscheinen im Feld, die Karte bleibt zu

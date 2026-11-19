@@ -168,6 +168,8 @@ function settings() {
       <p class="hint">Nach jeder Runde geht es gleich weiter. Ist nichts mehr fällig, wiederholst du schon gelernte Karten.</p>
       <label><input type="checkbox" id="typing"> Antwort vor dem Aufdecken eintippen</label>
       <label><input type="checkbox" id="auto"> Aussprache automatisch abspielen</label>
+      <label><input type="checkbox" id="retype"> Falsch getippt: Vokabel wiederholen, bis sie einmal richtig geschrieben ist</label>
+      <p class="hint">Gilt für Karten mit Deutsch vorn (Antwort auf Französisch). Beim Aufdecken wird deine Eingabe geprüft. Ist sie falsch, kommt ein Fenster, bis du die Vokabel richtig schreibst. Das Eingabefeld erscheint dann auch ohne „Antwort eintippen“.</p>
       <h3>Verben konjugieren</h3>
       <label><input type="checkbox" id="conj-pres"> Présent</label>
       <label><input type="checkbox" id="conj-pc"> Passé composé</label>
@@ -310,15 +312,15 @@ function settings() {
 
   // Lernen
   $('#goal').value = String(goalToday()); $('#endless').checked = endlessOn();
-  $('#typing').checked = Boolean(opt.typing); $('#auto').checked = Boolean(opt.auto);
+  $('#typing').checked = Boolean(opt.typing); $('#auto').checked = Boolean(opt.auto); $('#retype').checked = Boolean(opt.retype);
   $('#conj-pres').checked = opt.conjPres !== false; $('#conj-pc').checked = opt.conjPc !== false;
   $('#keymap').value = opt.keymap === 'alt' ? 'alt' : 'std'; $('#keys-input').checked = Boolean(opt.keysInInput);
   const setLearn = () => {
-    opt = { ...opt, goal: Number($('#goal').value), endless: $('#endless').checked, typing: $('#typing').checked, auto: $('#auto').checked,
+    opt = { ...opt, goal: Number($('#goal').value), endless: $('#endless').checked, typing: $('#typing').checked, auto: $('#auto').checked, retype: $('#retype').checked,
       conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, keymap: $('#keymap').value, keysInInput: $('#keys-input').checked };
     LS.set('vk:opt', opt);
   };
-  ['#goal', '#endless', '#typing', '#auto', '#conj-pres', '#conj-pc', '#keymap', '#keys-input'].forEach(sel => { $(sel).onchange = setLearn; });
+  ['#goal', '#endless', '#typing', '#auto', '#retype', '#conj-pres', '#conj-pc', '#keymap', '#keys-input'].forEach(sel => { $(sel).onchange = setLearn; });
 
   // Installation
   const bindInstall = () => {

@@ -154,3 +154,10 @@ nächsten Import verloren gehen. Korrekturen (Tippfehler, doppelte oder kaputte 
 nach jedem Import von `scripts/apply_corrections.py` erneut angewendet. In Lektionen mit `merge_existing=true` darf dabei das Feld
 `german` nicht geändert werden, weil der Import neue Karten daran erkennt. Wird der Text einer Karte geändert, trägt man ihn zusätzlich in
 `CARD_FIXES` (`app.js`) ein, damit der Lernfortschritt der Karte erhalten bleibt.
+
+## Falsch getippt wiederholen
+
+Unter Einstellungen → Lernen gibt es „Falsch getippt: Vokabel wiederholen, bis sie einmal richtig geschrieben ist“. Bei Karten mit Deutsch vorn
+wird die eingetippte Antwort beim Aufdecken geprüft (Groß-/Kleinschreibung egal; „+ Inf.“, „qn.“/„qc.“, Klammern und bei „/“ jede Variante sind
+optional). Ist sie falsch, öffnet sich ein Fenster mit der richtigen Schreibweise, das erst zugeht, wenn man die Vokabel einmal richtig geschrieben hat
+(oder „Überspringen“ wählt). Danach bewertet man die Karte wie gewohnt. Bei Karten mit Französisch vorn (deutsche Antwort) wird nichts geprüft.
