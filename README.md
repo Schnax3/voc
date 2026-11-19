@@ -92,11 +92,22 @@ Die Themen pflegst du in `scripts/schulaufgabe_themen.json` (Typen `luecke`, `ve
 Die App hat „Verbesserung vorschlagen“ (Startseite unten und am Rundenende). Ohne Einrichtung öffnet das Formular ein vorausgefülltes GitHub-Issue; dafür braucht man ein GitHub-Konto. GitHub allein kann keine Issues ohne Konto anlegen, deshalb braucht es für anonymes Senden einen kleinen Zwischendienst. Vorlage: `backend/apps-script.gs` (Google Apps Script, kostenlos).
 
 1. GitHub: *Settings → Developer settings → Fine-grained tokens* → Token nur für dieses Repository, nur „Issues: Read and write“. Labels `vorschlag`, `enhancement`, `bug`, `vokabeln` im Repository anlegen.
-2. script.google.com: neues Projekt, Inhalt von `backend/apps-script.gs` einfügen. *Projekteinstellungen → Script-Eigenschaften*: `GITHUB_TOKEN` (der Token) und `GITHUB_REPO` (`owner/repo`).
+2. script.google.com: neues Projekt, Inhalt von `backend/apps-script.gs` einfügen. *Projekteinstellungen → Script-Eigenschaften*: `GITHUB_TOKEN` (der Token), `GITHUB_REPO` (`owner/repo`) und optional `FEEDBACK_DRIVE_FOLDER_ID` (Google-Drive-Ordner für Bilder). Für den Ordner: Ordner in Google Drive anlegen, Ordner-ID aus der URL kopieren und als Skript-Eigenschaft eintragen.
+   Für Bilduploads zusätzlich `GOOGLE_VISION_API_KEY` einrichten und die Cloud-Vision-API für das Projekt aktivieren. SafeSearch blockiert Bilder ab `POSSIBLE` für „adult“ oder „racy“. Wird ein Bild blockiert, wird weder ein Issue noch eine Drive-Datei erstellt.
+3. Das Löschen geschlossener Anhänge braucht einen GitHub-Webhook:
+   - GitHub: *Settings → Webhooks → Add webhook*
+   - Payload URL: dieselbe Apps-Script-Web-App-Adresse
+   - Content type: `application/json`
+   - Secret: ein eigenes, zufälliges Geheimnis
+   - Event: „Issues“
+   - In den Apps-Script-Script-Eigenschaften `GITHUB_WEBHOOK_SECRET` auf denselben Wert setzen.
+
+   Beim Schließen eines Issues sucht der Dienst die gespeicherten Drive-Dateien für diese Issue-Nummer und verschiebt sie in den Papierkorb.
 3. *Bereitstellen → Neue Bereitstellung → Web-App*, Ausführen als „Ich“, Zugriff „Jeder“. Die Web-App-Adresse kopieren.
 4. In `feedback-config.json` eintragen: `{ "endpoint": "https://script.google.com/macros/s/…/exec" }`.
 
 Der Token steht nur im Zwischendienst, nie im Code der Seite. Der Dienst begrenzt auf 20 Vorschläge pro Stunde; die App hat zusätzlich eine Pause und eine Spam-Falle.
+Zur Fehlersuche im Apps-Script-Editor links auf **Ausführungen** klicken und den fehlgeschlagenen Lauf öffnen. Für den Drive-Zugriff kann `testDriveFolderAccess` direkt im Editor ausgeführt werden; die Funktion protokolliert den Ordnernamen oder zeigt den konkreten Zugriffsfehler.
 
 ## Updates für offline gespeicherte Apps
 

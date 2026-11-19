@@ -11,6 +11,7 @@ const FEEDBACK_TYPES = [
   ['sonst', 'Etwas anderes', 'Vorschlag', 'vorschlag']
 ];
 const FEEDBACK_MIN = 5, FEEDBACK_MAX = 1500, FEEDBACK_PAUSE_MS = 30000;
+const FEEDBACK_MAX_FILE_BYTES = 4 * 1024 * 1024;
 
 async function feedbackConfig() {
   try {
@@ -25,12 +26,13 @@ const feedbackRepo = cfg => {
   const host = location.hostname.match(/^([^.]+)\.github\.io$/), segment = location.pathname.split('/')[1];
   return host && segment ? `${host[1]}/${segment}` : '';
 };
-function feedbackPayload(ctx, type, text) {
+function feedbackPayload(ctx, type, text, attachments = []) {
   const kind = FEEDBACK_TYPES.find(t => t[0] === type) || FEEDBACK_TYPES[3];
   const lessons = (ctx.lessons || []).join(', ');
-  const body = `${text.trim()}\n\n---\nArt: ${kind[1]}\nOrt in der App: ${ctx.where || 'Startseite'}${lessons ? `\nLektionen: ${lessons}` : ''}\nSeite: ${IS_DEV ? 'dev (Testseite)' : 'main'}\nGesendet über die App`;
+  let body = `${text.trim()}\n\n---\nArt: ${kind[1]}\nOrt in der App: ${ctx.where || 'Startseite'}${lessons ? `\nLektionen: ${lessons}` : ''}\nSeite: ${IS_DEV ? 'dev (Testseite)' : 'main'}\nGesendet über die App`;
+  if (attachments.length) body += `\nAnhänge: ${attachments.map(file => file.name).join(', ')}`;
   const firstLine = text.trim().split('\n')[0].slice(0, 70);
-  return { type: kind[0], title: `[${kind[2]}] ${firstLine}`, body, labels: ['vorschlag', kind[3]] };
+  return { type: kind[0], title: `[${kind[2]}] ${firstLine}`, body, labels: ['vorschlag', kind[3]], attachments };
 }
 
 function feedbackDialog() {
@@ -45,6 +47,9 @@ function feedbackDialog() {
       <select id="fb-type">${FEEDBACK_TYPES.map(t => `<option value="${t[0]}">${t[1]}</option>`).join('')}</select></label>
     <label>Dein Vorschlag
       <textarea id="fb-text" rows="6" maxlength="${FEEDBACK_MAX}" placeholder="Was soll besser werden? Bei Vokabeln bitte Lektion und Wort nennen."></textarea></label>
+    <label>Screenshot oder Bild (optional)
+      <input id="fb-files" type="file" accept="image/*" multiple>
+      <small class="hint">Bis zu 4 MB pro Bild. Das Bild wird über Google Drive geteilt und im Issue verlinkt.</small></label>
     <div class="hp" aria-hidden="true"><label>Bitte leer lassen <input id="fb-hp" tabindex="-1" autocomplete="off"></label></div>
     <p class="hint" id="fb-info"></p>
     <p class="hint" id="fb-status" role="status"></p>
@@ -57,7 +62,7 @@ function feedbackDialog() {
 async function openFeedback(ctx = {}) {
   const dialog = feedbackDialog(), $ = s => dialog.querySelector(s);
   const cfg = await feedbackConfig(), repo = feedbackRepo(cfg), direct = Boolean(cfg.endpoint);
-  $('#fb-text').value = ''; $('#fb-hp').value = ''; $('#fb-status').textContent = ''; $('#fb-send').disabled = false; $('#fb-send').hidden = false;
+  $('#fb-text').value = ''; $('#fb-files').value = ''; $('#fb-hp').value = ''; $('#fb-status').textContent = ''; $('#fb-send').disabled = false; $('#fb-send').hidden = false;
   $('#fb-send').textContent = direct ? 'Absenden' : 'Weiter zu GitHub';
   $('#fb-info').textContent = direct
     ? 'Dein Vorschlag wird ohne Anmeldung an das Projekt übermittelt und dort öffentlich sichtbar. Bitte keine persönlichen Angaben machen.'
@@ -68,7 +73,30 @@ async function openFeedback(ctx = {}) {
     const status = $('#fb-status'), text = $('#fb-text').value;
     if ($('#fb-hp').value) { status.textContent = 'Danke!'; return; } // Spam-Falle: Menschen sehen das Feld nicht
     if (text.trim().length < FEEDBACK_MIN) { status.textContent = `Bitte schreibe mindestens ${FEEDBACK_MIN} Zeichen.`; return; }
-    const payload = feedbackPayload(ctx, $('#fb-type').value, text);
+    const files = [...($('#fb-files').files || [])];
+    const oversized = files.find(file => file.size > FEEDBACK_MAX_FILE_BYTES);
+    if (oversized) { status.textContent = `„${oversized.name}“ ist größer als 4 MB.`; return; }
+    let attachments = [];
+    if (files.length) {
+      if (!direct) { status.textContent = 'Ohne Direktversand können Bilder noch nicht angehängt werden. Bitte sende den Text über GitHub.'; return; }
+      status.textContent = 'Bereite Bilder vor …';
+      try {
+        attachments = await Promise.all(files.map(async file => ({
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          data: await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+            reader.onerror = () => reject(new Error('Bild konnte nicht gelesen werden'));
+            reader.readAsDataURL(file);
+          })
+        })));
+      } catch (error) {
+        status.textContent = `Das Bild konnte nicht vorbereitet werden (${error.message}).`;
+        return;
+      }
+    }
+    const payload = feedbackPayload(ctx, $('#fb-type').value, text, attachments);
     if (!direct) {
       if (!repo) { status.textContent = 'Das Senden ist hier noch nicht eingerichtet.'; return; }
       const url = `https://github.com/${repo}/issues/new?title=${encodeURIComponent(payload.title)}&body=${encodeURIComponent(payload.body.slice(0, 1800))}&labels=${encodeURIComponent(payload.labels.join(','))}`;
@@ -87,7 +115,7 @@ async function openFeedback(ctx = {}) {
       if (!response.ok || data.ok === false) throw new Error(data.error || `Fehler ${response.status}`);
       LS.set('vk:feedback-at', Date.now());
       status.textContent = 'Danke! Dein Vorschlag ist angekommen.';
-      $('#fb-text').value = ''; $('#fb-send').hidden = true; $('#fb-cancel').textContent = 'Schließen';
+      $('#fb-text').value = ''; $('#fb-files').value = ''; $('#fb-send').hidden = true; $('#fb-cancel').textContent = 'Schließen';
     } catch (e) {
       $('#fb-send').disabled = false;
       status.textContent = `Das Senden hat nicht geklappt (${e.message}). Du kannst es später nochmal versuchen.`;

@@ -141,6 +141,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 #feedback form{display:grid;gap:12px}
 #feedback label{display:grid;gap:6px;font-size:.95rem}
 #feedback textarea,#feedback select{width:100%;font:inherit}
+#feedback input[type=file]{width:100%;font:inherit}
 .dlg-title{margin:0;font-size:1.15rem;font-weight:700}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .end-note{margin:14px 0 0;text-align:center}
@@ -206,3 +207,8 @@ details.rules.compact{margin-top:12px}
 .overlay .dlg{width:100%;max-width:440px;max-height:90vh;overflow:auto;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:16px}
 .overlay .dlg h2{margin:0 0 8px}
 .overlay .a{font-size:1.4rem;margin:2px 0 12px}
+.overview-dlg{max-width:560px!important}
+.overview-list{display:grid;gap:8px;margin:12px 0}
+.overview-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;text-align:left}
+.overview-row>div:last-child{color:var(--mut)}
+@media(max-width:560px){.overview-row{grid-template-columns:1fr;gap:4px}}

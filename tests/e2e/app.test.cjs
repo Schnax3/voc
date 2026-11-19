@@ -454,6 +454,18 @@ test('Leertaste deckt die Antwort auf', async ({ browser, base }) => {
   await context.close();
 });
 
+test('Runde: Übersicht zeigt alle Karten und lässt sich schließen', async ({ browser, base }) => {
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'mix', all: true, limit: 3, img: false, conjPres: false, conjPc: false } } });
+  await page.click('#go');
+  await page.waitForSelector('#overview');
+  await page.click('#overview');
+  await page.waitForSelector('#card-overview');
+  assert.equal(await page.locator('.overview-row').count(), 3);
+  await page.click('#overview-close');
+  await page.waitForSelector('#card-overview', { state: 'detached' });
+  await context.close();
+});
+
 test('Falsch getippt: Fenster, bis die Vokabel einmal richtig geschrieben ist (Einstellung)', async ({ browser, base }) => {
   const db = readJson('lektionen/dec3-u2-a/database.json');
   const seed = extra => ({ 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'de', all: true, img: false, conjPres: false, conjPc: false, ...extra } });
@@ -660,6 +672,7 @@ test('Vorschlag mit Endpunkt wird direkt gesendet, Spam-Falle und Pause greifen'
   await page.click('#feedback-link');
   await page.waitForSelector('dialog#feedback[open]');
   await page.selectOption('#fb-type', 'fehler');
+  await page.setInputFiles('#fb-files', { name: 'fehler.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgo=') });
   await page.evaluate(() => { document.getElementById('fb-hp').value = 'bot'; });
   await page.fill('#fb-text', 'Ein Fehler beim Start'); await page.click('#fb-send');
   assert.equal(posts.length, 0);
@@ -669,6 +682,8 @@ test('Vorschlag mit Endpunkt wird direkt gesendet, Spam-Falle und Pause greifen'
   assert.equal(posts.length, 1);
   assert.equal(posts[0].title, '[Fehler] Ein Fehler beim Start');
   assert.deepEqual(posts[0].labels, ['vorschlag', 'bug']);
+  assert.equal(posts[0].attachments[0].name, 'fehler.png');
+  assert.equal(posts[0].attachments[0].type, 'image/png');
   await page.click('#fb-cancel'); await page.click('#feedback-link');
   await page.fill('#fb-text', 'Noch ein Vorschlag'); await page.click('#fb-send');
   assert.match(await page.textContent('#fb-status'), /warte/);
