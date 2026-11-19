@@ -445,7 +445,7 @@ test('Aussprache automatisch, große Schrift, Tageszähler und Zurück-Taste', a
 });
 
 test('Leertaste deckt die Antwort auf', async ({ browser, base }) => {
-  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false } } });
+  const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false, conjPres: false, conjPc: false } } });
   await page.click('#go'); await page.waitForSelector('#flip');
   await page.keyboard.press('Space');
   await page.waitForSelector('#yes');
@@ -455,7 +455,7 @@ test('Leertaste deckt die Antwort auf', async ({ browser, base }) => {
 });
 
 test('Tastenkürzel: im Eingabefeld normal tippen; als Option auch dort Kürzel, auch mit anderer Belegung', async ({ browser, base }) => {
-  const seed = keys => ({ 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false, typing: true, ...keys } });
+  const seed = keys => ({ 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false, typing: true, conjPres: false, conjPc: false, ...keys } });
   // Standard: Leertaste und P erscheinen im Feld, die Karte bleibt zu
   let { context, page } = await openApp(browser, base, { seed: seed({}) });
   await page.click('#go'); await page.waitForSelector('#typed-answer');
