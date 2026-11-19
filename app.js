@@ -404,6 +404,7 @@ const idsOf = d => DB.has(d) ? DB.get(d).map(c => c.id) : (LS.get('vk:meta', {})
 // ---- Startseite ------------------------------------------------------------
 function home() {
   subscreen = false;
+  document.getElementById('retype')?.remove();
   stopAudio();
   document.onkeydown = e => {
     if (e.altKey && e.shiftKey && e.code === 'KeyC') {
@@ -603,6 +604,20 @@ function buildQueue(o = opt) {
 // ---- Weiterlernen ohne Ende ------------------------------------------------
 // Ist nichts mehr fällig, geht es mit einer Wiederholung weiter (die schwächsten Karten zuerst), statt dass das Lernen endet.
 const endlessOn = () => opt.endless !== false;
+// Eingetippte Vokabel prüfen (Groß-/Kleinschreibung egal, Liaison-Zeichen und Satzzeichen am Ende egal).
+// Erlaubt sind auch Kurzformen ohne „+ Inf.“, „qn.“/„qc.“ und ohne Klammern sowie jede Variante bei „/“ und „ou“.
+const normAns = text => String(text).toLowerCase().replace(/[’‘`´]/g, "'").replace(/[‿⁔]/g, ' ').replace(/\s+/g, ' ').trim().replace(/[.!?…]+$/, '').trim();
+function answerForms(fr) {
+  const base = normAns(fr), forms = new Set();
+  const noInf = x => x.replace(/\s*\+\s*inf\.?/g, '').trim();
+  const noParen = x => x.replace(/\s*\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+  const noRef = x => x.replace(/\s+(qn|qc|qqn|qqch)\.?(?=\s|$)/g, '').replace(/\s+/g, ' ').trim();
+  for (const part of [base, ...base.split(/\s*\/\s*|\s+ou\s+/)]) {
+    for (const v of [part, noInf(part), noParen(part), noParen(noInf(part)), noRef(noParen(noInf(part)))]) if (v) forms.add(v);
+  }
+  return [...forms];
+}
+const checkTyped = (typed, fr) => answerForms(fr).includes(normAns(typed));
 const keyAudio = () => (opt.keymap === 'alt' ? ' ' : 'p');
 const keyReveal = () => (opt.keymap === 'alt' ? 'p' : ' ');
 const keyAudioName = () => (opt.keymap === 'alt' ? 'Leertaste' : 'P');
@@ -639,7 +654,7 @@ const splitPerson = form => { const m = form.match(/^(j'|\S+ )(.*)$/); return m 
 function learn(q, isReview = false) {
   enterScreen();
   let lastAuto = null;
-  let shown = false, hint = false, typedAnswer = '', typedForms = {}, ok = 0, bad = 0;
+  let shown = false, hint = false, typedAnswer = '', typedForms = {}, ok = 0, bad = 0, retyped = false, retypeOpen = false;
   const total = q.length, missed = new Map(), history = [];
   const lessons = [...new Set(q.map(x => titleOf(x.c.table)))];
   const preloadedImages = new Set();
@@ -664,7 +679,7 @@ function learn(q, isReview = false) {
     stopAudio(); // läuft noch die vorige Ausgabe, würde ein zweiter Aufruf sie nur stoppen
     fn();
   };
-  const resetCard = () => { shown = false; hint = false; typedAnswer = ''; typedForms = {}; };
+  const resetCard = () => { shown = false; hint = false; typedAnswer = ''; typedForms = {}; retyped = false; retypeOpen = false; };
   const answer = good => {
     stopAudio();
     const it = q.shift(), s = st(it.c.id), nb = good ? Math.min(5, s.b + 1) : 1;
@@ -719,11 +734,12 @@ function learn(q, isReview = false) {
     if (conjActive(q[0].c)) return drawConj();
     if (q[0].c.pc) return drawPc();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
+    const checks = Boolean(opt.retype) && dir === 'de', typedField = opt.typing || checks;
     const spk = hasSound(c) ? '<button class="spk" title="Anhören (' + keyAudioName() + ')" aria-label="Anhören">🔊</button>' : '';
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="" decoding="async" fetchpriority="high" onerror="this.remove()">`).join('')}</div>` : '';
     app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
-      ${opt.typing ? `<label class="answer-field">Deine Antwort (wird nicht automatisch geprüft)
+      ${typedField ? `<label class="answer-field">Deine Antwort (${checks ? 'wird geprüft' : 'wird nicht automatisch geprüft'})
         <input id="typed-answer" type="text" autocomplete="off" spellcheck="false" placeholder="Antwort hier eingeben" value="${esc(typedAnswer)}">
       </label>` : ''}
       ${shown ? `<hr><div class="a">${esc(back)}${dir === 'fr' ? '' : spk}</div>${c.example ? `<div class="example">${esc(c.example)}</div>` : ''}` : ''}</div>
@@ -739,8 +755,37 @@ function learn(q, isReview = false) {
     const answerInput = app.querySelector('#typed-answer');
     if (answerInput) {
       answerInput.oninput = () => { typedAnswer = answerInput.value; };
-      answerInput.focus();
+      if (!retypeOpen) answerInput.focus();
     }
+    if (shown && checks && !retyped && typedAnswer.trim() && !checkTyped(typedAnswer, c.fr)) openRetype(c);
+  };
+  // Falsch getippt: Fenster, bis die Vokabel einmal richtig geschrieben wurde (Einstellung „Falsch getippt wiederholen“)
+  const openRetype = c => {
+    retypeOpen = true;
+    stopAudio();
+    let attempts = 0;
+    const box = document.createElement('div');
+    box.id = 'retype'; box.className = 'overlay'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'rt-title');
+    box.innerHTML = `<div class="dlg"><h2 id="rt-title">Noch nicht richtig</h2>
+      <p class="mut">Du hast geschrieben: <b>${esc(typedAnswer.trim())}</b></p>
+      <p class="mut">Richtig ist:</p><div class="a">${esc(c.fr)}</div>
+      <label class="answer-field">Schreibe die Vokabel jetzt richtig, dann geht es weiter.
+        <input id="rt-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Vokabel schreiben"></label>
+      <p id="rt-msg" class="mut" role="status"></p>
+      <div class="btns"><button id="rt-ok" class="primary" type="button">Prüfen</button><button id="rt-skip" type="button">Überspringen</button></div></div>`;
+    document.body.append(box);
+    const input = box.querySelector('#rt-input'), msg = box.querySelector('#rt-msg');
+    const close = () => { box.remove(); retypeOpen = false; retyped = true; draw(); };
+    const check = () => {
+      if (checkTyped(input.value, c.fr)) return close();
+      attempts++;
+      msg.textContent = `Noch nicht ganz${input.value.trim() ? ' („' + input.value.trim() + '“)' : ''}. Versuch ${attempts}: schau auf die richtige Schreibweise und schreib sie nochmal.`;
+      input.select();
+    };
+    box.querySelector('#rt-ok').onclick = check;
+    box.querySelector('#rt-skip').onclick = close;
+    input.onkeydown = event => { event.stopPropagation(); if (event.key === 'Enter') { event.preventDefault(); check(); } };
+    input.focus();
   };
   // Übung: französisches Verb zeigen, Deutsch auf Wunsch aufdecken, Passé composé eintippen, dann die Lösung zeigen
   const drawPc = () => {
@@ -801,7 +846,7 @@ function learn(q, isReview = false) {
     if (app.querySelector('#hint')) app.querySelector('#hint').onclick = () => { hint = true; drawConj(); };
   };
   document.onkeydown = e => {
-    if (!q.length) return;
+    if (!q.length || retypeOpen) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
     const plain = !(e.ctrlKey || e.metaKey || e.altKey);
