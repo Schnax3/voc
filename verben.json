@@ -1,4 +1,23 @@
 {
+ "accepter qn.": {
+  "inf": "accepter",
+  "praesens": [
+   "j'accepte",
+   "tu acceptes",
+   "il accepte",
+   "nous acceptons",
+   "vous acceptez",
+   "ils acceptent"
+  ],
+  "passe_compose": [
+   "j'ai accepté",
+   "tu as accepté",
+   "il a accepté",
+   "nous avons accepté",
+   "vous avez accepté",
+   "ils ont accepté"
+  ]
+ },
  "adorer + inf.": {
   "inf": "adorer",
   "praesens": [
@@ -92,6 +111,25 @@
    "nous sommes allé(e)s",
    "vous êtes allé(e)(s)",
    "ils sont allés"
+  ]
+ },
+ "apporter": {
+  "inf": "apporter",
+  "praesens": [
+   "j'apporte",
+   "tu apportes",
+   "il apporte",
+   "nous apportons",
+   "vous apportez",
+   "ils apportent"
+  ],
+  "passe_compose": [
+   "j'ai apporté",
+   "tu as apporté",
+   "il a apporté",
+   "nous avons apporté",
+   "vous avez apporté",
+   "ils ont apporté"
   ]
  },
  "apprendre à + inf.": {
@@ -341,6 +379,25 @@
    "ils ont dû"
   ]
  },
+ "disparaître": {
+  "inf": "disparaître",
+  "praesens": [
+   "je disparais",
+   "tu disparais",
+   "il disparaît",
+   "nous disparaissons",
+   "vous disparaissez",
+   "ils disparaissent"
+  ],
+  "passe_compose": [
+   "j'ai disparu",
+   "tu as disparu",
+   "il a disparu",
+   "nous avons disparu",
+   "vous avez disparu",
+   "ils ont disparu"
+  ]
+ },
  "déménager": {
   "inf": "déménager",
   "praesens": [
@@ -398,6 +455,25 @@
    "ils ont détesté"
   ]
  },
+ "encourager qn.": {
+  "inf": "encourager",
+  "praesens": [
+   "j'encourage",
+   "tu encourages",
+   "il encourage",
+   "nous encourageons",
+   "vous encouragez",
+   "ils encouragent"
+  ],
+  "passe_compose": [
+   "j'ai encouragé",
+   "tu as encouragé",
+   "il a encouragé",
+   "nous avons encouragé",
+   "vous avez encouragé",
+   "ils ont encouragé"
+  ]
+ },
  "enfermer": {
   "inf": "enfermer",
   "praesens": [
@@ -453,6 +529,25 @@
    "nous avons fini",
    "vous avez fini",
    "ils ont fini"
+  ]
+ },
+ "fouiller": {
+  "inf": "fouiller",
+  "praesens": [
+   "je fouille",
+   "tu fouilles",
+   "il fouille",
+   "nous fouillons",
+   "vous fouillez",
+   "ils fouillent"
+  ],
+  "passe_compose": [
+   "j'ai fouillé",
+   "tu as fouillé",
+   "il a fouillé",
+   "nous avons fouillé",
+   "vous avez fouillé",
+   "ils ont fouillé"
   ]
  },
  "imaginer qc": {
@@ -721,6 +816,44 @@
    "ils ont rappelé"
   ]
  },
+ "rapporter qc.": {
+  "inf": "rapporter",
+  "praesens": [
+   "je rapporte",
+   "tu rapportes",
+   "il rapporte",
+   "nous rapportons",
+   "vous rapportez",
+   "ils rapportent"
+  ],
+  "passe_compose": [
+   "j'ai rapporté",
+   "tu as rapporté",
+   "il a rapporté",
+   "nous avons rapporté",
+   "vous avez rapporté",
+   "ils ont rapporté"
+  ]
+ },
+ "rendre": {
+  "inf": "rendre",
+  "praesens": [
+   "je rends",
+   "tu rends",
+   "il rend",
+   "nous rendons",
+   "vous rendez",
+   "ils rendent"
+  ],
+  "passe_compose": [
+   "j'ai rendu",
+   "tu as rendu",
+   "il a rendu",
+   "nous avons rendu",
+   "vous avez rendu",
+   "ils ont rendu"
+  ]
+ },
  "reprendre": {
   "inf": "reprendre",
   "praesens": [
@@ -738,6 +871,25 @@
    "nous avons repris",
    "vous avez repris",
    "ils ont repris"
+  ]
+ },
+ "rester": {
+  "inf": "rester",
+  "praesens": [
+   "je reste",
+   "tu restes",
+   "il reste",
+   "nous restons",
+   "vous restez",
+   "ils restent"
+  ],
+  "passe_compose": [
+   "je suis resté(e)",
+   "tu es resté(e)",
+   "il est resté",
+   "nous sommes resté(e)s",
+   "vous êtes resté(e)(s)",
+   "ils sont restés"
   ]
  },
  "revenir": {
@@ -1080,6 +1232,82 @@
    "nous avons servi",
    "vous avez servi",
    "ils ont servi"
+  ]
+ },
+ "sonner": {
+  "inf": "sonner",
+  "praesens": [
+   "je sonne",
+   "tu sonnes",
+   "il sonne",
+   "nous sonnons",
+   "vous sonnez",
+   "ils sonnent"
+  ],
+  "passe_compose": [
+   "j'ai sonné",
+   "tu as sonné",
+   "il a sonné",
+   "nous avons sonné",
+   "vous avez sonné",
+   "ils ont sonné"
+  ]
+ },
+ "terminer": {
+  "inf": "terminer",
+  "praesens": [
+   "je termine",
+   "tu termines",
+   "il termine",
+   "nous terminons",
+   "vous terminez",
+   "ils terminent"
+  ],
+  "passe_compose": [
+   "j'ai terminé",
+   "tu as terminé",
+   "il a terminé",
+   "nous avons terminé",
+   "vous avez terminé",
+   "ils ont terminé"
+  ]
+ },
+ "toucher": {
+  "inf": "toucher",
+  "praesens": [
+   "je touche",
+   "tu touches",
+   "il touche",
+   "nous touchons",
+   "vous touchez",
+   "ils touchent"
+  ],
+  "passe_compose": [
+   "j'ai touché",
+   "tu as touché",
+   "il a touché",
+   "nous avons touché",
+   "vous avez touché",
+   "ils ont touché"
+  ]
+ },
+ "voler": {
+  "inf": "voler",
+  "praesens": [
+   "je vole",
+   "tu voles",
+   "il vole",
+   "nous volons",
+   "vous volez",
+   "ils volent"
+  ],
+  "passe_compose": [
+   "j'ai volé",
+   "tu as volé",
+   "il a volé",
+   "nous avons volé",
+   "vous avez volé",
+   "ils ont volé"
   ]
  },
  "vouloir + inf.": {

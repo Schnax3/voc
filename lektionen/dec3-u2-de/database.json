@@ -9,7 +9,7 @@
   {
     "french": "Ils lisent un livre de jeunesse (pour les jeunes).",
     "german": "Jugendbuch",
-    "vocabulary": "de jeunesse",
+    "vocabulary": "un livre de jeunesse",
     "image": null,
     "audio": null
   },
@@ -23,7 +23,7 @@
   {
     "french": "Tout le monde me regarde – Je suis l'objet de tous les regards.",
     "german": "Alle Blicke richten sich auf mich.",
-    "vocabulary": "l'objet regards",
+    "vocabulary": "l'objet",
     "image": null,
     "audio": null
   },
@@ -37,7 +37,7 @@
   {
     "french": "Ils/Elles‿ont les cheveux longs / les cheveux courts / les cheveux blonds",
     "german": "sie haben lange / kurze / blonde Haare - achte auf den Artikel!",
-    "vocabulary": "les cheveux longs les cheveux courts les cheveux blonds",
+    "vocabulary": "les cheveux",
     "image": null,
     "audio": null
   },
@@ -58,7 +58,7 @@
   {
     "french": "Les autres dans la classe ne l'acceptent pas (accepter qn.).",
     "german": "akzeptieren",
-    "vocabulary": "l'acceptent accepter qn.",
+    "vocabulary": "accepter qn.",
     "image": null,
     "audio": null
   },

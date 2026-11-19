@@ -37,7 +37,7 @@
   {
     "french": "Dans un hôtel de luxe, il y a des suites (des appartements avec une pièce après l'autre)",
     "german": "Suite (Folge von Zimmern)",
-    "vocabulary": "suites",
+    "vocabulary": "une suite",
     "image": null,
     "audio": null
   },
@@ -51,7 +51,7 @@
   {
     "french": "Le chien apporte (≈donne) le journal à son maître.",
     "german": "bringen",
-    "vocabulary": "apporte",
+    "vocabulary": "apporter",
     "image": null,
     "audio": null
   },
@@ -72,21 +72,21 @@
   {
     "french": "Je crois (=pense) qu'il faut aller à gauche. (Inf: croire, nous croyons, ils croient, j'ai cru)",
     "german": "glauben",
-    "vocabulary": "crois croire croyons croient cru",
+    "vocabulary": "croire",
     "image": null,
     "audio": null
   },
   {
     "french": "Le réveil sonne (Inf: sonner)…",
     "german": "klingeln",
-    "vocabulary": "sonne sonner",
+    "vocabulary": "sonner",
     "image": null,
     "audio": null
   },
   {
     "french": "… mais je reste (Inf: rester, P.C.: je suis resté) au lit – je ne me lève pas.",
     "german": "bleiben",
-    "vocabulary": "reste rester suis resté",
+    "vocabulary": "rester",
     "image": null,
     "audio": null
   }

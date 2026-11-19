@@ -151,5 +151,302 @@
     "feld": "french",
     "alt": "Il fait un coup",
     "neu": "Il donne un coup"
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "un voleur une voleuse",
+    "neu": "un voleur",
+    "wo": {
+      "vocabulary": "un voleur une voleuse"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "rend rendre rends rendons rendu",
+    "neu": "rendre",
+    "wo": {
+      "vocabulary": "rend rendre rends rendons rendu"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "rend",
+    "neu": "rendre",
+    "wo": {
+      "vocabulary": "rend"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "terminé terminer",
+    "neu": "terminer",
+    "wo": {
+      "vocabulary": "terminé terminer"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "routes une route",
+    "neu": "une route",
+    "wo": {
+      "vocabulary": "routes une route"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "une épaule épaules",
+    "neu": "une épaule",
+    "wo": {
+      "vocabulary": "une épaule épaules"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "jaloux jalouse de",
+    "neu": "jaloux de",
+    "wo": {
+      "vocabulary": "jaloux jalouse de"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "l'impression une impression",
+    "neu": "l'impression",
+    "wo": {
+      "vocabulary": "l'impression une impression"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "encourage encourager qn.",
+    "neu": "encourager qn.",
+    "wo": {
+      "vocabulary": "encourage encourager qn."
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "un sourire sourit sourire souris sourions sourient a souri",
+    "neu": "un sourire",
+    "wo": {
+      "vocabulary": "un sourire sourit sourire souris sourions sourient a souri"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "au fond du au fond du",
+    "neu": "au fond de",
+    "wo": {
+      "vocabulary": "au fond du au fond du"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "Une statuette statue",
+    "neu": "une statuette",
+    "wo": {
+      "vocabulary": "Une statuette statue"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "disparu disparaître disparais disparaissons disparaissent",
+    "neu": "disparaître",
+    "wo": {
+      "vocabulary": "disparu disparaître disparais disparaissons disparaissent"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "touche toucher",
+    "neu": "toucher",
+    "wo": {
+      "vocabulary": "touche toucher"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "fouille fouiller",
+    "neu": "fouiller",
+    "wo": {
+      "vocabulary": "fouille fouiller"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "vole voler",
+    "neu": "voler",
+    "wo": {
+      "vocabulary": "vole voler"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "principal la principale",
+    "neu": "le principal",
+    "wo": {
+      "vocabulary": "principal la principale"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "rapporté rapporter qc.",
+    "neu": "rapporter qc.",
+    "wo": {
+      "vocabulary": "rapporté rapporter qc."
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "Parmi Parmi",
+    "neu": "parmi",
+    "wo": {
+      "vocabulary": "Parmi Parmi"
+    }
+  },
+  {
+    "lektion": "dec3-u2-a",
+    "feld": "vocabulary",
+    "alt": "furieuse furieux furieux furieuses",
+    "neu": "furieux",
+    "wo": {
+      "vocabulary": "furieuse furieux furieux furieuses"
+    }
+  },
+  {
+    "lektion": "dec3-u2-de",
+    "feld": "vocabulary",
+    "alt": "l'objet regards",
+    "neu": "l'objet",
+    "wo": {
+      "vocabulary": "l'objet regards"
+    }
+  },
+  {
+    "lektion": "dec3-u2-de",
+    "feld": "vocabulary",
+    "alt": "de jeunesse",
+    "neu": "un livre de jeunesse",
+    "wo": {
+      "vocabulary": "de jeunesse"
+    }
+  },
+  {
+    "lektion": "dec3-u2-de",
+    "feld": "vocabulary",
+    "alt": "les cheveux longs les cheveux courts les cheveux blonds",
+    "neu": "les cheveux",
+    "wo": {
+      "vocabulary": "les cheveux longs les cheveux courts les cheveux blonds"
+    }
+  },
+  {
+    "lektion": "dec3-u2-de",
+    "feld": "vocabulary",
+    "alt": "l'acceptent accepter qn.",
+    "neu": "accepter qn.",
+    "wo": {
+      "vocabulary": "l'acceptent accepter qn."
+    }
+  },
+  {
+    "lektion": "dec3-u2-rapp",
+    "feld": "vocabulary",
+    "alt": "suites",
+    "neu": "une suite",
+    "wo": {
+      "vocabulary": "suites"
+    }
+  },
+  {
+    "lektion": "dec3-u2-rapp",
+    "feld": "vocabulary",
+    "alt": "apporte",
+    "neu": "apporter",
+    "wo": {
+      "vocabulary": "apporte"
+    }
+  },
+  {
+    "lektion": "dec3-u2-rapp",
+    "feld": "vocabulary",
+    "alt": "crois croire croyons croient cru",
+    "neu": "croire",
+    "wo": {
+      "vocabulary": "crois croire croyons croient cru"
+    }
+  },
+  {
+    "lektion": "dec3-u2-rapp",
+    "feld": "vocabulary",
+    "alt": "sonne sonner",
+    "neu": "sonner",
+    "wo": {
+      "vocabulary": "sonne sonner"
+    }
+  },
+  {
+    "lektion": "dec3-u2-rapp",
+    "feld": "vocabulary",
+    "alt": "reste rester suis resté",
+    "neu": "rester",
+    "wo": {
+      "vocabulary": "reste rester suis resté"
+    }
+  },
+  {
+    "lektion": "dec3-u1b",
+    "feld": "vocabulary",
+    "alt": "encore n'est plus",
+    "neu": "encore ⤄ ne plus",
+    "wo": {
+      "vocabulary": "encore n'est plus"
+    }
+  },
+  {
+    "lektion": "dec3-u1b",
+    "feld": "vocabulary",
+    "alt": "déjà n'est pas encore",
+    "neu": "déjà ⤄ ne pas encore",
+    "wo": {
+      "vocabulary": "déjà n'est pas encore"
+    }
+  },
+  {
+    "lektion": "dec3-u1-revision-negation",
+    "feld": "vocabulary",
+    "alt": "encore n'est plus",
+    "neu": "encore ⤄ ne plus",
+    "wo": {
+      "vocabulary": "encore n'est plus"
+    }
+  },
+  {
+    "lektion": "dec3-u1-revision-negation",
+    "feld": "vocabulary",
+    "alt": "déjà n'est pas encore",
+    "neu": "déjà ⤄ ne pas encore",
+    "wo": {
+      "vocabulary": "déjà n'est pas encore"
+    }
   }
 ]

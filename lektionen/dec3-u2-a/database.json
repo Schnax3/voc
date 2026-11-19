@@ -2,7 +2,7 @@
   {
     "french": "Voilà un voleur (f: une voleuse).",
     "german": "Dieb",
-    "vocabulary": "un voleur une voleuse",
+    "vocabulary": "un voleur",
     "image": null,
     "audio": null
   },
@@ -30,28 +30,28 @@
   {
     "french": "La professeure rend (Inf: rendre) l'examen à l'élève avec une bonne note. Je rends, nous rendons, j'ai rendu",
     "german": "herausgeben",
-    "vocabulary": "rend rendre rends rendons rendu",
+    "vocabulary": "rendre",
     "image": null,
     "audio": null
   },
   {
     "french": "Le mécanicien a réparé la voiture. Maintenant, il rend la clé à la dame.",
     "german": "zurückgeben",
-    "vocabulary": "rend",
+    "vocabulary": "rendre",
     "image": null,
     "audio": null
   },
   {
     "french": "Ils‿ont terminé l'université: Ils l'ont finie avec un diplôme. Infinitif: terminer qc.",
     "german": "etw. erfolgreich beenden; auch: etw. fertigstellen",
-    "vocabulary": "terminé terminer",
+    "vocabulary": "terminer",
     "image": null,
     "audio": null
   },
   {
     "french": "En ville, il y a des rues. À la campagne, il y a des routes (une route).",
     "german": "Landstraße",
-    "vocabulary": "routes une route",
+    "vocabulary": "une route",
     "image": null,
     "audio": null
   },
@@ -65,21 +65,21 @@
   {
     "french": "C'est‿une épaule / Ce sont deux‿épaules.",
     "german": "Schulter",
-    "vocabulary": "une épaule épaules",
+    "vocabulary": "une épaule",
     "image": null,
     "audio": null
   },
   {
     "french": "Il pense que Maman aime son petit frère plus que lui. Donc, il est jaloux (f: jalouse) de son petit frère.",
     "german": "eifersuchtig; auch: neidisch auf jmdn.",
-    "vocabulary": "jaloux jalouse de",
+    "vocabulary": "jaloux de",
     "image": null,
     "audio": null
   },
   {
     "french": "J'ai l'impression (une impression) (=je pense) que tu passes trop de temps sur ton portable.",
     "german": "Ich habe den Eindruck, dass…",
-    "vocabulary": "l'impression une impression",
+    "vocabulary": "l'impression",
     "image": null,
     "audio": null
   },
@@ -121,42 +121,42 @@
   {
     "french": "L'entraîneuse encourage (Inf: encourager qn.) son équipe: «Vous‿allez gagner!»",
     "german": "ermutigen",
-    "vocabulary": "encourage encourager qn.",
+    "vocabulary": "encourager qn.",
     "image": null,
     "audio": null
   },
   {
     "french": "C'est‿un sourire. La personne sourit (Infinitif: sourire), je souris, nous sourions, elles sourient, P.C.: elle a souri",
     "german": "Lächeln",
-    "vocabulary": "un sourire sourit sourire souris sourions sourient a souri",
+    "vocabulary": "un sourire",
     "image": null,
     "audio": null
   },
   {
     "french": "La fille en rouge est assise au fond du bus. Il y a encore quelques frites au fond du sac.",
     "german": "hinten in, unten in",
-    "vocabulary": "au fond du au fond du",
+    "vocabulary": "au fond de",
     "image": null,
     "audio": null
   },
   {
     "french": "Une statuette, c'est une petite statue.",
     "german": "Figur, Statuette",
-    "vocabulary": "Une statuette statue",
+    "vocabulary": "une statuette",
     "image": null,
     "audio": null
   },
   {
     "french": "Le magicien avait un lapin dans son chapeau. Puis, il a fait sa magie, et le lapin a disparu: Il n'était plus là. (Inf: disparaître, je disparais, nous disparaissons, ils disparaissent)",
     "german": "verschwinden",
-    "vocabulary": "disparu disparaître disparais disparaissons disparaissent",
+    "vocabulary": "disparaître",
     "image": null,
     "audio": null
   },
   {
     "french": "Une main touche (Inf: toucher) l'autre.",
     "german": "berühren; auch: jdn./etw. anfassen",
-    "vocabulary": "touche toucher",
+    "vocabulary": "toucher",
     "image": null,
     "audio": null
   },
@@ -170,21 +170,21 @@
   {
     "french": "Il fouille dans ses‿affaires (Inf: fouiller).",
     "german": "wühlen; auch: etw. durchsuchen; in etw. herumkramen (ugs.)",
-    "vocabulary": "fouille fouiller",
+    "vocabulary": "fouiller",
     "image": null,
     "audio": null
   },
   {
     "french": "L'homme vole (Inf: voler) le portefeuille de la dame.",
     "german": "stehlen",
-    "vocabulary": "vole voler",
+    "vocabulary": "voler",
     "image": null,
     "audio": null
   },
   {
     "french": "C'est le principal / la principale.",
     "german": "Schulleiter/in",
-    "vocabulary": "principal la principale",
+    "vocabulary": "le principal",
     "image": null,
     "audio": null
   },
@@ -198,14 +198,14 @@
   {
     "french": "Regarde, je t'ai rapporté (Inf: rapporter qc.) un cadeau de mon voyage.",
     "german": "mitbringen",
-    "vocabulary": "rapporté rapporter qc.",
+    "vocabulary": "rapporter qc.",
     "image": null,
     "audio": null
   },
   {
     "french": "Parmi les membres du groupe (=dans le groupe), il y a un criminel, qui veut tuer les autres. Ce jeu s'appelle «Parmi nous».",
     "german": "unter (🇬🇧 among)",
-    "vocabulary": "Parmi Parmi",
+    "vocabulary": "parmi",
     "image": null,
     "audio": null
   },
@@ -219,7 +219,7 @@
   {
     "french": "Elle est furieuse / Il est furieux / Ils sont furieux / Elles sont furieuses.",
     "german": "wütend; auch: zornig",
-    "vocabulary": "furieuse furieux furieux furieuses",
+    "vocabulary": "furieux",
     "image": null,
     "audio": null
   },
