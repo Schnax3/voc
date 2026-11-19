@@ -656,6 +656,7 @@ function learn(q, isReview = false) {
   let lastAuto = null;
   let shown = false, hint = false, typedAnswer = '', typedForms = {}, ok = 0, bad = 0, retyped = false, retypeOpen = false;
   const total = q.length, missed = new Map(), history = [];
+  const roundCards = [...new Map(q.map(x => [x.c.id, x.c]).filter(([, c]) => c)).values()];
   const lessons = [...new Set(q.map(x => titleOf(x.c.table)))];
   const preloadedImages = new Set();
   const preloadNextImages = () => {
@@ -704,9 +705,28 @@ function learn(q, isReview = false) {
   };
   const topHtml = c => {
     const remaining = new Set(q.map(x => x.c.id)).size, pct = Math.round((total - remaining) / total * 100);
-    return `<div class="top"><span class="tl"><button id="end">← Beenden</button>${history.length ? '<button id="undo" title="Letzte Antwort rückgängig machen">↶ Zurück</button>' : ''}</span>
+    return `<div class="top"><span class="tl"><button id="end">← Beenden</button>${history.length ? '<button id="undo" title="Letzte Antwort rückgängig machen">↶ Zurück</button>' : ''}<button id="overview" type="button">Übersicht</button></span>
       <span class="mut">noch ${q.length} · Kasten ${st(c.id).b}${isHard(c.id) ? ' · schwierig' : ''}${isReview ? ' · Wiederholung' : ''}${goalToday() ? ` · Heute ${S[dayKey(new Date())] || 0}/${goalToday()}` : ''}</span></div>
     <div class="progress" role="progressbar" aria-label="Fortschritt dieser Runde" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>`;
+  };
+  const openOverview = () => {
+    if (document.getElementById('card-overview')) return;
+    stopAudio();
+    const box = document.createElement('div');
+    box.id = 'card-overview';
+    box.className = 'overlay';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.setAttribute('aria-labelledby', 'overview-title');
+    box.innerHTML = `<div class="dlg overview-dlg"><h2 id="overview-title">Alle Karten dieser Runde</h2>
+      <p class="mut">${cards(roundCards.length)}</p>
+      <div class="overview-list">${roundCards.map(c => `<div class="overview-row"><div><b>${esc(c.fr)}</b></div><div>${esc(c.pc || c.de)}</div></div>`).join('')}</div>
+      <div class="btns"><button id="overview-close" class="primary" type="button">Zurück zur Karte</button></div></div>`;
+    document.body.append(box);
+    const close = () => box.remove();
+    box.querySelector('#overview-close').onclick = close;
+    box.addEventListener('click', event => { if (event.target === box) close(); });
+    box.querySelector('#overview-close').focus();
   };
   const buttonsHtml = flipLabel => `<div class="btns">${shown
     ? '<button id="no" class="bad">✗ Falsch <span class="key">(←)</span></button><button id="yes" class="good">✓ Richtig <span class="key">(→)</span></button>'
@@ -716,6 +736,7 @@ function learn(q, isReview = false) {
     const $ = x => app.querySelector(x);
     $('#end').onclick = leaveScreen;
     if ($('#undo')) $('#undo').onclick = undo;
+    if ($('#overview')) $('#overview').onclick = openOverview;
     app.querySelectorAll('.spk').forEach(button => { button.onclick = event => { event.stopPropagation(); onSpeak(); }; });
     if (shown) { $('#no').onclick = () => answer(false); $('#yes').onclick = () => answer(true); }
     else $('#flip').onclick = () => { shown = true; rerender(); };

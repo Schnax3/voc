@@ -92,7 +92,7 @@ Die Themen pflegst du in `scripts/schulaufgabe_themen.json` (Typen `luecke`, `ve
 Die App hat „Verbesserung vorschlagen“ (Startseite unten und am Rundenende). Ohne Einrichtung öffnet das Formular ein vorausgefülltes GitHub-Issue; dafür braucht man ein GitHub-Konto. GitHub allein kann keine Issues ohne Konto anlegen, deshalb braucht es für anonymes Senden einen kleinen Zwischendienst. Vorlage: `backend/apps-script.gs` (Google Apps Script, kostenlos).
 
 1. GitHub: *Settings → Developer settings → Fine-grained tokens* → Token nur für dieses Repository, nur „Issues: Read and write“. Labels `vorschlag`, `enhancement`, `bug`, `vokabeln` im Repository anlegen.
-2. script.google.com: neues Projekt, Inhalt von `backend/apps-script.gs` einfügen. *Projekteinstellungen → Script-Eigenschaften*: `GITHUB_TOKEN` (der Token) und `GITHUB_REPO` (`owner/repo`).
+2. script.google.com: neues Projekt, Inhalt von `backend/apps-script.gs` einfügen. *Projekteinstellungen → Script-Eigenschaften*: `GITHUB_TOKEN` (der Token), `GITHUB_REPO` (`owner/repo`) und optional `FEEDBACK_DRIVE_FOLDER_ID` (Google-Drive-Ordner für Bilder). Für den Ordner: Ordner in Google Drive anlegen, Ordner-ID aus der URL kopieren und als Skript-Eigenschaft eintragen.
 3. *Bereitstellen → Neue Bereitstellung → Web-App*, Ausführen als „Ich“, Zugriff „Jeder“. Die Web-App-Adresse kopieren.
 4. In `feedback-config.json` eintragen: `{ "endpoint": "https://script.google.com/macros/s/…/exec" }`.
 
