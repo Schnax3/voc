@@ -170,20 +170,55 @@ function uploadAttachments(files) {
       return { error: 'Ein Bild ist zu groß' };
     }
     var name = String(file.name || ('Screenshot-' + (i + 1))).replace(/[\\/:*?"<>|]/g, '_').slice(0, 120);
+    var uploaded;
     try {
-      var blob = Utilities.newBlob(bytes, file.type, name);
-      var uploaded = folder.createFile(blob);
-      uploaded.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      links.push('- [' + name + '](' + uploaded.getUrl() + ')');
-      fileIds.push(uploaded.getId());
-      Logger.log('uploadAttachments: image uploaded successfully; index=' + i);
+      uploaded = folder.createFile(Utilities.newBlob(bytes, file.type, name));
     } catch (err) {
-      Logger.log('uploadAttachments: Drive upload failed at index=' + i + ': ' + (err && err.stack ? err.stack : err));
-      return { error: 'Ein Bild konnte nicht hochgeladen werden' };
+      // Schritt 1 gescheitert: Datei konnte im Ordner nicht angelegt werden (Schreibrechte, Kontingent, Ordner-ID)
+      Logger.log('uploadAttachments: STEP createFile failed at index=' + i + ': ' + (err && err.stack ? err.stack : err));
+      trashUploaded(fileIds);
+      return { error: 'Bild konnte im Drive-Ordner nicht gespeichert werden' };
     }
+    fileIds.push(uploaded.getId());
+    try {
+      uploaded.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (err) {
+      // Schritt 2 gescheitert: Freigabe „Jeder mit dem Link“ ist oft durch Workspace-Richtlinien gesperrt.
+      // Dann muss der Ordner selbst freigegeben sein (Dateien erben die Freigabe), sonst bleibt der Link leer.
+      Logger.log('uploadAttachments: STEP setSharing failed at index=' + i + ' (Richtlinie? Ordner selbst freigeben): ' + (err && err.stack ? err.stack : err));
+      if (!isFolderShared(folder)) {
+        trashUploaded(fileIds);
+        return { error: 'Bild-Freigabe ist nicht erlaubt (Ordner freigeben oder Richtlinie prüfen)' };
+      }
+    }
+    links.push('- [' + name + '](' + uploaded.getUrl() + ')');
+    Logger.log('uploadAttachments: image uploaded successfully; index=' + i);
   }
   Logger.log('uploadAttachments: complete; uploaded=' + fileIds.length);
   return { links: links, fileIds: fileIds };
+}
+
+function isFolderShared(folder) {
+  try { return folder.getSharingAccess() !== DriveApp.Access.PRIVATE; }
+  catch (err) { Logger.log('isFolderShared failed: ' + err); return false; }
+}
+
+// Räumt Dateien dieses Aufrufs auf, wenn der Vorschlag nicht abgeschickt werden kann (keine verwaisten Bilder)
+function trashUploaded(fileIds) {
+  for (var k = 0; k < fileIds.length; k++) {
+    try { DriveApp.getFileById(fileIds[k]).setTrashed(true); }
+    catch (err) { Logger.log('trashUploaded failed for index=' + k + ': ' + err); }
+  }
+}
+
+// Zum Testen im Editor (Ausführen): legt eine Mini-Datei an und prüft Datei-Erstellung und Freigabe getrennt
+function testDriveUpload() {
+  var folder = DriveApp.getFolderById(PropertiesService.getScriptProperties().getProperty('FEEDBACK_DRIVE_FOLDER_ID'));
+  var file = folder.createFile(Utilities.newBlob('test', 'text/plain', 'upload-test.txt'));
+  Logger.log('createFile: OK');
+  try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); Logger.log('setSharing: OK'); }
+  catch (err) { Logger.log('setSharing: FEHLER ' + err + ' | Ordner geteilt: ' + isFolderShared(folder)); }
+  file.setTrashed(true);
 }
 
 function testDriveFolderAccess() {

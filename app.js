@@ -50,7 +50,7 @@ const updateAudioButtons = () => {
   const playing = Boolean((au && !au.paused) || speech);
   app.querySelectorAll('.spk').forEach(button => {
     button.textContent = playing ? '⏹' : '🔊';
-    button.title = playing ? 'Stoppen (' + keyAudioName() + ')' : 'Anhören (' + keyAudioName() + ')';
+    button.title = spkTitle(playing);
     button.setAttribute('aria-label', playing ? 'Stoppen' : 'Anhören');
   });
 };
@@ -620,6 +620,8 @@ function answerForms(fr) {
 const checkTyped = (typed, fr) => answerForms(fr).includes(normAns(typed));
 const keyAudio = () => (opt.keymap === 'alt' ? ' ' : 'p');
 const keyReveal = () => (opt.keymap === 'alt' ? 'p' : ' ');
+const keysOff = () => Boolean(opt.keysOff);
+const spkTitle = (stop = false) => (stop ? 'Stoppen' : 'Anhören') + (keysOff() ? '' : ' (' + keyAudioName() + ')');
 const keyAudioName = () => (opt.keymap === 'alt' ? 'Leertaste' : 'P');
 const goalToday = () => (opt.goal === undefined ? 20 : Number(opt.goal) || 0); // Tagesziel in Karten, 0 = aus
 function nextQueue() {
@@ -729,7 +731,7 @@ function learn(q, isReview = false) {
     box.querySelector('#overview-close').focus();
   };
   const buttonsHtml = flipLabel => `<div class="btns">${shown
-    ? '<button id="no" class="bad">✗ Falsch <span class="key">(←)</span></button><button id="yes" class="good">✓ Richtig <span class="key">(→)</span></button>'
+    ? `<button id="no" class="bad">✗ Falsch ${keysOff() ? '' : '<span class="key">(←)</span>'}</button><button id="yes" class="good">✓ Richtig ${keysOff() ? '' : '<span class="key">(→)</span>'}</button>`
     : `<button id="flip" class="primary" style="flex:1">${flipLabel}</button>`}</div>${shown ? '<p class="hint swipe">Du kannst auch wischen: nach rechts = richtig, nach links = falsch.</p>' : ''}`;
   // gemeinsame Bedienung beider Kartenarten: Knöpfe, Tippen zum Aufdecken, Wischen zum Bewerten
   const bind = (onSpeak, rerender) => {
@@ -756,7 +758,7 @@ function learn(q, isReview = false) {
     if (q[0].c.pc) return drawPc();
     const { c, dir } = q[0], front = dir === 'fr' ? c.fr : c.de, back = dir === 'fr' ? c.de : c.fr;
     const checks = Boolean(opt.retype) && dir === 'de', typedField = opt.typing || checks;
-    const spk = hasSound(c) ? '<button class="spk" title="Anhören (' + keyAudioName() + ')" aria-label="Anhören">🔊</button>' : '';
+    const spk = hasSound(c) ? '<button class="spk" title="' + spkTitle() + '" aria-label="Anhören">🔊</button>' : '';
     const imgs = opt.img && c.img.length ? `<div class="imgs">${c.img.map(s => `<img src="${esc(imageUrl(c.table, s))}" alt="" decoding="async" fetchpriority="high" onerror="this.remove()">`).join('')}</div>` : '';
     app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>${imgs}<div class="q">${esc(front)}${dir === 'fr' ? spk : ''}</div>
@@ -811,7 +813,7 @@ function learn(q, isReview = false) {
   // Übung: französisches Verb zeigen, Deutsch auf Wunsch aufdecken, Passé composé eintippen, dann die Lösung zeigen
   const drawPc = () => {
     const { c } = q[0], hit = shown && checkPc(typedAnswer, c.pc);
-    const spk = canSpeak ? '<button class="spk" title="Anhören (' + keyAudioName() + ')" aria-label="Anhören">🔊</button>' : '';
+    const spk = canSpeak ? '<button class="spk" title="' + spkTitle() + '" aria-label="Anhören">🔊</button>' : '';
     app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>
       <div class="q">${esc(c.fr)}${spk}</div>
@@ -845,7 +847,7 @@ function learn(q, isReview = false) {
         ${shown && !hit ? `<span class="sol">${esc(rest)}</span>` : ''}</div>`;
     }).join('')}</div>`;
     const html = tenses.map(section).join('');
-    const spk = hasSound(c) || canSpeak ? '<button class="spk" title="Anhören (' + keyAudioName() + ')" aria-label="Anhören">🔊</button>' : '';
+    const spk = hasSound(c) || canSpeak ? '<button class="spk" title="' + spkTitle() + '" aria-label="Anhören">🔊</button>' : '';
     app.innerHTML = `${topHtml(c)}
     <div class="card" id="card"><span class="mut">${esc(titleOf(c.table))}</span>
       <div class="q">${esc(c.fr)}${spk}</div>
@@ -867,7 +869,7 @@ function learn(q, isReview = false) {
     if (app.querySelector('#hint')) app.querySelector('#hint').onclick = () => { hint = true; drawConj(); };
   };
   document.onkeydown = e => {
-    if (!q.length || retypeOpen) return;
+    if (!q.length || retypeOpen || keysOff()) return;
     const { c, dir } = q[0];
     const key = e.key.toLowerCase();
     const plain = !(e.ctrlKey || e.metaKey || e.altKey);
@@ -899,7 +901,7 @@ function learn(q, isReview = false) {
     const reviewNote = more && review ? '<p class="mut">Heute ist nichts mehr fällig. Es geht mit einer Wiederholung weiter: Du bekommst die Karten, die am schwächsten sind.</p>' : '';
     app.innerHTML = `<h1>Runde geschafft! 🎉</h1><p class="big">${first} von ${total} beim ersten Mal richtig</p>${goalLine}${list}${reviewNote}
       <div class="btns">${more ? `<button id="again" class="primary">Weiter lernen (${cards(more)})</button>` : ''}<button id="back"${more ? '' : ' class="primary"'}>${more ? 'Aufhören' : 'Zurück zur Auswahl'}</button></div>
-      ${more ? '<p class="hint">Mit Enter geht es sofort weiter.</p>' : ''}
+      ${more && !keysOff() ? '<p class="hint">Mit Enter geht es sofort weiter.</p>' : ''}
       <p class="end-note"><button id="suggest" type="button" class="lnk-btn">💡 Verbesserung vorschlagen</button></p>`;
     app.querySelector('#back').onclick = leaveScreen;
     app.querySelector('#suggest').onclick = () => openFeedback({ where: 'Rundenende', lessons });
@@ -907,7 +909,7 @@ function learn(q, isReview = false) {
       const again = app.querySelector('#again');
       again.onclick = () => learn(nextQ, review);
       again.focus();
-      document.onkeydown = e => { if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); again.click(); } };
+      if (!keysOff()) document.onkeydown = e => { if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); again.click(); } };
     }
     window.scrollTo(0, 0);
   };

@@ -365,14 +365,24 @@ test('Übung Passé composé: Verb sehen, Deutsch aufdecken, eintippen, Lösung 
 test('Abstand zwischen Wort und Audio-Button (Frage und Antwort)', async ({ browser, base }) => {
   const { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'de', all: true, img: false } } });
   await page.click('#go'); await page.waitForSelector('#flip');
-  await page.click('#flip'); await page.waitForSelector('.a .spk');
+  // nicht jede Karte hat Audio: so lange weiterblättern, bis eine Karte mit Lautsprecher kommt
+  for (let i = 0; i < 40 && !(await page.$('.a .spk')); i++) {
+    await page.click('#flip'); await page.waitForSelector('#yes');
+    if (await page.$('.a .spk')) break;
+    await page.click('#yes'); await page.waitForSelector('#flip');
+  }
+  await page.waitForSelector('.a .spk', { timeout: 1000 });
   for (const sel of ['.a .spk']) {
     assert.ok(await page.$eval(sel, el => parseFloat(getComputedStyle(el).marginLeft)) >= 20, `${sel} braucht Abstand`);
   }
   await page.click('#yes');
   await context.close();
   const fr = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { dir: 'fr', all: true, img: false } } });
-  await fr.page.click('#go'); await fr.page.waitForSelector('.q .spk');
+  await fr.page.click('#go'); await fr.page.waitForSelector('#flip');
+  for (let i = 0; i < 40 && !(await fr.page.$('.q .spk')); i++) {
+    await fr.page.click('#flip'); await fr.page.waitForSelector('#yes'); await fr.page.click('#yes'); await fr.page.waitForSelector('#flip');
+  }
+  await fr.page.waitForSelector('.q .spk', { timeout: 1000 });
   assert.ok(await fr.page.$eval('.q .spk', el => parseFloat(getComputedStyle(el).marginLeft)) >= 20);
   await fr.context.close();
 });
@@ -519,6 +529,28 @@ test('Falsch getippt: Fenster, bis die Vokabel einmal richtig geschrieben ist (E
   await page.fill('#typed-answer', 'xyz'); await page.click('#flip');
   await page.waitForSelector('#retype'); await page.click('#rt-skip');
   await page.waitForSelector('#retype', { state: 'detached' });
+  await context.close();
+});
+
+test('Alle Tastenkürzel ausschalten: Tasten tun nichts, Klick geht, Hinweise ohne Tasten', async ({ browser, base }) => {
+  const opts = { dir: 'fr', all: true, img: false, conjPres: false, conjPc: false };
+  let { context, page } = await openApp(browser, base, { seed: { 'vk:sel': ['lektionen/dec3-u2-a'], 'vk:opt': { ...opts, keysOff: true } } });
+  await page.click('#go'); await page.waitForSelector('#flip');
+  for (const key of ['Enter', 'Space', 'ArrowDown', 'p']) await page.keyboard.press(key);
+  assert.equal(await page.$('#yes'), null, 'Tasten decken nicht auf');
+  await page.click('#flip'); await page.waitForSelector('#yes');
+  assert.doesNotMatch(await page.innerText('.btns'), /\(←\)|\(→\)/);
+  for (const key of ['ArrowRight', 'ArrowLeft', '1', '2']) await page.keyboard.press(key);
+  assert.notEqual(await page.$('#yes'), null, 'Tasten bewerten nicht');
+  const titles = await page.$$eval('.spk', els => els.map(e => e.title));
+  assert.ok(titles.every(t => !/\(/.test(t)), 'Lautsprecher-Hinweis ohne Taste');
+  await page.click('#yes');
+  await page.waitForSelector('#flip');
+  await context.close();
+  // Einstellung auf der Seite „Einstellungen“
+  ({ context, page } = await openApp(browser, base, {}));
+  await setLearn(page, p => p.check('#keys-off'));
+  assert.equal((await storage(page, 'vk:opt')).keysOff, true);
   await context.close();
 });
 
