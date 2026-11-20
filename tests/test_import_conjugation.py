@@ -1,6 +1,6 @@
 import unittest
 
-from tests.scripts import import_conjugation as ic
+from scripts import import_conjugation as ic
 
 
 class ConjugationTest(unittest.TestCase):

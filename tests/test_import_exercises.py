@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.scripts import import_exercises as ie
+from scripts import import_exercises as ie
 
 ROW = (
     '<div class="row key check"><div class="columns"><div class="question">'

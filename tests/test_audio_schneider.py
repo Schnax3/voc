@@ -13,7 +13,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from scripts.audio_schneider import schneider as production_sc
-from tests.scripts.audio_schneider import schneider as sc
+sc = production_sc
 
 HAS_FFMPEG = shutil.which("ffmpeg") is not None
 
@@ -492,7 +492,7 @@ class ChunkTests(unittest.TestCase):
                 result = SimpleNamespace(stderr=silence_output, returncode=0)
                 with patch.object(production_sc.subprocess, "run", return_value=result) as run:
                     chunks = cutter._chunks(Path("source.wav"), "test")
-                self.assertIn("silencedetect=noise=-38dB:d=0.15", run.call_args.args[0])
+                self.assertIn("silencedetect=noise=-38dB:d=0.3", run.call_args.args[0])
                 self.assertEqual(intervals, [(a, b) for a, b, _ in chunks])
                 return [(a, b) for a, b, _ in chunks]
 

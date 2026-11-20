@@ -1,8 +1,8 @@
 import json
 import unittest
 
-from tests.scripts import build_schulaufgabe as bs
-from tests.scripts import import_conjugation as ic
+from scripts import build_schulaufgabe as bs
+from scripts import import_conjugation as ic
 
 
 class ImparfaitTest(unittest.TestCase):
