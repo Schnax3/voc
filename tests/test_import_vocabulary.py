@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts.import_vocabulary import (
+from tests.scripts.import_vocabulary import (
     read_sources,
     _write_outputs,
     merge_records,

@@ -1,6 +1,6 @@
 import unittest
 
-from scripts import ki_issue as ki
+from tests.scripts import ki_issue as ki
 
 FILES = {"app.js": "const a = 1;\nconst b = 2;\nconst url = 'https://example.org/x';\n"}
 
