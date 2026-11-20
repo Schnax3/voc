@@ -191,7 +191,7 @@ async function openFeedback(ctx = {}) {
         throw new Error(`Ungültige Serverantwort (HTTP ${responseStatus})`);
       }
       if (!response.ok || data.ok === false) {
-        console.error('[Feedback] Backend hat die Anfrage abgelehnt', { status: responseStatus, contentType: responseType, error: data.error || 'Unbekannter Fehler' });
+        console.error('[Feedback] Backend hat die Anfrage abgelehnt: ' + (data.error || 'Unbekannter Fehler') + ' (HTTP ' + responseStatus + ')', { status: responseStatus, contentType: responseType, error: data.error || 'Unbekannter Fehler' });
         throw new Error(data.error || `Fehler ${response.status}`);
       }
       console.info('[Feedback] Vorschlag angenommen', { status: responseStatus });
@@ -199,7 +199,7 @@ async function openFeedback(ctx = {}) {
       status.textContent = 'Danke! Dein Vorschlag ist angekommen.';
       $('#fb-text').value = ''; $('#fb-files').value = ''; $('#fb-send').hidden = true; $('#fb-cancel').textContent = 'Schließen';
     } catch (e) {
-      console.error('[Feedback] Senden fehlgeschlagen', { status: responseStatus, contentType: responseType, message: e.message });
+      console.error('[Feedback] Senden fehlgeschlagen: ' + e.message, { status: responseStatus, contentType: responseType, message: e.message });
       $('#fb-send').disabled = false;
       status.textContent = `Das Senden hat nicht geklappt (${e.message}). Du kannst es später nochmal versuchen.`;
     }
