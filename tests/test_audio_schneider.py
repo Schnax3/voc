@@ -557,6 +557,21 @@ class SeedVCReferencePersistenceTests(unittest.TestCase):
             self.assertEqual(cutter.restore_default_seedvc_reference(), "seedvc-reference.wav")
             self.assertEqual(cutter.seedvc_reference.read_bytes(), b"default voice")
 
+    def test_single_named_audio_file_is_loaded_from_default_directory(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            reference_dir = root / "references"
+            reference_dir.mkdir()
+            reference_file = reference_dir / "French-Male-Voiceover-Jan.mp3"
+            reference_file.write_bytes(b"named default voice")
+
+            cutter = production_sc.Cutter(
+                root / "out", seedvc_reference_dir=reference_dir
+            )
+
+            self.assertEqual(cutter.seedvc_reference_name, reference_file.name)
+            self.assertEqual(cutter.seedvc_reference.read_bytes(), b"named default voice")
+
 
 @unittest.skipUnless(HAS_FFMPEG, "ffmpeg fehlt")
 class CutterTests(unittest.TestCase):

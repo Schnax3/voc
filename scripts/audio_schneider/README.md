@@ -58,7 +58,7 @@ Wenn Seed-VC V2 lokal über Pinokio läuft, kannst du vor dem Schneiden „Seed-
 
 Die Seed-VC-Adresse ist editierbar und muss auf den lokalen Pinokio-Port zeigen (Standard `http://127.0.0.1:42003`). Eine Referenzstimme ist erforderlich, außer wenn „Anonymisierung“ aktiviert ist. Die Referenz wird nicht an einen externen Dienst gesendet.
 
-Die im Referenz-Auswahlfeld geladene Stimme wird zusätzlich lokal als Standard für alle Zielordner gespeichert und nach einem Neustart automatisch geladen. Unter Windows liegt sie in `%LOCALAPPDATA%\Audio-Schneider\seedvc-reference.<Endung>` (zum Beispiel `seedvc-reference.wav`). Du kannst die Datei dort ablegen oder durch eine neue Auswahl im Browser ersetzen. Eine bereits in einem Browserprojekt gespeicherte projektspezifische Referenz bleibt für dieses Projekt erhalten; Projekte ohne eigene Referenz verwenden den Standard.
+Die im Referenz-Auswahlfeld geladene Stimme wird zusätzlich lokal als Standard für alle Zielordner gespeichert und nach einem Neustart automatisch geladen. Unter Windows liegt sie in `%LOCALAPPDATA%\Audio-Schneider\seedvc-reference.<Endung>` (zum Beispiel `seedvc-reference.wav`). Du kannst auch eine einzelne Audiodatei mit beliebigem Namen direkt dort ablegen, etwa `French-Male-Voiceover-Jan.mp3`; beim Start wird sie automatisch erkannt. Wenn mehrere Audiodateien im Ordner liegen, verwende `seedvc-reference.<Endung>`, damit die gewünschte Datei eindeutig ist. Eine bereits in einem Browserprojekt gespeicherte projektspezifische Referenz bleibt für dieses Projekt erhalten; Projekte ohne eigene Referenz verwenden den Standard.
 
 ## Optionen
 

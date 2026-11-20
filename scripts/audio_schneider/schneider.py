@@ -557,10 +557,15 @@ class Cutter:
             path for path in self.seedvc_reference_dir.glob("seedvc-reference.*")
             if path.is_file()
         ]
+        if not references:
+            references = [
+                path for path in self.seedvc_reference_dir.iterdir()
+                if path.is_file() and (mimetypes.guess_type(path.name)[0] or "").startswith("audio/")
+            ]
         if len(references) > 1:
             raise RuntimeError(
-                f"Mehrere Standard-Seed-VC-Referenzen in {self.seedvc_reference_dir}; "
-                "bitte nur eine Datei mit dem Namen seedvc-reference.<Endung> behalten"
+                f"Mehrere mögliche Seed-VC-Referenzen in {self.seedvc_reference_dir}; "
+                "bitte nur eine Audiodatei oder eine Datei namens seedvc-reference.<Endung> behalten"
             )
         if not references:
             return None
