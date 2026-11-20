@@ -33,12 +33,64 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;paddi
 .seg button{padding:4px 10px}
 #msg{min-height:1.4em}
 .big{font-size:1.3rem;font-variant-numeric:tabular-nums}
+#project-status{margin-top:4px}
+#debug-log{max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,monospace}
+#seedvc-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:12px}
+#seedvc-options[hidden]{display:none}
+#seedvc-options input[type=url],#seedvc-options input[type=number]{font:inherit;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
 </style>
 </head>
 <body>
 <main>
 <h1>Audio-Schneider</h1>
 <div class="mut" id="info">Lädt …</div>
+<div class="mut" id="project-status" aria-live="polite">Projekt-Speicher wird vorbereitet …</div>
+
+<details class="card" id="debug-panel">
+  <summary>Debug-Protokoll</summary>
+  <div class="row" style="margin-top:8px">
+    <button id="copy-debug" type="button">Protokoll kopieren</button>
+    <button id="clear-debug" type="button">Leeren</button>
+  </div>
+  <pre id="debug-log"></pre>
+</details>
+
+<div class="card">
+  <label><input type="checkbox" id="seedvc-enabled"> Seed-VC V2 vor dem Speichern verwenden</label>
+  <div id="seedvc-options" hidden>
+    <label class="mut">Seed-VC-Adresse
+      <input type="url" id="seedvc-url" value="http://127.0.0.1:42003">
+    </label>
+    <label class="mut">Referenzstimme (Audio)
+      <input type="file" id="seedvc-reference" accept="audio/*">
+    </label>
+    <div class="mut" id="seedvc-reference-state">Noch keine Referenzstimme geladen</div>
+    <div class="mut">Die ausgewählte Stimme wird lokal gespeichert und als Standard für alle Projekte verwendet.</div>
+    <label class="mut"><input type="checkbox" id="seedvc-anonymize"> Anonymisierung (Referenzstimme ignorieren)</label>
+    <label class="mut"><input type="checkbox" id="seedvc-style"> Stil, Emotion und Akzent übertragen</label>
+    <label class="mut">Diffusion Steps
+      <input type="number" id="seedvc-steps" min="1" max="200" step="1" value="30">
+    </label>
+    <label class="mut">Length Adjust
+      <input type="number" id="seedvc-length" min="0.5" max="2" step="0.1" value="1">
+    </label>
+    <label class="mut">Intelligibility CFG
+      <input type="number" id="seedvc-intelligibility" min="0" max="1" step="0.1" value="0">
+    </label>
+    <label class="mut">Similarity CFG
+      <input type="number" id="seedvc-similarity" min="0" max="1" step="0.1" value="0.7">
+    </label>
+    <label class="mut">Top-p
+      <input type="number" id="seedvc-top-p" min="0.1" max="1" step="0.1" value="0.9">
+    </label>
+    <label class="mut">Temperature
+      <input type="number" id="seedvc-temperature" min="0.1" max="2" step="0.1" value="1">
+    </label>
+    <label class="mut">Repetition Penalty
+      <input type="number" id="seedvc-repetition" min="1" max="3" step="0.1" value="1">
+    </label>
+  </div>
+</div>
 
 <div id="drop" class="card">
   <p style="margin:0 0 10px">Aufnahme hierher ziehen oder auswählen</p>
@@ -88,52 +140,469 @@ const $ = (s) => document.querySelector(s);
 const audio = new Audio();
 audio.preservesPitch = true;
 let peaks = null, PEAK = 0.01, dur = 0, done = 0, viewStart = 0, win = 15, segs = [], nextId = 1, history = [], phase = 'de';
+const debugLines = [];
+let lastInfoState = '';
+let projectKey = null, projectDbPromise = null, projectSaveTimer = null, projectReady = false;
+let projectSaveChain = Promise.resolve(), sourceFile = null, referenceFile = null;
+let lastPositionCheckpoint = 0;
+
+function openProjectDb() {
+  if (projectDbPromise) return projectDbPromise;
+  projectDbPromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open('audio-schneider-projects', 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath: 'key' });
+      if (!db.objectStoreNames.contains('media')) db.createObjectStore('media', { keyPath: 'key' });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('IndexedDB konnte nicht geöffnet werden'));
+    request.onblocked = () => reject(new Error('Browser-Projektspeicher ist durch einen anderen Tab blockiert'));
+  });
+  return projectDbPromise;
+}
+
+async function projectDbRequest(storeName, mode, action) {
+  const db = await openProjectDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, mode);
+    const request = action(transaction.objectStore(storeName));
+    let result;
+    request.onsuccess = () => { result = request.result; };
+    request.onerror = () => reject(request.error || new Error('Browser-Projektspeicher-Anfrage fehlgeschlagen'));
+    transaction.oncomplete = () => resolve(result);
+    transaction.onerror = () => reject(transaction.error || new Error('Browser-Projektspeicher-Transaktion fehlgeschlagen'));
+    transaction.onabort = () => reject(transaction.error || new Error('Browser-Projektspeicher-Transaktion abgebrochen'));
+  });
+}
+
+function projectSettings() {
+  return {
+    seedvcEnabled: $('#seedvc-enabled').checked,
+    seedvcUrl: $('#seedvc-url').value,
+    seedvcAnonymize: $('#seedvc-anonymize').checked,
+    seedvcStyle: $('#seedvc-style').checked,
+    seedvcSteps: $('#seedvc-steps').value,
+    seedvcLength: $('#seedvc-length').value,
+    seedvcIntelligibility: $('#seedvc-intelligibility').value,
+    seedvcSimilarity: $('#seedvc-similarity').value,
+    seedvcTopP: $('#seedvc-top-p').value,
+    seedvcTemperature: $('#seedvc-temperature').value,
+    seedvcRepetition: $('#seedvc-repetition').value,
+    speed: $('#speed').value,
+    zoom: $('#zoom').value,
+    trim: $('#trim').checked,
+    frenchOnly: $('#fronly').checked,
+    alternating: $('#alt').checked
+  };
+}
+
+function projectSnapshot() {
+  return {
+    version: 1,
+    source: sourceFile ? { name: sourceFile.name, type: sourceFile.type } : null,
+    reference: referenceFile ? { name: referenceFile.name, type: referenceFile.type } : null,
+    position: audio.currentTime || 0,
+    done, viewStart, win, phase, nextId,
+    settings: projectSettings(),
+    segments: segs.map((s) => ({
+      id: s.id, start: s.start, end: s.end, name: s.name, state: s.state, jobId: s.jobId,
+      trim: s.trim, recognitionFailed: s.recognitionFailed
+    })),
+    history: history.map((h) => ({
+      start: h.start, end: h.end, phaseBefore: h.phaseBefore, segmentId: h.seg ? h.seg.id : null
+    }))
+  };
+}
+
+async function putProjectMedia(role, file) {
+  if (!projectKey) return;
+  await projectDbRequest('media', 'readwrite', (store) => store.put({
+    key: projectKey + ':' + role, name: file.name, type: file.type, blob: file
+  }));
+}
+
+async function getProjectMedia(role) {
+  return projectDbRequest('media', 'readonly', (store) => store.get(projectKey + ':' + role));
+}
+
+function persistProject() {
+  if (!projectKey) return Promise.resolve();
+  const state = projectSnapshot();
+  projectSaveChain = projectSaveChain.then(() => projectDbRequest('projects', 'readwrite', (store) =>
+    store.put({ key: projectKey, state })
+  )).then(() => {
+    $('#project-status').textContent = 'Projekt lokal im Browser gespeichert';
+    $('#project-status').style.color = '';
+  }).catch((e) => {
+    $('#project-status').textContent = 'Browserspeicherung fehlgeschlagen: ' + e.message;
+    $('#project-status').style.color = 'var(--bad)';
+    debug('Projekt konnte nicht lokal gespeichert werden', errorText(e));
+  });
+  return projectSaveChain;
+}
+
+function scheduleProjectSave() {
+  if (!projectKey) return;
+  clearTimeout(projectSaveTimer);
+  projectSaveTimer = setTimeout(persistProject, 350);
+}
+
+function restoreSettings(settings) {
+  if (!settings) return;
+  $('#seedvc-enabled').checked = Boolean(settings.seedvcEnabled);
+  $('#seedvc-options').hidden = !settings.seedvcEnabled;
+  $('#seedvc-url').value = settings.seedvcUrl || $('#seedvc-url').value;
+  $('#seedvc-anonymize').checked = Boolean(settings.seedvcAnonymize);
+  $('#seedvc-reference').disabled = Boolean(settings.seedvcAnonymize);
+  $('#seedvc-style').checked = Boolean(settings.seedvcStyle);
+  $('#seedvc-steps').value = settings.seedvcSteps || '30';
+  $('#seedvc-length').value = settings.seedvcLength || '1';
+  $('#seedvc-intelligibility').value = settings.seedvcIntelligibility || '0';
+  $('#seedvc-similarity').value = settings.seedvcSimilarity || '0.7';
+  $('#seedvc-top-p').value = settings.seedvcTopP || '0.9';
+  $('#seedvc-temperature').value = settings.seedvcTemperature || '1';
+  $('#seedvc-repetition').value = settings.seedvcRepetition || '1';
+  $('#speed').value = settings.speed || '1';
+  $('#zoom').value = settings.zoom || '15';
+  $('#zoomv').textContent = $('#zoom').value + ' s';
+  $('#trim').checked = settings.trim !== false;
+  $('#fronly').checked = Boolean(settings.frenchOnly);
+  $('#alt').checked = Boolean(settings.alternating);
+}
 
 const fmt = (t) => { const m = Math.floor(t / 60), s = (t % 60).toFixed(1); return m + ':' + (s < 10 ? '0' : '') + s; };
 const say = (t, bad) => { const m = $('#msg'); m.textContent = t; m.style.color = bad ? 'var(--bad)' : ''; };
+function debug(event, detail) {
+  const extra = detail === undefined ? '' : ' ' + (typeof detail === 'string' ? detail : JSON.stringify(detail));
+  const line = new Date().toLocaleTimeString() + ' ' + event + extra;
+  debugLines.push(line);
+  if (debugLines.length > 2000) debugLines.shift();
+  $('#debug-log').textContent = debugLines.join('\n');
+  $('#debug-log').scrollTop = $('#debug-log').scrollHeight;
+  console.debug('[Audio-Schneider]', line);
+}
+const errorText = (e) => e instanceof Error ? e.name + ': ' + e.message : String(e);
 
 async function post(url, data) {
-  const r = await fetch(url, { method: 'POST', body: JSON.stringify(data) });
-  const j = await r.json();
+  debug('Anfrage', { method: 'POST', url, data });
+  let r;
+  try { r = await fetch(url, { method: 'POST', body: JSON.stringify(data) }); }
+  catch (e) { debug('Netzwerkfehler', errorText(e)); throw e; }
+  const body = await r.text();
+  let j;
+  try { j = body ? JSON.parse(body) : {}; }
+  catch { debug('Ungültige Serverantwort', { url, status: r.status, body: body.slice(0, 500) }); throw new Error('Ungültige Serverantwort (HTTP ' + r.status + ')'); }
+  debug('Antwort', { url, status: r.status, body: j });
   if (!r.ok) throw new Error(j.error || r.statusText);
   return j;
 }
 
-async function info() {
-  try {
-    const i = await (await fetch('/info')).json();
-    let t = 'Zielordner: ' + i.out + ' · Spracherkennung: ' + ({ whisper: 'Whisper', none: 'aus (Namen von Hand)', fake: 'Test' }[i.stt] || i.stt);
-    if (i.stt === 'whisper') t += i.error ? ' – ' + i.error : i.ready ? ' (bereit)' : ' (Modell lädt …)';
-    $('#info').textContent = t;
-    if (i.stt === 'whisper' && !i.ready && !i.error) setTimeout(info, 1500);
-  } catch { $('#info').textContent = 'Keine Verbindung zum Programm'; }
+async function pollCutProgress(jobId, segment, control) {
+  let after = 0, failures = 0, missing = 0, previousStage = '';
+  while (!control.done) {
+    try {
+      const response = await fetch('/job?id=' + encodeURIComponent(jobId) + '&after=' + after);
+      if (response.status === 404) {
+        missing++;
+        if (control.recovering && missing >= 4) {
+          segment.state = 'interrupted';
+          segment.message = 'Auftrag auf dem Server nicht mehr vorhanden – Zielordner prüfen';
+          debug('Gespeicherter Schnittauftrag nicht gefunden', { jobId });
+          renderList();
+          await persistProject();
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 900));
+        continue;
+      }
+      if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + response.statusText);
+      const job = await response.json();
+      failures = 0;
+      for (const event of job.events || []) {
+        after = Math.max(after, event.sequence || 0);
+        debug('Schnittfortschritt', {
+          jobId, elapsed: event.elapsed, stage: event.stage, message: event.message, ...event.details
+        });
+      }
+      if (!segment.cancelled) {
+        segment.message = job.message + ' · ' + job.elapsed.toFixed(1) + ' s';
+        if (job.stage !== previousStage) {
+          previousStage = job.stage;
+          say(segment.message, job.status === 'failed');
+        }
+        renderList();
+      }
+      if (job.status === 'complete' || job.status === 'failed') {
+        if (!segment.cancelled && control.recovering) {
+          if (job.status === 'complete' && job.result && job.result.name) {
+            segment.name = job.result.name;
+            segment.state = 'ok';
+            segment.message = '';
+            debug('Schnitt nach Neuladen abgeschlossen', { jobId, name: segment.name });
+          } else if (job.status === 'failed') {
+            segment.state = 'err';
+            segment.message = job.message;
+            say(job.message, true);
+          }
+          renderList();
+          await persistProject();
+        }
+        return;
+      }
+    } catch (e) {
+      failures++;
+      if (failures === 1 || failures % 10 === 0) debug('Fortschrittsabfrage fehlgeschlagen', { jobId, error: errorText(e), failures });
+      if (!segment.cancelled) {
+        segment.message = 'Fortschrittsabfrage fehlgeschlagen – warte auf Ergebnis';
+        renderList();
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 900));
+  }
 }
 
-async function loadFile(f) {
-  if (!f) return;
-  say('');
-  $('#drop').querySelector('p').textContent = 'Lädt ' + f.name + ' …';
-  await fetch('/upload?name=' + encodeURIComponent(f.name), { method: 'POST', body: f });
-  const buf = await f.arrayBuffer();
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const ab = await ctx.decodeAudioData(buf);
-  ctx.close();
-  const ch = ab.getChannelData(0), per = Math.max(1, Math.floor(ab.sampleRate * PEAK));
-  peaks = new Float32Array(Math.ceil(ch.length / per));
-  for (let i = 0; i < peaks.length; i++) {
-    let m = 0;
-    for (let j = i * per, e = Math.min(ch.length, j + per); j < e; j++) { const v = Math.abs(ch[j]); if (v > m) m = v; }
-    peaks[i] = m;
+async function info() {
+  try {
+    const r = await fetch('/info');
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+    const i = await r.json();
+    const state = JSON.stringify(i);
+    if (state !== lastInfoState) { debug('Serverstatus', i); lastInfoState = state; }
+    let t = 'Zielordner: ' + i.out + ' · Spracherkennung: ' + ({ whisper: 'Whisper', none: 'aus (Namen von Hand)', fake: 'Test' }[i.stt] || i.stt);
+    if (i.stt === 'whisper') {
+      if (i.error) t += ' – ' + i.error;
+      else if (!i.ready) t += ' (Modell lädt …)';
+      else if (i.gpu_error) t += ' (CPU ' + (i.model || 'small') + ' – GPU-Laufzeit fehlt)';
+      else t += i.device === 'cuda' ? ' (GPU)' : i.device === 'cpu' ? ' (CPU)' : ' (bereit)';
+    }
+    $('#info').textContent = t;
+    $('#seedvc-reference-state').textContent = i.seedvc_reference
+      ? 'Referenzstimme geladen: ' + i.seedvc_reference
+      : 'Noch keine Referenzstimme geladen';
+    if (i.stt === 'whisper' && !i.ready && !i.error) setTimeout(info, 1500);
+    return i;
+  } catch (e) {
+    if (lastInfoState !== 'connection-error') debug('Statusabfrage fehlgeschlagen', errorText(e));
+    lastInfoState = 'connection-error';
+    $('#info').textContent = 'Keine Verbindung zum Programm: ' + e.message;
+    return null;
   }
-  let max = 0; for (const v of peaks) if (v > max) max = v;
-  const k = max > 0 ? 1 / max : 1; for (let i = 0; i < peaks.length; i++) peaks[i] *= k;
-  dur = ab.duration; done = 0; viewStart = 0; segs = []; history = []; phase = 'de'; updatePhase();
-  audio.src = URL.createObjectURL(f);
-  audio.playbackRate = Number($('#speed').value);
-  $('#work').hidden = false;
-  $('#drop').hidden = true;
-  renderList();
-  draw();
+}
+
+async function saveProjectMedia(role, file) {
+  if (!projectKey) {
+    $('#project-status').textContent = 'Browserspeicherung nicht verfügbar: Server-Zielordner fehlt';
+    $('#project-status').style.color = 'var(--bad)';
+    return false;
+  }
+  try {
+    await putProjectMedia(role, file);
+    return true;
+  } catch (e) {
+    $('#project-status').textContent = 'Audiodatei konnte nicht im Browser gespeichert werden: ' + e.message;
+    $('#project-status').style.color = 'var(--bad)';
+    debug('Audiodatei konnte nicht lokal gespeichert werden', { role, error: errorText(e) });
+    return false;
+  }
+}
+
+async function loadFile(f, savedState = null) {
+  if (!f) return;
+  if (!projectReady && !savedState) {
+    say('Projekt wird noch geladen – bitte gleich erneut auswählen', true);
+    return false;
+  }
+  debug('Datei ausgewählt', { name: f.name, type: f.type, size: f.size });
+  try {
+    say('');
+    $('#drop').querySelector('p').textContent = 'Lädt ' + f.name + ' …';
+    const upload = await fetch('/upload?name=' + encodeURIComponent(f.name), { method: 'POST', body: f });
+    if (!upload.ok) throw new Error('Upload fehlgeschlagen: HTTP ' + upload.status + ' ' + upload.statusText + ' – ' + (await upload.text()).slice(0, 500));
+    debug('Upload erfolgreich', { status: upload.status });
+    const buf = await f.arrayBuffer();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    let ab;
+    try { ab = await ctx.decodeAudioData(buf); }
+    finally { await ctx.close(); }
+    debug('Audio im Browser dekodiert', { duration: ab.duration, sampleRate: ab.sampleRate, channels: ab.numberOfChannels });
+    const ch = ab.getChannelData(0), per = Math.max(1, Math.floor(ab.sampleRate * PEAK));
+    peaks = new Float32Array(Math.ceil(ch.length / per));
+    for (let i = 0; i < peaks.length; i++) {
+      let m = 0;
+      for (let j = i * per, e = Math.min(ch.length, j + per); j < e; j++) { const v = Math.abs(ch[j]); if (v > m) m = v; }
+      peaks[i] = m;
+    }
+    let max = 0; for (const v of peaks) if (v > max) max = v;
+    const k = max > 0 ? 1 / max : 1; for (let i = 0; i < peaks.length; i++) peaks[i] *= k;
+    sourceFile = f;
+    dur = ab.duration;
+    if (savedState) {
+      done = Math.max(0, Math.min(dur, Number(savedState.done) || 0));
+      viewStart = Math.max(done, Math.min(dur, Number(savedState.viewStart) || done));
+      win = Number(savedState.win) || 15;
+      phase = savedState.phase === 'fr' ? 'fr' : 'de';
+      segs = (savedState.segments || []).map((s) => ({
+        ...s,
+        state: s.state === 'pending' && !s.jobId ? 'interrupted' : s.state,
+        recognitionFailed: s.recognitionFailed === undefined
+          ? s.state === 'ok' && /^Segment \d+$/.test(s.name || '')
+          : s.recognitionFailed
+      }));
+      const byId = new Map(segs.map((s) => [s.id, s]));
+      history = (savedState.history || []).map((h) => ({
+        start: h.start, end: h.end, phaseBefore: h.phaseBefore,
+        seg: h.segmentId === null ? null : byId.get(h.segmentId) || null
+      }));
+      nextId = Math.max(Number(savedState.nextId) || 1, ...segs.map((s) => Number(s.id) + 1), 1);
+    } else {
+      done = 0; viewStart = 0; segs = []; history = []; phase = 'de'; nextId = 1;
+    }
+    updatePhase();
+    if (audio.src.startsWith('blob:')) URL.revokeObjectURL(audio.src);
+    audio.src = URL.createObjectURL(f);
+    audio.playbackRate = Number($('#speed').value);
+    audio.currentTime = Math.max(done, Math.min(dur, Number(savedState && savedState.position) || done));
+    $('#work').hidden = false;
+    $('#drop').hidden = true;
+    renderList();
+    draw();
+    const mediaSaved = savedState || await saveProjectMedia('source', f);
+    if (mediaSaved) {
+      await persistProject();
+      $('#project-status').style.color = '';
+    }
+    debug(savedState ? 'Projektaufnahme wiederhergestellt' : 'Projektaufnahme geladen', {
+      name: f.name, resumeAt: audio.currentTime, completedTo: done
+    });
+    return true;
+  } catch (e) {
+    debug('Datei konnte nicht geladen werden', errorText(e));
+    say('Datei konnte nicht geladen werden: ' + e.message, true);
+    $('#drop').querySelector('p').textContent = 'Aufnahme hierher ziehen oder auswählen';
+    return false;
+  }
+}
+
+async function uploadSeedVCReference(f, persist = true) {
+  if (!f) return;
+  if (!projectReady && persist) {
+    say('Projekt wird noch geladen – bitte Referenz gleich erneut auswählen', true);
+    return false;
+  }
+  if (sourceFile && f.name === sourceFile.name && f.size === sourceFile.size) {
+    const message = 'Die Quelldatei kann nicht zugleich Referenzstimme sein. Bitte die gewünschte Zielstimme auswählen.';
+    $('#seedvc-reference-state').textContent = message;
+    say(message, true);
+    debug('Seed-VC-Referenz entspricht der Quelldatei; Upload abgelehnt', { name: f.name, size: f.size });
+    return false;
+  }
+  debug('Seed-VC-Referenz ausgewählt', { name: f.name, type: f.type, size: f.size });
+  $('#seedvc-reference-state').textContent = 'Referenzstimme wird geladen …';
+  try {
+    const r = await fetch('/seedvc/reference?name=' + encodeURIComponent(f.name)
+      + '&default=' + (persist ? 'true' : 'false'), { method: 'POST', body: f });
+    const body = await r.text();
+    const result = body ? JSON.parse(body) : {};
+    if (!r.ok) throw new Error(result.error || r.statusText);
+    referenceFile = f;
+    $('#seedvc-reference-state').textContent = 'Referenzstimme geladen: ' + result.name;
+    debug('Seed-VC-Referenz geladen', { name: result.name, size: f.size });
+    if (persist) {
+      if (await saveProjectMedia('reference', f)) await persistProject();
+    }
+    return true;
+  } catch (e) {
+    $('#seedvc-reference-state').textContent = 'Referenzstimme konnte nicht geladen werden';
+    debug('Seed-VC-Referenz-Upload fehlgeschlagen', errorText(e));
+    say('Seed-VC-Referenz konnte nicht geladen werden: ' + e.message, true);
+    return false;
+  }
+}
+
+async function restoreProject(serverInfo) {
+  projectKey = serverInfo.project_key || serverInfo.out;
+  $('#project-status').textContent = 'Suche gespeichertes Projekt …';
+  try {
+    const record = await projectDbRequest('projects', 'readonly', (store) => store.get(projectKey));
+    if (!record || !record.state) {
+      $('#project-status').textContent = 'Noch kein gespeichertes Projekt für diesen Zielordner';
+      return;
+    }
+    const state = record.state;
+    restoreSettings(state.settings);
+    win = Number(state.win) || win;
+    $('#zoomv').textContent = $('#zoom').value + ' s';
+    updatePhase();
+    const savedSource = state.source ? await getProjectMedia('source') : null;
+    let referenceWarning = null;
+    if (state.reference) {
+      const savedReference = await getProjectMedia('reference');
+      if (!savedReference || !savedReference.blob) {
+        referenceWarning = 'Gespeicherte Referenzstimme fehlt; bitte die Zielstimme erneut auswählen.';
+      } else if (state.source && savedSource && savedSource.blob
+          && state.reference.name === state.source.name
+          && savedReference.blob.size === savedSource.blob.size) {
+        referenceWarning = 'Die gespeicherte Referenz ist dieselbe Datei wie die Aufnahme. Bitte die Zielstimme erneut auswählen.';
+      } else {
+        const file = new File([savedReference.blob], state.reference.name, { type: state.reference.type || savedReference.type });
+        if (!await uploadSeedVCReference(file, false)) {
+          referenceWarning = 'Referenzstimme konnte nicht wiederhergestellt werden; bitte erneut auswählen.';
+        }
+      }
+    } else {
+      const response = await fetch('/seedvc/reference/default', { method: 'POST' });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Standard-Referenz konnte nicht geladen werden');
+      referenceFile = null;
+      $('#seedvc-reference-state').textContent = result.name
+        ? 'Standard-Referenz für alle Projekte geladen: ' + result.name
+        : 'Noch keine Referenzstimme geladen';
+      debug('Standard-Seed-VC-Referenz wiederhergestellt', { name: result.name });
+    }
+    if (state.source) {
+      if (!savedSource || !savedSource.blob) throw new Error('Gespeicherte Aufnahme fehlt im Browser-Speicher');
+      const file = new File([savedSource.blob], state.source.name, { type: state.source.type || savedSource.type });
+      if (!await loadFile(file, state)) throw new Error('Aufnahme konnte nicht wiederhergestellt werden');
+      $('#project-status').textContent = 'Projekt wiederhergestellt und lokal gespeichert';
+      debug('Projekt wiederhergestellt', { out: serverInfo.out, clips: segs.length });
+      for (const segment of segs.filter((item) => item.state === 'pending' && item.jobId)) {
+        segment.message = 'Laufenden Schnittauftrag wird wieder verbunden …';
+        pollCutProgress(segment.jobId, segment, { done: false, recovering: true });
+      }
+    } else {
+      $('#project-status').textContent = 'Projekteinstellungen wiederhergestellt';
+    }
+    if (referenceWarning) {
+      referenceFile = null;
+      $('#seedvc-reference-state').textContent = referenceWarning;
+      $('#project-status').textContent = referenceWarning;
+      $('#project-status').style.color = 'var(--bad)';
+      say(referenceWarning, true);
+      await persistProject();
+    }
+  } catch (e) {
+    $('#project-status').textContent = 'Projekt konnte nicht wiederhergestellt werden: ' + e.message;
+    $('#project-status').style.color = 'var(--bad)';
+    debug('Projektwiederherstellung fehlgeschlagen', errorText(e));
+  }
+}
+
+function seedvcSettings() {
+  if (!$('#seedvc-enabled').checked) return null;
+  return {
+    enabled: true,
+    url: $('#seedvc-url').value.trim(),
+    anonymization_only: $('#seedvc-anonymize').checked,
+    convert_style: $('#seedvc-style').checked,
+    diffusion_steps: Number($('#seedvc-steps').value),
+    length_adjust: Number($('#seedvc-length').value),
+    intelligebility_cfg_rate: Number($('#seedvc-intelligibility').value),
+    similarity_cfg_rate: Number($('#seedvc-similarity').value),
+    top_p: Number($('#seedvc-top-p').value),
+    temperature: Number($('#seedvc-temperature').value),
+    repetition_penalty: Number($('#seedvc-repetition').value)
+  };
 }
 
 function setupCanvas(c) {
@@ -189,7 +658,10 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-function toggle() { audio.paused ? audio.play() : audio.pause(); }
+function toggle() {
+  if (audio.paused) audio.play().catch((e) => { debug('Abspielen fehlgeschlagen', errorText(e)); say('Abspielen fehlgeschlagen: ' + e.message, true); });
+  else audio.pause();
+}
 function seek(d) { audio.currentTime = Math.max(done, Math.min(dur, audio.currentTime + d)); }
 
 function updatePhase() {
@@ -209,75 +681,195 @@ async function doCut(forceSkip) {
   done = end; viewStart = done;
   if (alt && !forceSkip) phase = phase === 'fr' ? 'de' : 'fr';
   updatePhase();
-  if (!save) return say('Verworfen (' + fmt(h.start) + ' – ' + fmt(end) + ')');
-  const s = { id: nextId++, start: h.start, end, name: '', state: 'pending' };
+  if (!save) {
+    say('Verworfen (' + fmt(h.start) + ' – ' + fmt(end) + ')');
+    await persistProject();
+    return;
+  }
+  const jobId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+  const trim = $('#trim').checked;
+  const s = {
+    id: nextId++, start: h.start, end, name: '', state: 'pending', jobId, trim,
+    recognitionFailed: false, message: 'Schnittauftrag wird gesendet …'
+  };
   h.seg = s; segs.unshift(s);
   renderList();
+  await persistProject();
+  const progressControl = { done: false };
+  let progressTask;
   try {
-    const r = await post('/cut', { start: s.start, end: s.end, trim: $('#trim').checked, french_only: $('#fronly').checked });
-    if (s.cancelled) { await post('/delete', { name: r.name }).catch(() => {}); return; }
-    s.name = r.name; s.state = 'ok'; say('Gespeichert: ' + r.name + '.mp3' + (r.text ? '' : ' (nichts erkannt – Namen bitte ändern)'));
-  } catch (e) { s.state = 'err'; say('Fehler beim Schneiden: ' + e.message, true); }
+    const request = post('/cut', {
+      job_id: jobId,
+      start: s.start, end: s.end, trim: s.trim,
+      french_only: $('#fronly').checked, seedvc: seedvcSettings()
+    });
+    progressTask = pollCutProgress(jobId, s, progressControl);
+    const r = await request;
+    if (s.cancelled) {
+      await post('/delete', { name: r.name }).catch(() => {});
+      await persistProject();
+      return;
+    }
+    s.name = r.name; s.state = 'ok';
+    s.message = '';
+    s.recognitionFailed = Boolean(r.stt_debug && !r.text);
+    say('Gespeichert: ' + r.name + '.mp3' + (r.seedvc ? ' (Seed-VC V2)' : '') + (r.text ? '' : ' (nichts erkannt – Namen bitte ändern)'));
+  } catch (e) {
+    debug('Schnitt fehlgeschlagen', errorText(e));
+    s.state = 'err';
+    s.message = e.message;
+    say('Fehler beim Schneiden: ' + e.message, true);
+  } finally {
+    progressControl.done = true;
+    if (progressTask) await progressTask;
+  }
   renderList();
+  await persistProject();
 }
 
 async function undo() {
   const h = history.pop(); if (!h) return;
   done = h.start; viewStart = done; phase = h.phaseBefore; updatePhase();
   const s = h.seg;
+  const wasPending = s && s.state === 'pending';
   if (s) { s.cancelled = true; segs = segs.filter((x) => x !== s); if (s.state === 'ok') await post('/delete', { name: s.name }).catch((e) => say(e.message, true)); }
-  say('Letzter Schnitt zurückgenommen');
+  say(wasPending ? 'Schnitt zurückgenommen; laufende Verarbeitung wird noch beendet' : 'Letzter Schnitt zurückgenommen');
+  if (wasPending) debug('Schnitt im Browser zurückgenommen; Serververarbeitung läuft weiter', { jobId: s.jobId });
   renderList();
+  await persistProject();
+}
+
+async function retryFrenchRecognition(segment, button) {
+  if (segment.retrying) return;
+  segment.retrying = true;
+  button.disabled = true;
+  button.textContent = '…';
+  say('Whisper versucht Französisch erneut – Seed-VC wird nicht wiederholt');
+  try {
+    const result = await post('/retry-recognition', {
+      name: segment.name, start: segment.start, end: segment.end, trim: segment.trim !== false
+    });
+    if (segment.cancelled || !segs.includes(segment)) return;
+    if (!result.text) {
+      say('Auch mit erzwungener französischer Sprache wurde kein Text erkannt', true);
+      return;
+    }
+    if (!window.confirm('Whisper-Vorschlag: „' + result.text + '“. Als Dateinamen übernehmen?')) {
+      say('Vorschlag nicht übernommen; die Audiodatei blieb unverändert');
+      return;
+    }
+    const renamed = await post('/rename', { name: segment.name, new: result.text });
+    segment.name = renamed.name;
+    segment.recognitionFailed = false;
+    say('Französischer Vorschlag übernommen: ' + renamed.name + '.mp3');
+    await persistProject();
+  } catch (e) {
+    debug('Französische Wiedererkennung fehlgeschlagen', errorText(e));
+    say('Wiedererkennung fehlgeschlagen: ' + e.message, true);
+  } finally {
+    segment.retrying = false;
+    if (segs.includes(segment)) renderList();
+  }
 }
 
 function renderList() {
   $('#count').textContent = (n => n + (n === 1 ? ' Ausschnitt' : ' Ausschnitte'))(segs.filter((s) => s.state === 'ok').length);
   const box = $('#list'); box.textContent = '';
   for (const s of segs) {
-    const row = document.createElement('div'); row.className = 'seg ' + s.state;
+    const row = document.createElement('div'); row.className = 'seg ' + (s.state === 'interrupted' ? 'err' : s.state);
     const play = document.createElement('button'); play.textContent = '▶'; play.disabled = s.state !== 'ok';
     play.onclick = () => { const a = new Audio('/clip?name=' + encodeURIComponent(s.name) + '&t=' + Date.now()); a.play(); };
-    const inp = document.createElement('input'); inp.value = s.state === 'pending' ? 'wird erkannt …' : s.name; inp.disabled = s.state !== 'ok';
+    const inp = document.createElement('input');
+    inp.value = s.state === 'pending' ? (s.message || 'Schnitt wird verarbeitet …')
+      : s.state === 'interrupted' ? (s.message || 'Unterbrochen – Zielordner prüfen')
+      : s.state === 'err' ? (s.message || 'Fehler beim Schnitt') : s.name;
+    inp.disabled = s.state !== 'ok' || s.retrying;
     inp.onkeydown = (e) => { e.stopPropagation(); if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = s.name; inp.blur(); } };
     inp.onchange = async () => {
-      try { const r = await post('/rename', { name: s.name, new: inp.value }); s.name = r.name; inp.value = r.name; say('Umbenannt: ' + r.name + '.mp3'); }
+      try { const r = await post('/rename', { name: s.name, new: inp.value }); s.name = r.name; inp.value = r.name; say('Nur Dateiname geändert: ' + r.name + '.mp3; Audiodatei bleibt unverändert'); await persistProject(); }
       catch (e) { inp.value = s.name; say('Umbenennen nicht möglich: ' + e.message, true); }
     };
     const t = document.createElement('span'); t.className = 't'; t.textContent = (s.end - s.start).toFixed(1) + ' s';
-    const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Löschen';
-    del.onclick = async () => { if (s.state === 'ok') await post('/delete', { name: s.name }).catch(() => {}); s.cancelled = true; segs = segs.filter((x) => x !== s); renderList(); };
-    row.append(play, inp, t, del); box.append(row);
+    if (s.state === 'ok' && s.recognitionFailed) {
+      const retry = document.createElement('button');
+      retry.textContent = 'FR ↻';
+      retry.title = 'Whisper mit erzwungener französischer Sprache erneut ausführen (ohne Seed-VC)';
+      retry.disabled = Boolean(s.retrying);
+      retry.onclick = () => retryFrenchRecognition(s, retry);
+      row.append(play, inp, t, retry);
+    } else {
+      row.append(play, inp, t);
+    }
+    const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Aus Projekt entfernen';
+    del.disabled = Boolean(s.retrying);
+    del.onclick = async () => {
+      if (s.retrying) return;
+      if (s.state === 'ok') await post('/delete', { name: s.name }).catch((e) => say(e.message, true));
+      s.cancelled = true; segs = segs.filter((x) => x !== s); renderList(); await persistProject();
+    };
+    row.append(del); box.append(row);
   }
 }
 
 $('#file').onchange = (e) => loadFile(e.target.files[0]);
+$('#seedvc-reference').onchange = (e) => uploadSeedVCReference(e.target.files[0]);
+$('#seedvc-enabled').onchange = (e) => { $('#seedvc-options').hidden = !e.target.checked; e.target.blur(); scheduleProjectSave(); };
+$('#seedvc-anonymize').onchange = (e) => { $('#seedvc-reference').disabled = e.target.checked; e.target.blur(); scheduleProjectSave(); };
 const drop = $('#drop');
 drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
 drop.ondragleave = () => drop.classList.remove('over');
 drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); loadFile(e.dataTransfer.files[0]); };
 $('#play').onclick = toggle; $('#cut').onclick = () => doCut(false); $('#skip').onclick = () => doCut(true);
-$('#alt').onchange = (e) => { e.target.blur(); updatePhase(); };
-$('#phase').onclick = () => { phase = phase === 'de' ? 'fr' : 'de'; updatePhase(); }; $('#undo').onclick = undo;
-$('#speed').onchange = (e) => { audio.playbackRate = Number(e.target.value); e.target.blur(); };
-$('#zoom').oninput = (e) => { win = Number(e.target.value); $('#zoomv').textContent = win + ' s'; e.target.blur(); };
+$('#alt').onchange = (e) => { e.target.blur(); updatePhase(); scheduleProjectSave(); };
+$('#phase').onclick = () => { phase = phase === 'de' ? 'fr' : 'de'; updatePhase(); scheduleProjectSave(); }; $('#undo').onclick = undo;
+$('#speed').onchange = (e) => { audio.playbackRate = Number(e.target.value); e.target.blur(); scheduleProjectSave(); };
+$('#zoom').oninput = (e) => { win = Number(e.target.value); $('#zoomv').textContent = win + ' s'; e.target.blur(); scheduleProjectSave(); };
 $('#wave').onclick = (e) => { const r = e.currentTarget.getBoundingClientRect(); audio.currentTime = Math.max(done, Math.min(dur, viewStart + ((e.clientX - r.left) / r.width) * win)); };
 $('#over').onclick = (e) => { const r = e.currentTarget.getBoundingClientRect(); audio.currentTime = Math.max(done, ((e.clientX - r.left) / r.width) * dur); };
 document.addEventListener('keydown', (e) => {
   if (!peaks || e.ctrlKey || e.metaKey || e.altKey) return;
   const tag = (e.target.tagName || '').toLowerCase();
-  if (tag === 'input' && e.target.type === 'text') return;
+  if (['input', 'textarea', 'select'].includes(tag)) return;
   if (e.key === ' ') { e.preventDefault(); toggle(); }
   else if (e.key === 's' || e.key === 'S') { e.preventDefault(); doCut(false); }
   else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); doCut(true); }
-  else if (e.key === 't' || e.key === 'T') { e.preventDefault(); phase = phase === 'de' ? 'fr' : 'de'; updatePhase(); }
+  else if (e.key === 't' || e.key === 'T') { e.preventDefault(); phase = phase === 'de' ? 'fr' : 'de'; updatePhase(); scheduleProjectSave(); }
   else if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); undo(); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); seek(e.shiftKey ? -0.2 : -1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); seek(e.shiftKey ? 0.2 : 1); }
 });
 document.addEventListener('click', (e) => { if (e.target.matches('button')) e.target.blur(); });
-$('#trim').onchange = $('#fronly').onchange = (e) => e.target.blur();
+$('#trim').onchange = $('#fronly').onchange = (e) => { e.target.blur(); scheduleProjectSave(); };
+for (const selector of ['#seedvc-url', '#seedvc-style', '#seedvc-steps', '#seedvc-length',
+  '#seedvc-intelligibility', '#seedvc-similarity', '#seedvc-top-p', '#seedvc-temperature',
+  '#seedvc-repetition']) {
+  $(selector).addEventListener('change', scheduleProjectSave);
+  $(selector).addEventListener('input', scheduleProjectSave);
+}
+audio.addEventListener('timeupdate', () => {
+  if (Math.abs(audio.currentTime - lastPositionCheckpoint) >= 3) {
+    lastPositionCheckpoint = audio.currentTime;
+    scheduleProjectSave();
+  }
+});
+audio.addEventListener('pause', scheduleProjectSave);
 updatePhase();
-info();
+$('#copy-debug').onclick = async () => {
+  try { await navigator.clipboard.writeText(debugLines.join('\n')); debug('Debug-Protokoll kopiert'); }
+  catch (e) { debug('Kopieren fehlgeschlagen', errorText(e)); }
+};
+$('#clear-debug').onclick = () => { debugLines.length = 0; $('#debug-log').textContent = ''; debug('Protokoll geleert'); };
+window.addEventListener('error', (e) => debug('JavaScript-Fehler', { message: e.message, file: e.filename, line: e.lineno, column: e.colno }));
+window.addEventListener('unhandledrejection', (e) => debug('Nicht behandelter asynchroner Fehler', errorText(e.reason)));
+debug('Oberfläche gestartet', { userAgent: navigator.userAgent });
+$('#file').disabled = true;
+(async () => {
+  const serverInfo = await info();
+  if (serverInfo) await restoreProject(serverInfo);
+  else $('#project-status').textContent = 'Projekt-Speicher nicht verfügbar, Serverstatus konnte nicht geladen werden';
+  projectReady = true;
+  $('#file').disabled = false;
+})();
 </script>
 </body>
 </html>
