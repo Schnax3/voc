@@ -141,6 +141,16 @@ Einrichtung unter *Settings → Secrets and variables → Actions*:
 
 Manuell starten: *Actions → Neue Issues bearbeiten (KI) → Run workflow* und die Issue-Nummer eingeben.
 
+## Audio automatisch zuordnen (Gemini)
+
+Neue Audiodateien aus dem Audio-Schneider (`scripts/audio_schneider/`) heißen nach dem erkannten Französisch ("La Natur.mp3"),
+das Feld `audio` der Karte nennt aber noch den alten Namen. Die Action **Audio zuordnen (KI)** (`.github/workflows/audio-zuordnen.yml`,
+Skript `scripts/audio_zuordnen.py`) startet bei jedem Push neuer Audiodateien nach `lektionen/dec2*/` (oder manuell unter *Actions*),
+ordnet Dateien ohne Karte der passenden Vokabel zu und committet die Änderung. Erst exakte Namenstreffer, dann Gemini
+(Vokabel, Satz, Übersetzung und alter Dateiname als Hinweis). Funktionierende Zuordnungen werden nie überschrieben, Unsicheres
+bleibt liegen und steht in der Zusammenfassung des Laufs. Lokal: `python scripts/audio_zuordnen.py lektionen/dec2-u7a --dry-run`.
+Benötigt das Secret `GEMINI_API_KEY` (wie die KI-Issues); ohne Schlüssel gibt es nur die exakten Treffer.
+
 ## Offline-Nutzung
 
 Wenn noch keine Offline-Inhalte gespeichert sind, zeigt die Startseite den kleinen Knopf **„Möchtest du offline gehen?“**. Speichere dann einmal online alle Lektionen oder nur die ausgewählten; so werden auch Audio und Bilder verfügbar. Kommen später neue Lektionen hinzu, bietet die Startseite **„Offline-Inhalte aktualisieren“** an. Anschließend kannst du die Seite über „Als App installieren“ zum Startbildschirm oder Desktop hinzufügen. Der Service Worker steht in `sw.js`.

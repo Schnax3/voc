@@ -1,0 +1,80 @@
+name: Audio zuordnen (KI)
+
+# Neue Audiodateien in lektionen/dec2*/ werden mit Gemini der richtigen Vokabel zugeordnet:
+# das Feld "audio" der Karte bekommt den Namen der neuen Datei (siehe scripts/audio_zuordnen.py).
+# Nur Dateien, auf die noch keine Karte verweist, und nur Karten ohne funktionierende Audiodatei werden angefasst.
+# Das Ergebnis steht in der Zusammenfassung des Laufs; Unsicheres bleibt unzugeordnet.
+#
+# Einrichtung: Secret GEMINI_API_KEY (dasselbe wie für die KI-Issues); Variable GEMINI_MODEL optional.
+# Ohne Schlüssel werden nur exakte Namenstreffer zugeordnet.
+on:
+  push:
+    branches: [dev, main]
+    paths:
+      - "lektionen/dec2*/*.mp3"
+      - "lektionen/dec2*/*.ogg"
+      - "lektionen/dec2*/*.m4a"
+      - "lektionen/dec2*/*.wav"
+  workflow_dispatch:
+    inputs:
+      ordner:
+        description: "Lektionsordner (leer = alle lektionen/dec2*)"
+        required: false
+      trocken:
+        description: "Nur anzeigen, nichts speichern (true/false)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: data-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+
+jobs:
+  zuordnen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Audio zuordnen
+        env:
+          ORDNER: ${{ inputs.ordner }}
+          TROCKEN: ${{ inputs.trocken }}
+        run: |
+          args=()
+          [ "$TROCKEN" = "true" ] && args+=(--dry-run)
+          [ -n "$ORDNER" ] && args+=("$ORDNER")
+          python scripts/audio_zuordnen.py "${args[@]}"
+
+      - name: Commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TROCKEN: ${{ inputs.trocken }}
+        run: |
+          [ "$TROCKEN" = "true" ] && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          if git diff --cached --quiet; then
+            echo "Keine Zuordnung geändert."
+            exit 0
+          fi
+          git commit -m "Audio den Vokabeln zugeordnet"
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push
+          if [ "$GITHUB_REF_NAME" = "main" ]; then pages=pages.yml; else pages=pages-dev.yml; fi
+          gh workflow run "$pages" --ref "$GITHUB_REF_NAME" || echo "Pages-Workflow $pages nicht gestartet"
