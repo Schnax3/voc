@@ -1,3 +1,4 @@
+import io
 import json
 import shutil
 import subprocess
@@ -5,10 +6,14 @@ import tempfile
 import threading
 import unittest
 import urllib.request
-from http.server import ThreadingHTTPServer
+from contextlib import redirect_stderr
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from scripts.audio_schneider import schneider as sc
+from scripts.audio_schneider import schneider as production_sc
+from tests.scripts.audio_schneider import schneider as sc
 
 HAS_FFMPEG = shutil.which("ffmpeg") is not None
 
@@ -63,16 +68,393 @@ class FakeModel:
 
 
 class WhisperLogicTests(unittest.TestCase):
+    def test_preload_uses_cpu_before_first_cut_when_cuda_runtime_is_missing(self):
+        w = production_sc.Whisper()
+        loads = []
+
+        def fake_load(device="auto", model=None):
+            loads.append((device, model))
+            w.active_device, w.active_model, w.ready = device, model, True
+            w.model = FakeModel()
+
+        w.load = fake_load
+        stderr = io.StringIO()
+        with patch.object(production_sc, "_cuda_runtime_error", return_value="missing cublas64_12.dll"), \
+                redirect_stderr(stderr):
+            w.preload()
+
+        self.assertEqual(loads, [("cpu", "small")])
+        self.assertEqual(w.gpu_error, "missing cublas64_12.dll")
+        self.assertIn("starte CPU", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
+
+    def test_cpu_uses_greedy_decoding_to_reduce_latency(self):
+        class Model:
+            def __init__(self):
+                self.beam_sizes = []
+
+            def transcribe(self, path, **options):
+                self.beam_sizes.append(options["beam_size"])
+                return [], SimpleNamespace()
+
+        model = Model()
+        w = production_sc.Whisper()
+        w.model, w.active_device = model, "cpu"
+        w._transcribe(Path("sample.wav"), "fr")
+
+        self.assertEqual(model.beam_sizes, [1])
+
+    def test_gpu_keeps_default_beam_size(self):
+        class Model:
+            def __init__(self):
+                self.beam_sizes = []
+
+            def transcribe(self, path, **options):
+                self.beam_sizes.append(options["beam_size"])
+                return [], SimpleNamespace()
+
+        model = Model()
+        w = production_sc.Whisper()
+        w.model, w.active_device = model, "cuda"
+        w._transcribe(Path("sample.wav"), "fr")
+
+        self.assertEqual(model.beam_sizes, [5])
+
     def test_picks_first_french_chunk(self):
         w = sc.Whisper()
         w.model, w.ready = FakeModel(), True
         chunks = [(0.0, 0.8, Path("a.wav")), (1.4, 2.6, Path("b.wav")), (3.0, 4.0, Path("c.wav"))]
         self.assertEqual(w(Path("x.wav"), chunks), ("Le voleur.", [(1.4, 2.6)]))
 
+    def test_reports_chunk_progress_without_transcript_text(self):
+        w = production_sc.Whisper()
+        w.model, w.ready = FakeModel(), True
+        events = []
+
+        result = w(
+            Path("x.wav"),
+            [(0.0, 0.8, Path("a.wav")), (1.4, 2.6, Path("b.wav"))],
+            progress=lambda stage, message, **details: events.append((stage, message, details)),
+        )
+
+        self.assertEqual(result, ("Le voleur.", [(1.4, 2.6)]))
+        self.assertIn("whisper_chunk", [event[0] for event in events])
+        self.assertIn("whisper_decode", [event[0] for event in events])
+        self.assertIn("whisper_language", [event[0] for event in events])
+        self.assertNotIn("Le voleur", str(events))
+
+    def test_forced_french_retry_checks_latest_chunk_first(self):
+        class Model:
+            def __init__(self):
+                self.calls = []
+
+            def transcribe(self, path, language=None, **options):
+                self.calls.append((Path(path).name, language))
+                text = "Le voleur" if Path(path).name == "french.wav" else "Quatsch"
+                return [FakeModel.Seg(text)], SimpleNamespace(language=language, all_language_probs=[])
+
+        model = Model()
+        w = production_sc.Whisper()
+        w.model, w.ready, w.active_device = model, True, "cpu"
+
+        text, ranges = w(
+            Path("source.wav"),
+            [(0, 1, Path("german.wav")), (1, 2, Path("french.wav"))],
+            force_language=True,
+        )
+
+        self.assertEqual((text, ranges), ("Le voleur", [(1, 2)]))
+        self.assertEqual(model.calls, [("french.wav", "fr")])
+
     def test_no_french_gives_nothing(self):
         w = sc.Whisper()
         w.model, w.ready = FakeModel(), True
         self.assertEqual(w(Path("x.wav"), [(0, 1, Path("a.wav"))]), ("", []))
+
+    def test_gpu_failure_falls_back_to_cpu_without_traceback(self):
+        class BrokenGpuModel:
+            def transcribe(self, *args, **kwargs):
+                raise RuntimeError("Library cublas64_12.dll is not found")
+
+        w = production_sc.Whisper()
+        w.model, w.ready = BrokenGpuModel(), True
+        loaded = []
+
+        def load(device="auto", model=None):
+            loaded.append((device, model))
+            w.model = FakeModel()
+            w.ready = True
+
+        w.load = load
+        stderr = io.StringIO()
+        with redirect_stderr(stderr):
+            result = w(Path("x.wav"), [(0.0, 1.0, Path("b.wav"))])
+
+        self.assertEqual(result, ("Le voleur.", [(0.0, 1.0)]))
+        self.assertEqual(loaded, [("cpu", "small")])
+        self.assertIn("wechsle zur CPU", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
+
+    def test_diagnostics_distinguish_non_target_language_from_empty_audio(self):
+        w = production_sc.Whisper()
+        w.model, w.ready = FakeModel(), True
+
+        self.assertEqual(w(Path("x.wav"), [(0.0, 0.8, Path("a.wav"))]), ("", []))
+        chunk = w.last_debug["chunks"][0]
+        self.assertEqual(chunk, {
+            "index": 0, "start": 0.0, "end": 0.8,
+            "language": "de", "characters": len("Der Dieb"), "outcome": "other_language",
+        })
+        self.assertNotIn("Der Dieb", str(w.last_debug))
+
+    def test_cut_returns_stt_diagnostics_for_browser(self):
+        diagnostics = {"model": "small", "device": "cpu", "chunks": []}
+
+        class StubStt:
+            wants_chunks = False
+            last_debug = diagnostics
+
+            def __call__(self, path, chunks=None):
+                return "", []
+
+        with tempfile.TemporaryDirectory() as d:
+            work = Path(d) / "work"
+            cutter = production_sc.Cutter(Path(d) / "out", StubStt(), work)
+            work.mkdir()
+            cutter.save_upload("source.m4a", b"source")
+            cutter._ffmpeg = lambda src, dest, *args, **kwargs: Path(dest).write_bytes(b"audio")
+
+            result = cutter.cut(0, 1, trim=False)
+
+        self.assertEqual(result["stt_debug"], diagnostics)
+
+    def test_cut_forces_target_language_by_default(self):
+        class Model:
+            def __init__(self):
+                self.calls = []
+
+            def transcribe(self, path, language=None, **options):
+                self.calls.append((Path(path).name, language))
+                text = "Le voleur" if Path(path).name == "french.wav" else "Quatsch"
+                return [FakeModel.Seg(text)], SimpleNamespace(language=language, all_language_probs=[])
+
+        with tempfile.TemporaryDirectory() as d:
+            work, out = Path(d) / "work", Path(d) / "out"
+            work.mkdir()
+            stt = production_sc.Whisper()
+            stt.model, stt.ready, stt.active_device = Model(), True, "cpu"
+            cutter = production_sc.Cutter(out, stt, work)
+            cutter.save_upload("source.m4a", b"source")
+            cutter._ffmpeg = lambda src, dest, *args, **kwargs: Path(dest).write_bytes(b"audio")
+            cutter._chunks = lambda wav, tag: [
+                (0, 1, work / "german.wav"), (1, 2, work / "french.wav")
+            ]
+
+            result = cutter.cut(0, 2, trim=False)
+
+        self.assertEqual(result["name"], "Le voleur")
+        self.assertEqual(stt.model.calls, [("french.wav", "fr")])
+
+    def test_http_cut_exposes_progress_job(self):
+        with tempfile.TemporaryDirectory() as d:
+            work, out = Path(d) / "work", Path(d) / "out"
+            work.mkdir()
+            cutter = production_sc.Cutter(out, None, work)
+            cutter.save_upload("source.m4a", b"source")
+            cutter._ffmpeg = lambda src, dest, *args, **kwargs: Path(dest).write_bytes(b"audio")
+            server = ThreadingHTTPServer(("127.0.0.1", 0), production_sc.make_handler(cutter, {"stt": "none"}))
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            base_url = f"http://127.0.0.1:{server.server_port}"
+            try:
+                body = json.dumps({"job_id": "progress-test", "start": 0, "end": 1}).encode()
+                request = urllib.request.Request(base_url + "/cut", data=body, method="POST")
+                result = json.loads(urllib.request.urlopen(request).read())
+                job = json.loads(urllib.request.urlopen(base_url + "/job?id=progress-test&after=0").read())
+            finally:
+                server.shutdown()
+                server.server_close()
+
+        self.assertEqual(result["job_id"], "progress-test")
+        self.assertEqual(job["status"], "complete")
+        self.assertIn("audio_extract", [event["stage"] for event in job["events"]])
+        self.assertIn("save_done", [event["stage"] for event in job["events"]])
+        self.assertEqual(job["result"]["name"], result["name"])
+
+    def test_http_retry_recognition_forces_french_without_changing_audio(self):
+        class Model:
+            def __init__(self):
+                self.calls = []
+
+            def transcribe(self, path, language=None, **options):
+                self.calls.append(language)
+                return [FakeModel.Seg("Le voleur")], SimpleNamespace(language=language, all_language_probs=[])
+
+        with tempfile.TemporaryDirectory() as d:
+            work, out = Path(d) / "work", Path(d) / "out"
+            work.mkdir()
+            stt = production_sc.Whisper()
+            stt.model, stt.ready = Model(), True
+            cutter = production_sc.Cutter(out, stt, work)
+            cutter.save_upload("source.m4a", b"source")
+            clip = out / "Segment 1.mp3"
+            clip.write_bytes(b"already converted audio")
+            cutter._ffmpeg = lambda src, dest, *args, **kwargs: Path(dest).write_bytes(b"retry wav")
+            cutter._chunks = lambda wav, tag: [
+                (0, 1, work / "german.wav"), (1, 2, work / "french.wav")
+            ]
+            server = ThreadingHTTPServer(("127.0.0.1", 0), production_sc.make_handler(cutter, {"stt": "whisper"}))
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            try:
+                body = json.dumps({
+                    "name": "Segment 1", "start": 0, "end": 2, "trim": False,
+                }).encode()
+                request = urllib.request.Request(
+                    f"http://127.0.0.1:{server.server_port}/retry-recognition",
+                    data=body, method="POST",
+                )
+                result = json.loads(urllib.request.urlopen(request).read())
+            finally:
+                server.shutdown()
+                server.server_close()
+
+            self.assertEqual(result["text"], "Le voleur")
+            self.assertTrue(result["recognized"])
+            self.assertEqual(stt.model.calls, ["fr"])
+            self.assertEqual(clip.read_bytes(), b"already converted audio")
+
+    def test_http_handler_ignores_client_disconnect_while_sending(self):
+        handler_type = production_sc.make_handler(None, {})
+        handler = handler_type.__new__(handler_type)
+        handler.send_response = lambda code: None
+        handler.send_header = lambda name, value: None
+        handler.end_headers = lambda: None
+
+        class DisconnectedWriter:
+            def write(self, body):
+                raise ConnectionAbortedError("client closed connection")
+
+        handler.wfile = DisconnectedWriter()
+        handler._send(200, b"{}")
+
+        self.assertTrue(handler.close_connection)
+
+
+class SeedVCIntegrationTests(unittest.TestCase):
+    def test_gradio_client_uploads_inputs_and_downloads_conversion(self):
+        state = {"uploads": 0}
+
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+
+            def send_body(self, body, content_type="application/json"):
+                self.send_response(200)
+                self.send_header("Content-Type", content_type)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def do_POST(self):
+                body = self.rfile.read(int(self.headers["Content-Length"]))
+                if self.path == "/gradio_api/upload":
+                    state["uploads"] += 1
+                    return self.send_body(json.dumps([f"/tmp/upload{state['uploads']}.wav"]).encode())
+                if self.path == "/gradio_api/call/predict":
+                    state["payload"] = json.loads(body)
+                    return self.send_body(b'{"event_id":"test-event"}')
+                self.send_error(404)
+
+            def do_GET(self):
+                if self.path == "/gradio_api/call/predict/test-event":
+                    body = ('event: progress\ndata: {"progress":0.5}\n\n'
+                            'event: complete\ndata: ' + json.dumps([{
+                        "path": "/tmp/converted.wav",
+                        "url": "/gradio_api/file=converted.wav",
+                        "orig_name": "converted.wav",
+                        "mime_type": "audio/wav",
+                    }]) + "\n\n").encode()
+                    return self.send_body(body, "text/event-stream")
+                if self.path == "/gradio_api/file=converted.wav":
+                    return self.send_body(b"converted audio", "audio/wav")
+                self.send_error(404)
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                source = Path(d) / "source.mp3"
+                reference = Path(d) / "reference.wav"
+                source.write_bytes(b"source")
+                reference.write_bytes(b"reference")
+                progress = []
+                audio, suffix = production_sc.SeedVCClient().convert(
+                    source, reference, {
+                        "url": f"http://127.0.0.1:{server.server_port}",
+                        "convert_style": True,
+                    },
+                    progress=lambda stage, message, **details: progress.append((stage, message, details)),
+                )
+            self.assertEqual((audio, suffix), (b"converted audio", ".wav"))
+            self.assertEqual(state["uploads"], 2)
+            self.assertIn("seedvc_inference", [event[0] for event in progress])
+            self.assertIn(50, [event[2].get("percent") for event in progress])
+            self.assertEqual(
+                state["payload"]["data"],
+                [
+                    {"path": "/tmp/upload1.wav", "meta": {"_type": "gradio.FileData"}},
+                    {"path": "/tmp/upload2.wav", "meta": {"_type": "gradio.FileData"}},
+                    30, 1.0, 0.0, 0.7, 0.9, 1.0, 1.0, True, False,
+                ],
+            )
+        finally:
+            server.shutdown()
+            server.server_close()
+
+    def test_cut_saves_converted_audio_and_does_not_save_on_conversion_error(self):
+        class StubStt:
+            wants_chunks = False
+
+            def __call__(self, path, chunks=None):
+                return "bonjour", []
+
+        class StubSeedVC(production_sc.SeedVCClient):
+            def __init__(self, events, fail=False):
+                super().__init__()
+                self.events, self.fail = events, fail
+
+            def convert(self, source, reference, options, progress=None):
+                self.events.append(("seedvc", Path(source).suffix, Path(reference).name, options["url"]))
+                if progress:
+                    progress("seedvc_stub", "Seed-VC-Test läuft")
+                if self.fail:
+                    raise RuntimeError("Seed-VC test error")
+                return b"converted audio", ".wav"
+
+        for fail in (False, True):
+            with self.subTest(fail=fail), tempfile.TemporaryDirectory() as d:
+                work, out = Path(d) / "work", Path(d) / "out"
+                work.mkdir()
+                events = []
+                cutter = production_sc.Cutter(out, StubStt(), work)
+                cutter.save_upload("source.m4a", b"source")
+                reference = cutter.save_seedvc_reference("target.wav", b"reference")
+                cutter.seedvc_client = StubSeedVC(events, fail)
+
+                def fake_ffmpeg(src, dest, start=None, end=None, af=None, mp3=False):
+                    events.append(("ffmpeg", Path(src).suffix, mp3))
+                    Path(dest).write_bytes(b"mp3")
+
+                cutter._ffmpeg = fake_ffmpeg
+                settings = {"enabled": True, "url": "http://127.0.0.1:42003"}
+                if fail:
+                    with self.assertRaisesRegex(RuntimeError, "Seed-VC test error"):
+                        cutter.cut(0, 1, trim=False, seedvc=settings)
+                    self.assertFalse(list(out.glob("*.mp3")))
+                else:
+                    result = cutter.cut(0, 1, trim=False, seedvc=settings)
+                    self.assertTrue((out / (result["name"] + ".mp3")).exists())
+                    self.assertEqual(result["seedvc"], {"converted": True, "model": "V2"})
+                    self.assertEqual(events[2], ("seedvc", ".mp3", reference.name, settings["url"]))
 
 
 class ChunkTests(unittest.TestCase):
@@ -84,6 +466,96 @@ class ChunkTests(unittest.TestCase):
         self.assertEqual(sc.chunks_from_silences([], [], 2.0), [(0.0, 2.0)])
         # Stille bis zum Ende (kein silence_end)
         self.assertEqual(len(sc.chunks_from_silences([1.0], [], 2.0)), 1)
+
+    def test_audio_chunks_use_short_pauses_and_overlapping_windows(self):
+        def split(total, silence_output):
+            with tempfile.TemporaryDirectory() as d:
+                work = Path(d) / "work"
+                cutter = production_sc.Cutter(Path(d) / "out", work_dir=work)
+                work.mkdir()
+                cutter._duration = lambda path: total
+                intervals = []
+                cutter._ffmpeg = lambda src, dest, start, end: (
+                    intervals.append((start, end)), Path(dest).write_bytes(b"wav")
+                )
+                result = SimpleNamespace(stderr=silence_output, returncode=0)
+                with patch.object(production_sc.subprocess, "run", return_value=result) as run:
+                    chunks = cutter._chunks(Path("source.wav"), "test")
+                self.assertIn("silencedetect=noise=-38dB:d=0.15", run.call_args.args[0])
+                self.assertEqual(intervals, [(a, b) for a, b, _ in chunks])
+                return [(a, b) for a, b, _ in chunks]
+
+        windows = split(3.49, "")
+        self.assertEqual(windows[0], (0.0, 2.0))
+        self.assertAlmostEqual(windows[1][0], 1.49)
+        self.assertEqual(windows[1][1], 3.49)
+        self.assertEqual(
+            split(3.5, "silence_start: 1.0\nsilence_end: 1.2"),
+            [(0.0, 1.05), (1.15, 3.5)],
+        )
+
+
+class RenameTests(unittest.TestCase):
+    def test_rename_only_moves_existing_seedvc_audio(self):
+        class UnexpectedStt:
+            def __call__(self, *args, **kwargs):
+                raise AssertionError("Whisper must not run while renaming")
+
+        class UnexpectedSeedVC:
+            def convert(self, *args, **kwargs):
+                raise AssertionError("Seed-VC must not run while renaming")
+
+        with tempfile.TemporaryDirectory() as d:
+            out, work = Path(d) / "out", Path(d) / "work"
+            out.mkdir()
+            original = out / "Segment 1.mp3"
+            original.write_bytes(b"already converted audio")
+            cutter = production_sc.Cutter(out, UnexpectedStt(), work)
+            cutter.seedvc_client = UnexpectedSeedVC()
+
+            name = cutter.rename("Segment 1", "Le voleur")
+
+            renamed = out / "Le voleur.mp3"
+            self.assertEqual(name, "Le voleur")
+            self.assertFalse(original.exists())
+            self.assertEqual(renamed.read_bytes(), b"already converted audio")
+
+
+class SeedVCReferencePersistenceTests(unittest.TestCase):
+    def test_selected_reference_persists_and_is_restored_as_default(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            reference_dir = root / "references"
+            work = root / "work"
+            cutter = production_sc.Cutter(
+                root / "out", work_dir=work, seedvc_reference_dir=reference_dir
+            )
+            cutter.save_seedvc_reference("My Voice.mp3", b"persistent voice")
+
+            next_cutter = production_sc.Cutter(
+                root / "other-out", work_dir=root / "next-work",
+                seedvc_reference_dir=reference_dir,
+            )
+
+            self.assertEqual(next_cutter.seedvc_reference_name, "seedvc-reference.mp3")
+            self.assertEqual(next_cutter.seedvc_reference.read_bytes(), b"persistent voice")
+
+    def test_project_reference_does_not_replace_persistent_default(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            reference_dir = root / "references"
+            cutter = production_sc.Cutter(
+                root / "out", seedvc_reference_dir=reference_dir
+            )
+            cutter.save_seedvc_reference("Default.wav", b"default voice")
+            cutter.save_seedvc_reference("Project.wav", b"project voice", save_default=False)
+
+            self.assertEqual(
+                (reference_dir / "seedvc-reference.wav").read_bytes(),
+                b"default voice",
+            )
+            self.assertEqual(cutter.restore_default_seedvc_reference(), "seedvc-reference.wav")
+            self.assertEqual(cutter.seedvc_reference.read_bytes(), b"default voice")
 
 
 @unittest.skipUnless(HAS_FFMPEG, "ffmpeg fehlt")
