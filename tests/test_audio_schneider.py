@@ -457,6 +457,17 @@ class SeedVCIntegrationTests(unittest.TestCase):
                     self.assertEqual(events[2], ("seedvc", ".mp3", reference.name, settings["url"]))
 
 
+class FfmpegMissingTests(unittest.TestCase):
+    def test_clear_message_without_ffmpeg(self):
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(sc.shutil, "which", return_value=None):
+            c = sc.Cutter(Path(d) / "out", None, Path(d) / "work")
+            (Path(d) / "work").mkdir()
+            c.save_upload("a.wav", b"x")
+            with self.assertRaisesRegex(RuntimeError, "ffmpeg wurde nicht gefunden"):
+                c.cut(0, 1)
+
+
 class ChunkTests(unittest.TestCase):
     def test_chunks_from_silences(self):
         c = sc.chunks_from_silences([1.0], [1.6], 2.6)

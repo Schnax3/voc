@@ -15,6 +15,7 @@ import math
 import mimetypes
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -94,6 +95,18 @@ def _cuda_runtime_error():
         except OSError as exc:
             return f"{dll} kann nicht geladen werden: {exc}"
     return None
+
+
+FFMPEG_HELP = ("ffmpeg wurde nicht gefunden. Installieren: in PowerShell `winget install ffmpeg`, danach das "
+               "Terminal schließen, ein neues öffnen und das Programm erneut starten.")
+
+
+def run_ffmpeg(args):
+    """Startet ffmpeg; gibt eine verständliche Meldung, wenn es nicht installiert oder nicht im PATH ist."""
+    exe = shutil.which("ffmpeg")
+    if not exe:
+        raise RuntimeError(FFMPEG_HELP)
+    return subprocess.run([exe, *args], capture_output=True, text=True)
 
 
 def clean_name(text):
@@ -574,7 +587,7 @@ class Cutter:
         return self.seedvc_reference_name
 
     def _ffmpeg(self, src, dest, start=None, end=None, af=None, mp3=False):
-        cmd = ["ffmpeg", "-y", "-v", "error"]
+        cmd = ["-y", "-v", "error"]
         if start is not None:
             cmd += ["-ss", f"{start:.3f}"]
         if end is not None:
@@ -587,19 +600,20 @@ class Cutter:
         else:
             cmd += ["-ac", "1", "-c:a", "pcm_s16le", "-ar", "16000", "-f", "wav"]
         cmd.append(str(dest))
-        r = subprocess.run(cmd, capture_output=True, text=True)
+        r = run_ffmpeg(cmd)
         if r.returncode != 0 or not Path(dest).exists() or Path(dest).stat().st_size == 0:
             raise RuntimeError(r.stderr.strip() or "ffmpeg lieferte keine Datei")
 
     def _duration(self, path):
-        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
-                           capture_output=True, text=True)
-        return float(r.stdout.strip() or 0)
+        r = run_ffmpeg(["-i", str(path), "-f", "null", "-"])
+        m = re.search(r"Duration: (\d+):(\d+):(\d+(?:\.\d+)?)", r.stderr)
+        if not m:
+            raise RuntimeError("Dauer des Stücks konnte nicht ermittelt werden")
+        return int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3))
 
     def _chunks(self, wav, tag):
         total = self._duration(wav)
-        r = subprocess.run(["ffmpeg", "-v", "info", "-i", str(wav), "-af", "silencedetect=noise=-38dB:d=0.15",
-                            "-f", "null", "-"], capture_output=True, text=True)
+        r = run_ffmpeg(["-v", "info", "-i", str(wav), "-af", "silencedetect=noise=-38dB:d=0.3", "-f", "null", "-"])
         starts = [float(x) for x in re.findall(r"silence_start: (-?[\d.]+)", r.stderr)]
         ends = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", r.stderr)]
         out = []
@@ -834,6 +848,8 @@ def make_handler(cutter, info):
             u = urlparse(self.path)
             if u.path in ("/", "/index.html"):
                 self._send(200, (HERE / "index.html").read_bytes(), "text/html; charset=utf-8")
+            elif u.path == "/favicon.ico":
+                self._send(204)
             elif u.path == "/info":
                 stt = cutter.stt
                 self._json({"out": str(cutter.out), "stt": info["stt"],
@@ -944,6 +960,8 @@ def main(argv=None):
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args(argv)
 
+    if not shutil.which("ffmpeg"):
+        print("\nACHTUNG: " + FFMPEG_HELP + "\n", file=sys.stderr)
     stt = None
     if a.stt == "whisper":
         stt = Whisper(a.model, a.lang, a.other_lang)
