@@ -175,6 +175,8 @@ function settings() {
       <label><input type="checkbox" id="conj-pc"> Passé composé</label>
       <p class="hint">Gilt für alle Verben in den Lektionen. Sind beide aus, kommt nur die Grundform.</p>
       <h3>Tastatur</h3>
+      <label><input type="checkbox" id="keys-off"> Alle Tastenkürzel ausschalten</label>
+      <p class="hint">Dann gehen Aufdecken, Bewerten, Anhören und Zurück nur noch per Klick oder Wischen. Eingabefelder funktionieren normal.</p>
       <label>Tastenkürzel
         <select id="keymap"><option value="std">P = Anhören, Leertaste = Aufdecken</option><option value="alt">Leertaste = Anhören, P = Aufdecken</option></select></label>
       <label><input type="checkbox" id="keys-input"> Kürzel auch im Eingabefeld</label>
@@ -314,13 +316,13 @@ function settings() {
   $('#goal').value = String(goalToday()); $('#endless').checked = endlessOn();
   $('#typing').checked = Boolean(opt.typing); $('#auto').checked = Boolean(opt.auto); $('#retype').checked = Boolean(opt.retype);
   $('#conj-pres').checked = opt.conjPres !== false; $('#conj-pc').checked = opt.conjPc !== false;
-  $('#keymap').value = opt.keymap === 'alt' ? 'alt' : 'std'; $('#keys-input').checked = Boolean(opt.keysInInput);
+  $('#keys-off').checked = Boolean(opt.keysOff); $('#keymap').value = opt.keymap === 'alt' ? 'alt' : 'std'; $('#keys-input').checked = Boolean(opt.keysInInput);
   const setLearn = () => {
     opt = { ...opt, goal: Number($('#goal').value), endless: $('#endless').checked, typing: $('#typing').checked, auto: $('#auto').checked, retype: $('#retype').checked,
-      conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, keymap: $('#keymap').value, keysInInput: $('#keys-input').checked };
+      conjPres: $('#conj-pres').checked, conjPc: $('#conj-pc').checked, keysOff: $('#keys-off').checked, keymap: $('#keymap').value, keysInInput: $('#keys-input').checked };
     LS.set('vk:opt', opt);
   };
-  ['#goal', '#endless', '#typing', '#auto', '#retype', '#conj-pres', '#conj-pc', '#keymap', '#keys-input'].forEach(sel => { $(sel).onchange = setLearn; });
+  ['#goal', '#endless', '#typing', '#auto', '#retype', '#conj-pres', '#conj-pc', '#keys-off', '#keymap', '#keys-input'].forEach(sel => { $(sel).onchange = setLearn; });
 
   // Installation
   const bindInstall = () => {

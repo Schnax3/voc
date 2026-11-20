@@ -93,7 +93,7 @@ Die App hat „Verbesserung vorschlagen“ (Startseite unten und am Rundenende).
 
 1. GitHub: *Settings → Developer settings → Fine-grained tokens* → Token nur für dieses Repository, nur „Issues: Read and write“. Labels `vorschlag`, `enhancement`, `bug`, `vokabeln` im Repository anlegen.
 2. script.google.com: neues Projekt, Inhalt von `backend/apps-script.gs` einfügen. *Projekteinstellungen → Script-Eigenschaften*: `GITHUB_TOKEN` (der Token), `GITHUB_REPO` (`owner/repo`) und optional `FEEDBACK_DRIVE_FOLDER_ID` (Google-Drive-Ordner für Bilder). Für den Ordner: Ordner in Google Drive anlegen, Ordner-ID aus der URL kopieren und als Skript-Eigenschaft eintragen.
-   Für Bilduploads zusätzlich `GOOGLE_VISION_API_KEY` einrichten und die Cloud-Vision-API für das Projekt aktivieren. SafeSearch blockiert Bilder ab `POSSIBLE` für „adult“ oder „racy“. Wird ein Bild blockiert, wird weder ein Issue noch eine Drive-Datei erstellt.
+   NSFWJS und TensorFlow.js prüfen ausgewählte Bilder kostenlos lokal im Browser, bevor sie an Apps Script gesendet werden. Die Bibliotheken und das Modell werden bei der ersten Bildprüfung von jsDelivr und GitHub geladen; die Bilder selbst werden nicht an diese Anbieter übertragen. Bilder mit hoher Wahrscheinlichkeit für „Porn“/„Hentai“ (ab 0,5) oder „Sexy“ (ab 0,85) werden blockiert. Die Prüfung kann falsch-positive oder falsch-negative Ergebnisse liefern und ist clientseitig nicht manipulationssicher.
 3. Das Löschen geschlossener Anhänge braucht einen GitHub-Webhook:
    - GitHub: *Settings → Webhooks → Add webhook*
    - Payload URL: dieselbe Apps-Script-Web-App-Adresse
