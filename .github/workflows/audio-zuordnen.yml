@@ -1,6 +1,6 @@
 name: Audio zuordnen (KI)
 
-# Neue Audiodateien in lektionen/dec2*/ werden mit Gemini der richtigen Vokabel zugeordnet:
+# Neue Audiodateien in lektionen/*/ werden mit Gemini der richtigen Vokabel zugeordnet:
 # das Feld "audio" der Karte bekommt den Namen der neuen Datei (siehe scripts/audio_zuordnen.py).
 # Nur Dateien, auf die noch keine Karte verweist, und nur Karten ohne funktionierende Audiodatei werden angefasst.
 # Das Ergebnis steht in der Zusammenfassung des Laufs; Unsicheres bleibt unzugeordnet.
@@ -11,14 +11,14 @@ on:
   push:
     branches: [dev, main]
     paths:
-      - "lektionen/dec2*/*.mp3"
-      - "lektionen/dec2*/*.ogg"
-      - "lektionen/dec2*/*.m4a"
-      - "lektionen/dec2*/*.wav"
+      - "lektionen/*/*.mp3"
+      - "lektionen/*/*.ogg"
+      - "lektionen/*/*.m4a"
+      - "lektionen/*/*.wav"
   workflow_dispatch:
     inputs:
       ordner:
-        description: "Lektionsordner (leer = alle lektionen/dec2*)"
+        description: "Lektionsordner (leer = bei Push die geänderten, sonst alle)"
         required: false
       trocken:
         description: "Nur anzeigen, nichts speichern (true/false)"
@@ -44,6 +44,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v7.1.0
@@ -57,7 +59,17 @@ jobs:
         run: |
           args=()
           [ "$TROCKEN" = "true" ] && args+=(--dry-run)
-          [ -n "$ORDNER" ] && args+=("$ORDNER")
+          if [ -n "$ORDNER" ]; then
+            args+=("$ORDNER")
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            # nur Ordner, in denen sich Audiodateien geändert haben (spart KI-Anfragen)
+            before="${{ github.event.before }}"
+            [[ "$before" =~ ^0+$ ]] && before="HEAD~1"
+            while IFS= read -r dir; do [ -n "$dir" ] && args+=("$dir"); done < <(
+              git diff --name-only "$before" HEAD -- 'lektionen/*/*.mp3' 'lektionen/*/*.ogg' 'lektionen/*/*.m4a' 'lektionen/*/*.wav' \
+                | xargs -r -d '\n' -n1 dirname | sort -u)
+            [ ${#args[@]} -eq 0 ] && { echo "Keine geänderten Audio-Ordner."; exit 0; }
+          fi
           python scripts/audio_zuordnen.py "${args[@]}"
 
       - name: Commit

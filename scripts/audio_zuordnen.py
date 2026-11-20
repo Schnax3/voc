@@ -11,7 +11,7 @@ Lektionsordner, auf die keine Karte verweist, und trägt sie bei der passenden K
      funktionierende Audiodatei). Unsicheres bleibt unzugeordnet und wird nur gemeldet.
 
 Aufruf:  python scripts/audio_zuordnen.py [Ordner ...] [--dry-run] [--no-ai]
-Ohne Ordner: alle lektionen/dec2*. Benötigt GEMINI_API_KEY (ohne Schlüssel nur Schritt 1 und 3).
+Ohne Ordner: alle Ordner unter lektionen/. Benötigt GEMINI_API_KEY (ohne Schlüssel nur Schritt 1 und 3).
 """
 from __future__ import annotations
 
@@ -188,11 +188,11 @@ def report(results: list[dict]) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("folders", nargs="*", help="Lektionsordner (Standard: lektionen/dec2*)")
+    parser.add_argument("folders", nargs="*", help="Lektionsordner (Standard: alle unter lektionen/)")
     parser.add_argument("--dry-run", action="store_true", help="nichts schreiben, nur anzeigen")
     parser.add_argument("--no-ai", action="store_true", help="nur exakte Namenstreffer, kein Gemini")
     args = parser.parse_args()
-    folders = [Path(f) for f in args.folders] or sorted((ROOT / "lektionen").glob("dec2*"))
+    folders = [Path(f) for f in args.folders] or sorted((ROOT / "lektionen").iterdir())
     results = [process(f, use_ai=not args.no_ai, dry_run=args.dry_run) for f in folders if f.is_dir()]
     text = report(results)
     print(text)

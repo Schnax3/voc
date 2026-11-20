@@ -145,7 +145,7 @@ Manuell starten: *Actions → Neue Issues bearbeiten (KI) → Run workflow* und 
 
 Neue Audiodateien aus dem Audio-Schneider (`scripts/audio_schneider/`) heißen nach dem erkannten Französisch ("La Natur.mp3"),
 das Feld `audio` der Karte nennt aber noch den alten Namen. Die Action **Audio zuordnen (KI)** (`.github/workflows/audio-zuordnen.yml`,
-Skript `scripts/audio_zuordnen.py`) startet bei jedem Push neuer Audiodateien nach `lektionen/dec2*/` (oder manuell unter *Actions*),
+Skript `scripts/audio_zuordnen.py`) startet bei jedem Push neuer Audiodateien nach `lektionen/*/` (nur die betroffenen Ordner) (oder manuell unter *Actions*),
 ordnet Dateien ohne Karte der passenden Vokabel zu und committet die Änderung. Erst exakte Namenstreffer, dann Gemini
 (Vokabel, Satz, Übersetzung und alter Dateiname als Hinweis). Funktionierende Zuordnungen werden nie überschrieben, Unsicheres
 bleibt liegen und steht in der Zusammenfassung des Laufs. Lokal: `python scripts/audio_zuordnen.py lektionen/dec2-u7a --dry-run`.
