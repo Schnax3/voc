@@ -251,17 +251,6 @@ function settings() {
     <p class="hint">Die App selbst und die Vokabeln merkt sich der Browser automatisch. Audio und Bilder werden nur für Lektionen gespeichert, die du hier sicherst.</p>
   </section>
 
-  <section class="panel" id="sec-secret" aria-label="Geschützter Link" hidden>
-    <h2>Geschützter Link</h2>
-    <p class="hint" id="secret-hint">Dieser Link ist mit einem Passwort geschützt.</p>
-    <div class="opts" id="secret-form">
-      <label>Passwort <input type="password" id="secret-pw" autocomplete="off" spellcheck="false"></label>
-    </div>
-    <div class="btns small" id="secret-btns"><button id="secret-open" type="button" class="primary">Link anzeigen</button></div>
-    <p class="hint" id="secret-msg" role="status"></p>
-    <p id="secret-link" hidden></p>
-  </section>
-
   <section class="panel" id="sec-data" aria-label="Fortschritt und Daten">
     <h2>Fortschritt und Daten</h2>
     <div class="btns small"><button id="export" type="button">Fortschritt exportieren</button><button id="import" type="button">Fortschritt importieren</button>
@@ -334,34 +323,6 @@ function settings() {
     LS.set('vk:opt', opt);
   };
   ['#goal', '#endless', '#typing', '#auto', '#retype', '#conj-pres', '#conj-pc', '#keys-off', '#keymap', '#keys-input'].forEach(sel => { $(sel).onchange = setLearn; });
-
-  // Geschützter Link (geheim.json wird beim Veröffentlichen aus den Repository-Secrets erzeugt; ohne Secrets gibt es den Bereich nicht)
-  fetch('geheim.json', { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).then(box => {
-    if (!box || !box.data || !$('#sec-secret')) return;
-    $('#sec-secret').hidden = false;
-    $('#secret-hint').textContent = box.hint || 'Dieser Link ist mit einem Passwort geschützt. Das Passwort bekommst du von deinem Lehrer.';
-    // Das richtige Passwort wird in diesem Browser gemerkt (nicht im Fortschritts-Export). Ändert sich das Passwort, wird nochmal gefragt.
-    const show = link => {
-      if (!/^https?:\/\//i.test(link)) throw new Error('kein Link');
-      const a = document.createElement('a');
-      a.href = link; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = 'Geschützten Link öffnen';
-      const lock = document.createElement('button');
-      lock.type = 'button'; lock.textContent = 'Wieder sperren'; lock.style.marginLeft = '12px';
-      lock.onclick = () => { LS.set('secretpw', ''); $('#secret-link').hidden = true; $('#secret-link').replaceChildren(); $('#secret-form').hidden = false; $('#secret-btns').hidden = false; $('#secret-msg').textContent = ''; };
-      $('#secret-link').replaceChildren(a, lock); $('#secret-link').hidden = false;
-      $('#secret-form').hidden = true; $('#secret-btns').hidden = true; $('#secret-pw').value = '';
-    };
-    const open = async () => {
-      const msg = $('#secret-msg'); msg.textContent = '';
-      const password = $('#secret-pw').value;
-      try { show(await entschluesseln(box, password)); LS.set('secretpw', password); }
-      catch { msg.textContent = 'Falsches Passwort.'; }
-    };
-    $('#secret-open').onclick = open;
-    $('#secret-pw').onkeydown = e => { if (e.key === 'Enter') open(); };
-    const saved = LS.get('secretpw', '');
-    if (saved) entschluesseln(box, saved).then(show).catch(() => LS.set('secretpw', ''));
-  }).catch(() => { /* kein geschützter Link vorhanden */ });
 
   // Installation
   const bindInstall = () => {

@@ -428,6 +428,7 @@ function home() {
   </details>
   <button id="sa-open" class="topic entry" type="button"><span class="sym" aria-hidden="true">🎓</span><span class="tt"><b>Schulaufgabe vorbereiten</b><small>Übungen zu Verben, Verneinung, Vergangenheit und Textproduktion</small></span></button>
   <div id="list"></div>
+  <div id="secret-slot"></div>
   <section class="panel" aria-label="Diese Runde">
     <h2>Diese Runde</h2>
     <div class="opts">
@@ -445,6 +446,7 @@ function home() {
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#limit').value = String(opt.limit || 0);
   $('#hard').checked = opt.hard || false;
   renderToday();
+  if (typeof mountGeheim === 'function') mountGeheim($('#secret-slot'));
   const setOpt = () => {
     opt = { ...opt, dir: $('#dir').value, all: $('#all').checked, hard: $('#hard').checked, limit: Number($('#limit').value) };
     LS.set('vk:opt', opt); updateGo();

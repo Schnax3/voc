@@ -1025,20 +1025,19 @@ test('Tagesziel: Fortschritt auf der Startseite, Hinweis beim Erreichen, einstel
   await context.close();
 });
 
-test('Geschützter Link: nur mit Passwort sichtbar, nur wenn geheim.json existiert', async ({ browser, base }) => {
+test('Geschützter Link auf der Startseite: nur mit Passwort sichtbar, nur wenn geheim.json existiert', async ({ browser, base }) => {
   // ohne geheim.json (Secrets fehlen): kein Bereich
   let { context, page } = await openApp(browser, base);
-  await page.click('#settings'); await page.waitForSelector('#sec-learn');
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(500);
   assert.equal(await page.isHidden('#sec-secret'), true);
   await context.close();
   // mit geheim.json
   const { encrypt } = require('../../scripts/encrypt_link.cjs');
   const link = 'https://drive.google.com/drive/folders/geheim123';
   const box = encrypt(link, 'klasse2026', 'Frag Herrn Meier');
-  ({ context, page } = await openApp(browser, base));
+  ({ context, page } = await openApp(browser, base, { waitRows: false }));
   await context.route('**/geheim.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(box) }));
-  await page.click('#settings'); await page.waitForSelector('#sec-secret:not([hidden])');
+  await page.reload(); await page.waitForSelector('#sec-secret');
   assert.equal(await page.innerText('#secret-hint'), 'Frag Herrn Meier');
   assert.equal(await page.locator('#secret-link a').count(), 0);
   assert.ok(!(await page.content()).includes('geheim123'), 'Link steht nicht im Klartext auf der Seite');
@@ -1049,24 +1048,19 @@ test('Geschützter Link: nur mit Passwort sichtbar, nur wenn geheim.json existie
   await page.waitForSelector('#secret-link a');
   assert.equal(await page.getAttribute('#secret-link a', 'href'), link);
   // gemerkt: beim erneuten Öffnen der Einstellungen ist der Link gleich da
-  await page.click('#back-home'); await page.waitForSelector('#go');
-  await page.click('#settings'); await page.waitForSelector('#secret-link a');
+  await page.reload(); await page.waitForSelector('#secret-link a');
   assert.equal(await page.isHidden('#secret-form'), true);
   // wieder sperren vergisst das Passwort
   await page.click('#secret-link button');
   assert.equal(await page.isHidden('#secret-form'), false);
-  await page.click('#back-home'); await page.waitForSelector('#go');
-  await page.click('#settings'); await page.waitForSelector('#sec-secret:not([hidden])');
-  await page.waitForTimeout(500);
+  await page.reload(); await page.waitForSelector('#sec-secret'); await page.waitForTimeout(500);
   assert.equal(await page.locator('#secret-link a').count(), 0);
   // geändertes Passwort (neue geheim.json): gemerktes Passwort passt nicht mehr, es wird wieder gefragt
   await page.fill('#secret-pw', 'klasse2026'); await page.click('#secret-open'); await page.waitForSelector('#secret-link a');
   const neu = encrypt(link, 'anders');
   await context.unroute('**/geheim.json');
   await context.route('**/geheim.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(neu) }));
-  await page.click('#back-home'); await page.waitForSelector('#go');
-  await page.click('#settings'); await page.waitForSelector('#sec-secret:not([hidden])');
-  await page.waitForTimeout(500);
+  await page.reload(); await page.waitForSelector('#sec-secret'); await page.waitForTimeout(500);
   assert.equal(await page.locator('#secret-link a').count(), 0);
   assert.equal(await page.isHidden('#secret-form'), false);
   await context.close();
