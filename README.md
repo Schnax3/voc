@@ -159,7 +159,7 @@ stehen **nie im Repo**, sondern in den Repository-Secrets (Settings → Secrets 
 „Das Passwort bekommst du von deinem Lehrer.“). Beim Veröffentlichen verschlüsselt `scripts/encrypt_link.cjs` den Link (PBKDF2 + AES-256-GCM)
 zu `geheim.json`; die Seite enthält nur den verschlüsselten Text, `geheim.js` entschlüsselt ihn im Browser nach der Eingabe. Fehlt ein
 Secret, erscheint der Bereich nicht. Nach dem Ändern eines Secrets die Seite neu veröffentlichen (Actions → Deploy test page / Publish site).
-Wer das Passwort kennt, kann den Link weitergeben; das Drive selbst sollte zusätzlich nur für die Klasse freigegeben sein.
+Das richtige Passwort wird im Browser gemerkt („Wieder sperren“ vergisst es; ändert sich das Passwort, wird neu gefragt). Wer das Passwort kennt, kann den Link weitergeben; das Drive selbst sollte zusätzlich nur für die Klasse freigegeben sein.
 
 ## Offline-Nutzung
 

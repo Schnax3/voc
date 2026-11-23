@@ -82,6 +82,7 @@ input[type=color]{width:52px;height:36px;padding:2px;border:1px solid var(--line
 .logo-choices label{display:flex;gap:8px;align-items:center}
 #logo-text-box,#logo-image-box{display:grid;gap:8px;margin-top:12px}
 #logo-text-box[hidden],#logo-image-box[hidden]{display:none}
+#sec-secret [hidden]{display:none}
 .steps{margin:10px 0;padding-left:22px}
 .steps li{margin:6px 0}
 .today{margin:0 0 10px;font-weight:600;min-height:0}

@@ -1048,6 +1048,27 @@ test('Geschützter Link: nur mit Passwort sichtbar, nur wenn geheim.json existie
   await page.fill('#secret-pw', 'klasse2026'); await page.press('#secret-pw', 'Enter');
   await page.waitForSelector('#secret-link a');
   assert.equal(await page.getAttribute('#secret-link a', 'href'), link);
+  // gemerkt: beim erneuten Öffnen der Einstellungen ist der Link gleich da
+  await page.click('#back-home'); await page.waitForSelector('#go');
+  await page.click('#settings'); await page.waitForSelector('#secret-link a');
+  assert.equal(await page.isHidden('#secret-form'), true);
+  // wieder sperren vergisst das Passwort
+  await page.click('#secret-link button');
+  assert.equal(await page.isHidden('#secret-form'), false);
+  await page.click('#back-home'); await page.waitForSelector('#go');
+  await page.click('#settings'); await page.waitForSelector('#sec-secret:not([hidden])');
+  await page.waitForTimeout(500);
+  assert.equal(await page.locator('#secret-link a').count(), 0);
+  // geändertes Passwort (neue geheim.json): gemerktes Passwort passt nicht mehr, es wird wieder gefragt
+  await page.fill('#secret-pw', 'klasse2026'); await page.click('#secret-open'); await page.waitForSelector('#secret-link a');
+  const neu = encrypt(link, 'anders');
+  await context.unroute('**/geheim.json');
+  await context.route('**/geheim.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(neu) }));
+  await page.click('#back-home'); await page.waitForSelector('#go');
+  await page.click('#settings'); await page.waitForSelector('#sec-secret:not([hidden])');
+  await page.waitForTimeout(500);
+  assert.equal(await page.locator('#secret-link a').count(), 0);
+  assert.equal(await page.isHidden('#secret-form'), false);
   await context.close();
 });
 

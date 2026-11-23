@@ -340,19 +340,27 @@ function settings() {
     if (!box || !box.data || !$('#sec-secret')) return;
     $('#sec-secret').hidden = false;
     $('#secret-hint').textContent = box.hint || 'Dieser Link ist mit einem Passwort geschützt. Das Passwort bekommst du von deinem Lehrer.';
+    // Das richtige Passwort wird in diesem Browser gemerkt (nicht im Fortschritts-Export). Ändert sich das Passwort, wird nochmal gefragt.
+    const show = link => {
+      if (!/^https?:\/\//i.test(link)) throw new Error('kein Link');
+      const a = document.createElement('a');
+      a.href = link; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = 'Geschützten Link öffnen';
+      const lock = document.createElement('button');
+      lock.type = 'button'; lock.textContent = 'Wieder sperren'; lock.style.marginLeft = '12px';
+      lock.onclick = () => { LS.set('secretpw', ''); $('#secret-link').hidden = true; $('#secret-link').replaceChildren(); $('#secret-form').hidden = false; $('#secret-btns').hidden = false; $('#secret-msg').textContent = ''; };
+      $('#secret-link').replaceChildren(a, lock); $('#secret-link').hidden = false;
+      $('#secret-form').hidden = true; $('#secret-btns').hidden = true; $('#secret-pw').value = '';
+    };
     const open = async () => {
       const msg = $('#secret-msg'); msg.textContent = '';
-      try {
-        const link = await entschluesseln(box, $('#secret-pw').value);
-        if (!/^https?:\/\//i.test(link)) throw new Error('kein Link');
-        const a = document.createElement('a');
-        a.href = link; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = 'Geschützten Link öffnen';
-        $('#secret-link').replaceChildren(a); $('#secret-link').hidden = false;
-        $('#secret-form').hidden = true; $('#secret-btns').hidden = true; $('#secret-pw').value = '';
-      } catch { msg.textContent = 'Falsches Passwort.'; }
+      const password = $('#secret-pw').value;
+      try { show(await entschluesseln(box, password)); LS.set('secretpw', password); }
+      catch { msg.textContent = 'Falsches Passwort.'; }
     };
     $('#secret-open').onclick = open;
     $('#secret-pw').onkeydown = e => { if (e.key === 'Enter') open(); };
+    const saved = LS.get('secretpw', '');
+    if (saved) entschluesseln(box, saved).then(show).catch(() => LS.set('secretpw', ''));
   }).catch(() => { /* kein geschützter Link vorhanden */ });
 
   // Installation
