@@ -15,3 +15,4 @@ permissions:
 jobs:
   publish:
     uses: ./.github/workflows/deploy-site.yml
+    secrets: inherit

@@ -151,6 +151,16 @@ ordnet Dateien ohne Karte der passenden Vokabel zu und committet die Änderung. 
 bleibt liegen und steht in der Zusammenfassung des Laufs. Lokal: `python scripts/audio_zuordnen.py lektionen/dec2-u7a --dry-run`.
 Benötigt das Secret `GEMINI_API_KEY` (wie die KI-Issues); ohne Schlüssel gibt es nur die exakten Treffer.
 
+## Geschützter Link (Passwort)
+
+Einstellungen → „Geschützter Link“: ein Link (z. B. Drive-Ordner der Klasse), der nur mit Passwort sichtbar ist. Link und Passwort
+stehen **nie im Repo**, sondern in den Repository-Secrets (Settings → Secrets and variables → Actions):
+`DRIVE_LINK` (der Link), `DRIVE_PASSWORT` (das Passwort); optional die Variable `DRIVE_HINWEIS` (Hinweis unter dem Feld, Standard:
+„Das Passwort bekommst du von deinem Lehrer.“). Beim Veröffentlichen verschlüsselt `scripts/encrypt_link.cjs` den Link (PBKDF2 + AES-256-GCM)
+zu `geheim.json`; die Seite enthält nur den verschlüsselten Text, `geheim.js` entschlüsselt ihn im Browser nach der Eingabe. Fehlt ein
+Secret, erscheint der Bereich nicht. Nach dem Ändern eines Secrets die Seite neu veröffentlichen (Actions → Deploy test page / Publish site).
+Wer das Passwort kennt, kann den Link weitergeben; das Drive selbst sollte zusätzlich nur für die Klasse freigegeben sein.
+
 ## Offline-Nutzung
 
 Wenn noch keine Offline-Inhalte gespeichert sind, zeigt die Startseite den kleinen Knopf **„Möchtest du offline gehen?“**. Speichere dann einmal online alle Lektionen oder nur die ausgewählten; so werden auch Audio und Bilder verfügbar. Kommen später neue Lektionen hinzu, bietet die Startseite **„Offline-Inhalte aktualisieren“** an. Anschließend kannst du die Seite über „Als App installieren“ zum Startbildschirm oder Desktop hinzufügen. Der Service Worker steht in `sw.js`.
