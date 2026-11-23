@@ -53,13 +53,13 @@ jobs:
           stamp site/dev
 
       # Geschützter Link (z. B. Drive-Ordner der Klasse): wird mit dem Passwort verschlüsselt, nur der verschlüsselte Text kommt
-      # auf die Seite (geheim.json). Secrets: DRIVE_LINK, DRIVE_PASSWORT; optional Variable DRIVE_HINWEIS (Hinweis unter dem Feld).
+      # auf die Seite (geheim.json). Secrets: DRIVE_LINK, DRIVE_PASSWORT; optional Variable (oder Secret) DRIVE_HINWEIS (Text hinter dem blauen Hinweis).
       # Fehlt ein Secret, gibt es keine geheim.json und die App zeigt den Bereich nicht an.
       - name: Encrypt protected link
         env:
           DRIVE_LINK: ${{ secrets.DRIVE_LINK }}
           DRIVE_PASSWORT: ${{ secrets.DRIVE_PASSWORT }}
-          DRIVE_HINWEIS: ${{ vars.DRIVE_HINWEIS }}
+          DRIVE_HINWEIS: ${{ vars.DRIVE_HINWEIS || secrets.DRIVE_HINWEIS }}
         run: |
           outputs=(site/geheim.json)
           [ -d site/dev ] && outputs+=(site/dev/geheim.json)
