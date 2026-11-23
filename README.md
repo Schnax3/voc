@@ -153,7 +153,7 @@ Benötigt das Secret `GEMINI_API_KEY` (wie die KI-Issues); ohne Schlüssel gibt 
 
 ## Audio-Link (Passwort)
 
-Startseite, Bereich „Audio-Link“ (unter der Lektionsliste): ein Link (z. B. Drive-Ordner der Klasse), der nur mit Passwort sichtbar ist. Link und Passwort
+Startseite, Bereich „Audio-Link“ (direkt über der Kachel „Schulaufgabe vorbereiten“): ein Link (z. B. Drive-Ordner der Klasse), der nur mit Passwort sichtbar ist. Link und Passwort
 stehen **nie im Repo**, sondern in den Repository-Secrets (Settings → Secrets and variables → Actions):
 `DRIVE_LINK` (der Link), `DRIVE_PASSWORT` (das Passwort); optional die Variable `DRIVE_HINWEIS` (Hinweis unter dem Feld, Standard:
 „Das Passwort bekommst du von deinem Lehrer.“). Beim Veröffentlichen verschlüsselt `scripts/encrypt_link.cjs` den Link (PBKDF2 + AES-256-GCM)
