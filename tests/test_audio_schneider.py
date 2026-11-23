@@ -490,7 +490,8 @@ class ChunkTests(unittest.TestCase):
                     intervals.append((start, end)), Path(dest).write_bytes(b"wav")
                 )
                 result = SimpleNamespace(stderr=silence_output, returncode=0)
-                with patch.object(production_sc.subprocess, "run", return_value=result) as run:
+                with patch.object(production_sc.shutil, "which", return_value="/usr/bin/ffmpeg"), \
+                        patch.object(production_sc.subprocess, "run", return_value=result) as run:
                     chunks = cutter._chunks(Path("source.wav"), "test")
                 self.assertIn("silencedetect=noise=-38dB:d=0.3", run.call_args.args[0])
                 self.assertEqual(intervals, [(a, b) for a, b, _ in chunks])
