@@ -52,6 +52,23 @@ jobs:
           stamp site
           stamp site/dev
 
+      # Geschützter Link (z. B. Drive-Ordner der Klasse): wird mit dem Passwort verschlüsselt, nur der verschlüsselte Text kommt
+      # auf die Seite (geheim.json). Secrets: DRIVE_LINK, DRIVE_PASSWORT; optional Variable DRIVE_HINWEIS (Hinweis unter dem Feld).
+      # Fehlt ein Secret, gibt es keine geheim.json und die App zeigt den Bereich nicht an.
+      - name: Encrypt protected link
+        env:
+          DRIVE_LINK: ${{ secrets.DRIVE_LINK }}
+          DRIVE_PASSWORT: ${{ secrets.DRIVE_PASSWORT }}
+          DRIVE_HINWEIS: ${{ vars.DRIVE_HINWEIS }}
+        run: |
+          outputs=(site/geheim.json)
+          [ -d site/dev ] && outputs+=(site/dev/geheim.json)
+          # Das Skript liegt im Checkout von dev (der neueren Version), sonst in main.
+          script=site/dev/scripts/encrypt_link.cjs
+          [ -f "$script" ] || script=site/scripts/encrypt_link.cjs
+          if [ ! -f "$script" ]; then echo "encrypt_link.cjs nicht gefunden: keine geheim.json."; exit 0; fi
+          node "$script" "${outputs[@]}"
+
       - name: Assemble site
         run: |
           rm -rf site/.git site/dev/.git

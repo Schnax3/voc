@@ -1025,6 +1025,46 @@ test('Tagesziel: Fortschritt auf der Startseite, Hinweis beim Erreichen, einstel
   await context.close();
 });
 
+test('Audio-Link auf der Startseite: nur mit Passwort sichtbar, nur wenn geheim.json existiert', async ({ browser, base }) => {
+  // ohne geheim.json (Secrets fehlen): kein Bereich
+  let { context, page } = await openApp(browser, base);
+  await page.waitForTimeout(500);
+  assert.equal(await page.isHidden('#sec-secret'), true);
+  await context.close();
+  // mit geheim.json
+  const { encrypt } = require('../../scripts/encrypt_link.cjs');
+  const link = 'https://drive.google.com/drive/folders/geheim123';
+  const box = encrypt(link, 'klasse2026', 'Frag Herrn Meier');
+  ({ context, page } = await openApp(browser, base, { waitRows: false }));
+  await context.route('**/geheim.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(box) }));
+  await page.reload(); await page.waitForSelector('#sec-secret');
+  assert.equal(await page.innerText('#secret-hint'), 'Frag Herrn Meier');
+  assert.equal(await page.locator('#secret-link a').count(), 0);
+  assert.ok(!(await page.content()).includes('geheim123'), 'Link steht nicht im Klartext auf der Seite');
+  await page.fill('#secret-pw', 'falsch'); await page.click('#secret-open');
+  await page.waitForFunction(() => document.querySelector('#secret-msg').textContent.includes('Falsches Passwort'));
+  assert.equal(await page.locator('#secret-link a').count(), 0);
+  await page.fill('#secret-pw', 'klasse2026'); await page.press('#secret-pw', 'Enter');
+  await page.waitForSelector('#secret-link a');
+  assert.equal(await page.getAttribute('#secret-link a', 'href'), link);
+  // gemerkt: beim erneuten Öffnen der Einstellungen ist der Link gleich da
+  await page.reload(); await page.waitForSelector('#secret-link a');
+  assert.equal(await page.isHidden('#secret-form'), true);
+  assert.equal(await page.locator('#secret-link button').count(), 0, 'kein Sperr-Knopf');
+  await page.evaluate(() => { for (const k of Object.keys(localStorage)) if (k.endsWith('secretpw')) localStorage.removeItem(k); });
+  await page.reload(); await page.waitForSelector('#sec-secret'); await page.waitForTimeout(500);
+  assert.equal(await page.locator('#secret-link a').count(), 0);
+  // geändertes Passwort (neue geheim.json): gemerktes Passwort passt nicht mehr, es wird wieder gefragt
+  await page.fill('#secret-pw', 'klasse2026'); await page.click('#secret-open'); await page.waitForSelector('#secret-link a');
+  const neu = encrypt(link, 'anders');
+  await context.unroute('**/geheim.json');
+  await context.route('**/geheim.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(neu) }));
+  await page.reload(); await page.waitForSelector('#sec-secret'); await page.waitForTimeout(500);
+  assert.equal(await page.locator('#secret-link a').count(), 0);
+  assert.equal(await page.isHidden('#secret-form'), false);
+  await context.close();
+});
+
 (async () => {
   const server = await startServer();
   const browser = await chromium.launch();

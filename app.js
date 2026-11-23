@@ -426,6 +426,7 @@ function home() {
     <p>Jede Karte liegt in einem von 5 Kästen. Weißt du sie, rückt sie einen Kasten weiter und kommt erst nach ${DAYS.slice(1).join(', ')} Tagen wieder. Weißt du sie nicht, geht sie zurück in Kasten 1 und kommt in der Runde gleich nochmal.</p>
     <p>Karten, die du mehrfach falsch hattest, gelten als „schwierig“ und lassen sich gezielt üben. Alles wird nur in diesem Browser gespeichert. Mit Export und Import (unter ⚙ Einstellungen) ziehst du auf ein anderes Gerät um.</p>
   </details>
+  <div id="secret-slot"></div>
   <button id="sa-open" class="topic entry" type="button"><span class="sym" aria-hidden="true">🎓</span><span class="tt"><b>Schulaufgabe vorbereiten</b><small>Übungen zu Verben, Verneinung, Vergangenheit und Textproduktion</small></span></button>
   <div id="list"></div>
   <section class="panel" aria-label="Diese Runde">
@@ -445,6 +446,7 @@ function home() {
   $('#dir').value = opt.dir; $('#all').checked = opt.all; $('#limit').value = String(opt.limit || 0);
   $('#hard').checked = opt.hard || false;
   renderToday();
+  if (typeof mountGeheim === 'function') mountGeheim($('#secret-slot'));
   const setOpt = () => {
     opt = { ...opt, dir: $('#dir').value, all: $('#all').checked, hard: $('#hard').checked, limit: Number($('#limit').value) };
     LS.set('vk:opt', opt); updateGo();
