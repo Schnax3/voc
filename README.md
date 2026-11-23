@@ -155,7 +155,7 @@ Benötigt das Secret `GEMINI_API_KEY` (wie die KI-Issues); ohne Schlüssel gibt 
 
 Startseite, Bereich „Audio-Link“ (direkt über der Kachel „Schulaufgabe vorbereiten“): ein Link (z. B. Drive-Ordner der Klasse), der nur mit Passwort sichtbar ist. Link und Passwort
 stehen **nie im Repo**, sondern in den Repository-Secrets (Settings → Secrets and variables → Actions):
-`DRIVE_LINK` (der Link), `DRIVE_PASSWORT` (das Passwort); optional die Variable `DRIVE_HINWEIS` (Hinweis unter dem Feld, Standard:
+`DRIVE_LINK` (der Link), `DRIVE_PASSWORT` (das Passwort); optional die Variable `DRIVE_HINWEIS` (Text hinter dem blauen „Hinweis“ unter dem Feld; ohne Variable gibt es den Knopf nicht. Darüber steht immer:
 „Du bekommst das Passwort über den WhatsApp-Klassengruppenchat.“). Beim Veröffentlichen verschlüsselt `scripts/encrypt_link.cjs` den Link (PBKDF2 + AES-256-GCM)
 zu `geheim.json`; die Seite enthält nur den verschlüsselten Text, `geheim.js` entschlüsselt ihn im Browser nach der Eingabe. Fehlt ein
 Secret, erscheint der Bereich nicht. Nach dem Ändern eines Secrets die Seite neu veröffentlichen (Actions → Deploy test page / Publish site).

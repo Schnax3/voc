@@ -15,17 +15,26 @@ function mountGeheim(slot) {
   if (!slot) return;
   fetch('geheim.json', { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).then(box => {
     if (!box || !box.data || !slot.isConnected) return;
-    const hint = box.hint || 'Der Audio-Link ist mit einem Passwort geschützt. Du bekommst das Passwort über den WhatsApp-Klassengruppenchat.';
     slot.innerHTML = `<section class="panel" id="sec-secret" aria-label="Audio-Link">
       <h2>Audio-Link</h2>
-      <p class="hint" id="secret-hint"></p>
+      <p class="hint" id="secret-hint">Der Audio-Link ist mit einem Passwort geschützt. Du bekommst das Passwort über den WhatsApp-Klassengruppenchat.</p>
+      <button id="secret-hint-btn" class="linklike" type="button" aria-expanded="false" hidden>Hinweis</button>
+      <p class="hint" id="secret-hint-text" hidden></p>
       <div class="opts" id="secret-form"><label>Passwort <input type="password" id="secret-pw" autocomplete="off" spellcheck="false"></label></div>
       <div class="btns small" id="secret-btns"><button id="secret-open" type="button" class="primary">Link anzeigen</button></div>
       <p class="hint" id="secret-msg" role="status"></p>
       <p id="secret-link" hidden></p>
     </section>`;
     const $ = s => slot.querySelector(s);
-    $('#secret-hint').textContent = hint;
+    if (box.hint) {
+      // Der Hinweis (Variable DRIVE_HINWEIS) steht erst nach Klick auf den blauen Text „Hinweis“ da.
+      $('#secret-hint-text').textContent = box.hint;
+      $('#secret-hint-btn').hidden = false;
+      $('#secret-hint-btn').onclick = () => {
+        const open = $('#secret-hint-text').hidden;
+        $('#secret-hint-text').hidden = !open; $('#secret-hint-btn').setAttribute('aria-expanded', String(open));
+      };
+    }
     const show = link => {
       if (!/^https?:\/\//i.test(link)) throw new Error('kein Link');
       const a = document.createElement('a');
