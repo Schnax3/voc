@@ -1038,7 +1038,12 @@ test('Audio-Link auf der Startseite: nur mit Passwort sichtbar, nur wenn geheim.
   ({ context, page } = await openApp(browser, base, { waitRows: false }));
   await context.route('**/geheim.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(box) }));
   await page.reload(); await page.waitForSelector('#sec-secret');
-  assert.equal(await page.innerText('#secret-hint'), 'Frag Herrn Meier');
+  assert.match(await page.innerText('#secret-hint'), /WhatsApp-Klassengruppenchat/);
+  assert.equal(await page.isHidden('#secret-hint-text'), true, 'Hinweis erst nach Klick');
+  await page.click('#secret-hint-btn');
+  assert.equal(await page.innerText('#secret-hint-text'), 'Frag Herrn Meier');
+  await page.click('#secret-hint-btn');
+  assert.equal(await page.isHidden('#secret-hint-text'), true);
   assert.equal(await page.locator('#secret-link a').count(), 0);
   assert.ok(!(await page.content()).includes('geheim123'), 'Link steht nicht im Klartext auf der Seite');
   await page.fill('#secret-pw', 'falsch'); await page.click('#secret-open');
