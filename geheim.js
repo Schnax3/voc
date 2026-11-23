@@ -15,7 +15,7 @@ function mountGeheim(slot) {
   if (!slot) return;
   fetch('geheim.json', { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).then(box => {
     if (!box || !box.data || !slot.isConnected) return;
-    const hint = box.hint || 'Der Audio-Link ist mit einem Passwort geschützt. Das Passwort bekommst du von deinem Lehrer.';
+    const hint = box.hint || 'Der Audio-Link ist mit einem Passwort geschützt. Du bekommst das Passwort über den WhatsApp-Klassengruppenchat.';
     slot.innerHTML = `<section class="panel" id="sec-secret" aria-label="Audio-Link">
       <h2>Audio-Link</h2>
       <p class="hint" id="secret-hint"></p>
