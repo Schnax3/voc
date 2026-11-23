@@ -151,15 +151,15 @@ ordnet Dateien ohne Karte der passenden Vokabel zu und committet die Änderung. 
 bleibt liegen und steht in der Zusammenfassung des Laufs. Lokal: `python scripts/audio_zuordnen.py lektionen/dec2-u7a --dry-run`.
 Benötigt das Secret `GEMINI_API_KEY` (wie die KI-Issues); ohne Schlüssel gibt es nur die exakten Treffer.
 
-## Geschützter Link (Passwort)
+## Audio-Link (Passwort)
 
-Startseite, Bereich „Geschützter Link“ (unter der Lektionsliste): ein Link (z. B. Drive-Ordner der Klasse), der nur mit Passwort sichtbar ist. Link und Passwort
+Startseite, Bereich „Audio-Link“ (unter der Lektionsliste): ein Link (z. B. Drive-Ordner der Klasse), der nur mit Passwort sichtbar ist. Link und Passwort
 stehen **nie im Repo**, sondern in den Repository-Secrets (Settings → Secrets and variables → Actions):
 `DRIVE_LINK` (der Link), `DRIVE_PASSWORT` (das Passwort); optional die Variable `DRIVE_HINWEIS` (Hinweis unter dem Feld, Standard:
 „Das Passwort bekommst du von deinem Lehrer.“). Beim Veröffentlichen verschlüsselt `scripts/encrypt_link.cjs` den Link (PBKDF2 + AES-256-GCM)
 zu `geheim.json`; die Seite enthält nur den verschlüsselten Text, `geheim.js` entschlüsselt ihn im Browser nach der Eingabe. Fehlt ein
 Secret, erscheint der Bereich nicht. Nach dem Ändern eines Secrets die Seite neu veröffentlichen (Actions → Deploy test page / Publish site).
-Das richtige Passwort wird im Browser gemerkt („Wieder sperren“ vergisst es; ändert sich das Passwort, wird neu gefragt). Wer das Passwort kennt, kann den Link weitergeben; das Drive selbst sollte zusätzlich nur für die Klasse freigegeben sein.
+Das richtige Passwort wird im Browser gemerkt (ändert sich das Passwort, wird neu gefragt). Wer das Passwort kennt, kann den Link weitergeben; das Drive selbst sollte zusätzlich nur für die Klasse freigegeben sein.
 
 ## Offline-Nutzung
 

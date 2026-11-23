@@ -1025,7 +1025,7 @@ test('Tagesziel: Fortschritt auf der Startseite, Hinweis beim Erreichen, einstel
   await context.close();
 });
 
-test('Geschützter Link auf der Startseite: nur mit Passwort sichtbar, nur wenn geheim.json existiert', async ({ browser, base }) => {
+test('Audio-Link auf der Startseite: nur mit Passwort sichtbar, nur wenn geheim.json existiert', async ({ browser, base }) => {
   // ohne geheim.json (Secrets fehlen): kein Bereich
   let { context, page } = await openApp(browser, base);
   await page.waitForTimeout(500);
@@ -1050,9 +1050,8 @@ test('Geschützter Link auf der Startseite: nur mit Passwort sichtbar, nur wenn 
   // gemerkt: beim erneuten Öffnen der Einstellungen ist der Link gleich da
   await page.reload(); await page.waitForSelector('#secret-link a');
   assert.equal(await page.isHidden('#secret-form'), true);
-  // wieder sperren vergisst das Passwort
-  await page.click('#secret-link button');
-  assert.equal(await page.isHidden('#secret-form'), false);
+  assert.equal(await page.locator('#secret-link button').count(), 0, 'kein Sperr-Knopf');
+  await page.evaluate(() => { for (const k of Object.keys(localStorage)) if (k.endsWith('secretpw')) localStorage.removeItem(k); });
   await page.reload(); await page.waitForSelector('#sec-secret'); await page.waitForTimeout(500);
   assert.equal(await page.locator('#secret-link a').count(), 0);
   // geändertes Passwort (neue geheim.json): gemerktes Passwort passt nicht mehr, es wird wieder gefragt

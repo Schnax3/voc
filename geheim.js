@@ -10,14 +10,14 @@ async function entschluesseln(box, password) {
 }
 
 // Zeigt auf der Startseite den passwortgeschützten Link an (nur wenn geheim.json existiert, also beide Secrets gesetzt sind).
-// Das richtige Passwort wird in diesem Browser gemerkt (nicht im Fortschritts-Export). Ändert sich das Passwort, wird neu gefragt.
+// Das richtige Passwort wird in diesem Browser gemerkt (nicht im Fortschritts-Export). Es gibt keinen Sperr-Knopf. Ändert sich das Passwort, wird neu gefragt.
 function mountGeheim(slot) {
   if (!slot) return;
   fetch('geheim.json', { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).then(box => {
     if (!box || !box.data || !slot.isConnected) return;
-    const hint = box.hint || 'Dieser Link ist mit einem Passwort geschützt. Das Passwort bekommst du von deinem Lehrer.';
-    slot.innerHTML = `<section class="panel" id="sec-secret" aria-label="Geschützter Link">
-      <h2>Geschützter Link</h2>
+    const hint = box.hint || 'Der Audio-Link ist mit einem Passwort geschützt. Das Passwort bekommst du von deinem Lehrer.';
+    slot.innerHTML = `<section class="panel" id="sec-secret" aria-label="Audio-Link">
+      <h2>Audio-Link</h2>
       <p class="hint" id="secret-hint"></p>
       <div class="opts" id="secret-form"><label>Passwort <input type="password" id="secret-pw" autocomplete="off" spellcheck="false"></label></div>
       <div class="btns small" id="secret-btns"><button id="secret-open" type="button" class="primary">Link anzeigen</button></div>
@@ -29,11 +29,8 @@ function mountGeheim(slot) {
     const show = link => {
       if (!/^https?:\/\//i.test(link)) throw new Error('kein Link');
       const a = document.createElement('a');
-      a.href = link; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = 'Geschützten Link öffnen';
-      const lock = document.createElement('button');
-      lock.type = 'button'; lock.textContent = 'Wieder sperren'; lock.style.marginLeft = '12px';
-      lock.onclick = () => { LS.set('secretpw', ''); $('#secret-link').hidden = true; $('#secret-link').replaceChildren(); $('#secret-form').hidden = false; $('#secret-btns').hidden = false; $('#secret-msg').textContent = ''; };
-      $('#secret-link').replaceChildren(a, lock); $('#secret-link').hidden = false;
+      a.href = link; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = 'Audio-Link öffnen';
+      $('#secret-link').replaceChildren(a); $('#secret-link').hidden = false;
       $('#secret-form').hidden = true; $('#secret-btns').hidden = true; $('#secret-pw').value = '';
     };
     const open = async () => {
